@@ -111,16 +111,14 @@ export default function HomePage() {
                 <div className="absolute top-4 right-4 bg-purple-700 text-white font-extrabold text-[10px] px-3 py-1 rounded-full uppercase tracking-wider shadow-md">
                   Featured Series
                 </div>
-                <div className="p-3 rounded-2xl bg-white/95 border border-purple-200/50 shadow-lg mb-6 group-hover:scale-105 transition-transform duration-300">
-                  <Image
-                    src="/brand/ttrc-logo.png"
-                    alt="TTRC Store Hero"
-                    width={220}
-                    height={60}
-                    priority
-                    className="h-12 w-auto object-contain"
-                  />
-                </div>
+                <Image
+                  src="/brand/ttrc-logo.png"
+                  alt="TTRC Store Hero"
+                  width={240}
+                  height={100}
+                  priority
+                  className="object-contain mb-6 drop-shadow-md group-hover:scale-105 transition-transform duration-300"
+                />
                 <h3 className="font-heading text-xl font-bold text-white mb-2">Robo Race &amp; Line Follower Kits</h3>
                 <p className="text-xs text-purple-200 mb-6 max-w-xs">Complete competition kits with guaranteed spare parts compatibility</p>
                 <Link href="/category/gamified-robots">

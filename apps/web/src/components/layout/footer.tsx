@@ -54,13 +54,13 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-8">
         {/* Brand Info */}
         <div className="space-y-4 md:col-span-1">
-          <Link href="/" className="inline-block p-2 rounded-xl bg-white shadow-sm border border-slate-200 hover:border-purple-300 transition-colors" aria-label="TTRC Store Home">
+          <Link href="/" className="inline-block" aria-label="TTRC Store Home">
             <Image
               src="/brand/ttrc-logo.png"
               alt="Tamizh Tech Robotics Club Logo"
               width={160}
               height={44}
-              className="h-9 w-auto object-contain"
+              className="object-contain"
             />
           </Link>
           <p className="text-xs leading-relaxed text-slate-400">

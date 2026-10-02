@@ -39,8 +39,8 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-40 bg-[#FDFDFD] border-b border-slate-200 shadow-xs text-[#050507]">
-      {/* Top Utility Bar (Dark Navy Purple #1E0D45 per Spec) */}
-      <div className="bg-[#1E0D45] text-slate-200 text-[11px] py-1.5 px-4 sm:px-8 flex justify-between items-center border-b border-purple-950">
+      {/* Top Utility Bar (Hidden on Mobile per user request) */}
+      <div className="hidden md:flex bg-[#1E0D45] text-slate-200 text-[11px] py-1.5 px-4 sm:px-8 justify-between items-center border-b border-purple-950">
         <div className="flex items-center gap-4">
           <span className="flex items-center gap-1.5"><Truck size={13} className="text-[#AF87F8]" /> Free Dispatch on Orders Above ₹999 across India</span>
           <span className="hidden md:inline text-purple-800">|</span>
@@ -54,17 +54,17 @@ export default function Header() {
       </div>
 
       {/* Main Header Row */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 md:h-20 flex items-center justify-between gap-3 sm:gap-6">
         {/* Brand Logo Container (NO BACKGROUND COLOR - Clean Seamless Integration) */}
         <Link href="/" className="flex items-center gap-3 group flex-shrink-0" aria-label="TTRC Store Home">
-          <div className="relative py-1">
+          <div className="relative p-1">
             <Image
               src="/brand/ttrc-logo.png"
               alt="TTRC Store Logo"
-              width={160}
-              height={48}
+              width={140}
+              height={40}
               priority
-              className="h-10 sm:h-12 w-auto object-contain transition-transform group-hover:scale-105"
+              className="object-contain"
             />
           </div>
         </Link>
@@ -139,17 +139,17 @@ export default function Header() {
         </div>
 
         {/* Right Action Icons */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
           <ThemeToggle />
 
-          <Link href="/account/wishlist">
+          <Link href="/account/wishlist" className="hidden sm:inline-block">
             <Button variant="ghost" size="icon" className="text-[#1E0D45] hover:text-[#844AFB] hover:bg-[#EEE8FA] rounded-xl">
               <Heart size={18} />
             </Button>
           </Link>
 
           {/* Account Icon */}
-          <Link href="/account">
+          <Link href="/account" className="hidden sm:inline-block">
             <Button variant="ghost" size="icon" className="text-[#1E0D45] hover:text-[#844AFB] hover:bg-[#EEE8FA] rounded-xl">
               <User size={18} />
             </Button>
@@ -158,17 +158,37 @@ export default function Header() {
           {/* Cart Icon with Drawer Trigger */}
           <Button
             onClick={openDrawer}
-            className="bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold h-10 px-4 rounded-full flex items-center gap-2 shadow-md shadow-purple-900/20 text-xs glow-purple-sm"
+            className="bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold h-9 sm:h-10 px-3 sm:px-4 rounded-full flex items-center gap-1.5 sm:gap-2 shadow-md shadow-purple-900/20 text-xs glow-purple-sm"
           >
             <ShoppingBag size={16} />
             <span className="hidden sm:inline">Cart</span>
             {totalCartQty > 0 && (
-              <span className="bg-white text-[#6721F2] text-[11px] font-mono font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-xs">
+              <span className="bg-white text-[#6721F2] text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center">
                 {totalCartQty}
               </span>
             )}
           </Button>
         </div>
+      </div>
+
+      {/* Mobile Live Search Bar */}
+      <div className="sm:hidden px-4 pb-3">
+        <form onSubmit={handleSearchSubmit} className="relative flex items-center">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#6D6A6A] w-4 h-4" />
+          <Input
+            type="text"
+            placeholder="Search robotics kits, motors, sensors..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 pr-20 h-10 bg-white border-slate-200 text-[#050507] placeholder:text-[#6D6A6A] rounded-xl text-xs font-medium w-full focus:ring-2 focus:ring-[#844AFB]"
+          />
+          <Button
+            type="submit"
+            className="absolute right-1 top-1 bottom-1 px-3 bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold text-xs rounded-lg shadow-xs"
+          >
+            Search
+          </Button>
+        </form>
       </div>
 
       {/* Marketplace Category Navigation Subbar */}
