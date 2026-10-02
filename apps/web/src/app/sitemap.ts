@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
-import { getStoreCategories, getStoreProducts } from '@/lib/mongodb/catalog';
+
+export const dynamic = 'force-dynamic';
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ttrc.store';
 
@@ -31,21 +32,28 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  const categories = await getStoreCategories();
-  const categoryPages: MetadataRoute.Sitemap = categories.map((cat) => ({
-    url: `${BASE_URL}/category/${cat.slug}`,
-    lastModified: new Date(),
-    changeFrequency: 'weekly',
-    priority: 0.9,
-  }));
+  try {
+    const { getStoreCategories, getStoreProducts } = await import('@/lib/mongodb/catalog');
 
-  const { products } = await getStoreProducts({ limit: 500 });
-  const productPages: MetadataRoute.Sitemap = products.map((prod) => ({
-    url: `${BASE_URL}/product/${prod.slug}`,
-    lastModified: new Date(prod.updatedAt),
-    changeFrequency: 'daily',
-    priority: 0.8,
-  }));
+    const categories = await getStoreCategories();
+    const categoryPages: MetadataRoute.Sitemap = categories.map((cat) => ({
+      url: `${BASE_URL}/category/${cat.slug}`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    }));
 
-  return [...staticPages, ...categoryPages, ...productPages];
+    const { products } = await getStoreProducts({ limit: 500 });
+    const productPages: MetadataRoute.Sitemap = products.map((prod) => ({
+      url: `${BASE_URL}/product/${prod.slug}`,
+      lastModified: new Date(prod.updatedAt),
+      changeFrequency: 'daily',
+      priority: 0.8,
+    }));
+
+    return [...staticPages, ...categoryPages, ...productPages];
+  } catch (err) {
+    console.warn('[Sitemap] DB unavailable at build time — returning static pages only:', err);
+    return staticPages;
+  }
 }

@@ -2,7 +2,7 @@
 
 import { z } from 'zod';
 import { connectToDatabase } from '@/lib/mongodb/client';
-import { ProductModel, OrderModel, UserModel, CouponModel } from '@/lib/mongodb/models';
+import { ProductModel, OrderModel, UserModel, CouponModel, AuditLogModel } from '@/lib/mongodb/models';
 import { requireAdmin } from '@/lib/auth-helpers';
 import { ProductSchema, sanitizeVideoEmbedUrl } from '@/lib/video-utils';
 import { revalidatePath } from 'next/cache';
@@ -42,14 +42,21 @@ export async function createProductAction(input: z.infer<typeof ProductSchema>) 
       slug: data.slug,
       sku: data.sku || `TTRC-PRD-${Date.now().toString().slice(-4)}`,
       product_type: data.productType === 'general' ? 'standard' : data.productType,
+      unit: data.unit || 'Piece',
+      status: data.status || 'published',
       category_id: data.categoryId || undefined,
       manufacturer_id: data.manufacturerId || undefined,
       brand: data.brand || 'Tamizh Tech',
       supplier: data.supplier || undefined,
+      show_manufacturer_publicly: data.showManufacturerPublicly ?? true,
+      show_supplier_publicly: data.showSupplierPublicly ?? false,
       short_description: data.shortDescription || data.name,
       description: data.longDescription || data.shortDescription || data.name,
       price: data.pricePaise,
       compare_at_price: data.mrpPaise || undefined,
+      cost_price: data.costPricePaise || undefined,
+      landed_cost: data.landedCostPaise || undefined,
+      internal_notes: data.internalNotes || undefined,
       gst_percent: data.gstPercent,
       hsn_code: data.hsnCode || '8542',
       stock_quantity: data.stockQty,
@@ -64,9 +71,27 @@ export async function createProductAction(input: z.infer<typeof ProductSchema>) 
       warranty: data.warranty,
       bulk_price_tiers: data.bulkPriceTiers || [],
       technical_specs: data.specs || [],
+      applications: data.applications || [],
+      certifications: data.certifications || [],
       images,
+      media: data.media || [],
       meta_title: data.seoTitle || undefined,
       meta_description: data.seoDescription || undefined,
+      is_active: data.status !== 'archived',
+    });
+
+    // Record administrative audit log
+    await AuditLogModel.create({
+      actor_id: auth.user.id,
+      action: 'product.created',
+      entity: 'product',
+      entity_id: product._id.toString(),
+      metadata: {
+        name: product.name,
+        sku: product.sku,
+        pricePaise: product.price,
+        status: product.status,
+      },
     });
 
     revalidatePath('/admin/products');
@@ -99,6 +124,11 @@ export async function updateProductAction(
   try {
     await connectToDatabase();
 
+    const existing = await ProductModel.findById(id).lean();
+    if (!existing) {
+      return { error: 'Product not found.' };
+    }
+
     const images = [...(data.imageUrls || [])];
     if (sanitizedVideo) {
       images.push(sanitizedVideo);
@@ -112,14 +142,21 @@ export async function updateProductAction(
           slug: data.slug,
           sku: data.sku,
           product_type: data.productType === 'general' ? 'standard' : data.productType,
+          unit: data.unit || 'Piece',
+          status: data.status || 'published',
           category_id: data.categoryId || undefined,
           manufacturer_id: data.manufacturerId || undefined,
           brand: data.brand || 'Tamizh Tech',
           supplier: data.supplier || undefined,
+          show_manufacturer_publicly: data.showManufacturerPublicly ?? true,
+          show_supplier_publicly: data.showSupplierPublicly ?? false,
           short_description: data.shortDescription || data.name,
           description: data.longDescription || data.shortDescription || data.name,
           price: data.pricePaise,
           compare_at_price: data.mrpPaise || undefined,
+          cost_price: data.costPricePaise || undefined,
+          landed_cost: data.landedCostPaise || undefined,
+          internal_notes: data.internalNotes || undefined,
           gst_percent: data.gstPercent,
           hsn_code: data.hsnCode || '8542',
           stock_quantity: data.stockQty,
@@ -134,9 +171,13 @@ export async function updateProductAction(
           warranty: data.warranty,
           bulk_price_tiers: data.bulkPriceTiers || [],
           technical_specs: data.specs || [],
+          applications: data.applications || [],
+          certifications: data.certifications || [],
           images,
+          media: data.media || [],
           meta_title: data.seoTitle || undefined,
           meta_description: data.seoDescription || undefined,
+          is_active: data.status !== 'archived',
         },
       },
       { new: true }
@@ -145,6 +186,21 @@ export async function updateProductAction(
     if (!updated) {
       return { error: 'Product not found.' };
     }
+
+    // Record administrative audit log
+    await AuditLogModel.create({
+      actor_id: auth.user.id,
+      action: 'product.updated',
+      entity: 'product',
+      entity_id: id,
+      metadata: {
+        name: data.name,
+        priceChanged: existing.price !== data.pricePaise,
+        oldPricePaise: existing.price,
+        newPricePaise: data.pricePaise,
+        status: data.status,
+      },
+    });
 
     revalidatePath('/admin/products');
     revalidatePath(`/product/${data.slug}`);
@@ -171,22 +227,32 @@ export async function getAdminProductByIdAction(id: string) {
         slug: doc.slug,
         sku: doc.sku,
         productType: doc.product_type,
+        unit: doc.unit || 'Piece',
+        status: doc.status || 'published',
         categoryId: doc.category_id,
         manufacturerId: doc.manufacturer_id,
         brand: doc.brand || 'Tamizh Tech',
         supplier: doc.supplier,
+        showManufacturerPublicly: doc.show_manufacturer_publicly ?? true,
+        showSupplierPublicly: doc.show_supplier_publicly ?? false,
         shortDescription: doc.short_description,
         longDescription: doc.description,
         pricePaise: doc.price,
         mrpPaise: doc.compare_at_price,
+        costPricePaise: doc.cost_price,
+        landedCostPaise: doc.landed_cost,
+        internalNotes: doc.internal_notes,
         gstPercent: doc.gst_percent,
         hsnCode: doc.hsn_code,
         stockQty: doc.stock_quantity,
         weightGrams: doc.weight_grams,
         countryOfOrigin: doc.country_of_origin,
         imageUrls: doc.images || [],
+        media: doc.media || [],
         bulkPriceTiers: doc.bulk_price_tiers || [],
         specs: doc.technical_specs || [],
+        applications: doc.applications || [],
+        certifications: doc.certifications || [],
         modelNumber: doc.model_number,
         partNumber: doc.part_number,
         voltage: doc.voltage,
@@ -209,7 +275,22 @@ export async function archiveProductAction(id: string) {
 
   try {
     await connectToDatabase();
-    await ProductModel.findByIdAndUpdate(id, { $set: { is_active: false } });
+    const updated = await ProductModel.findByIdAndUpdate(
+      id,
+      { $set: { is_active: false, status: 'archived' } },
+      { new: true }
+    );
+
+    if (updated) {
+      await AuditLogModel.create({
+        actor_id: auth.user.id,
+        action: 'product.archived',
+        entity: 'product',
+        entity_id: id,
+        metadata: { name: updated.name, sku: updated.sku },
+      });
+    }
+
     revalidatePath('/admin/products');
     return { success: true };
   } catch {
@@ -225,7 +306,28 @@ export async function deleteProductAction(id: string) {
 
   try {
     await connectToDatabase();
-    await ProductModel.findByIdAndDelete(id);
+
+    // Dependency check: prevent destruction if historical orders exist
+    const orderCount = await OrderModel.countDocuments({ 'items.product_id': id });
+    if (orderCount > 0) {
+      return {
+        error: `This product has ${orderCount} historical order reference(s) and cannot be deleted. Please Archive the product instead to preserve order integrity.`,
+        canArchive: true,
+      };
+    }
+
+    const deleted = await ProductModel.findByIdAndDelete(id);
+
+    if (deleted) {
+      await AuditLogModel.create({
+        actor_id: auth.user.id,
+        action: 'product.deleted',
+        entity: 'product',
+        entity_id: id,
+        metadata: { name: deleted.name, sku: deleted.sku },
+      });
+    }
+
     revalidatePath('/admin/products');
     return { success: true };
   } catch {

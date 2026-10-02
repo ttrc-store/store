@@ -26,6 +26,8 @@ export interface StoreProductItem {
   sku: string;
   name: string;
   type: 'kit' | 'spare_part' | 'standard';
+  unit: string;
+  status: 'draft' | 'published' | 'archived';
   brand: string;
   categoryId?: string;
   shortDescription: string;
@@ -44,6 +46,8 @@ export interface StoreProductItem {
   imageUrls: string[];
   bulkPriceTiers?: Array<{ minQuantity: number; maxQuantity?: number; unitPricePaise: number }>;
   technicalSpecs?: Array<{ key: string; value: string }>;
+  applications?: string[];
+  certifications?: string[];
   modelNumber?: string;
   partNumber?: string;
   voltage?: string;
@@ -52,6 +56,7 @@ export interface StoreProductItem {
   material?: string;
   dimensions?: string;
   warranty?: string;
+  showManufacturerPublicly: boolean;
   manufacturer?: {
     id: string;
     name: string;
@@ -72,6 +77,8 @@ export function toStoreProductCardProps(product: StoreProductItem): ProductCardP
     productType: product.type,
     pricePaise: product.pricePaise,
     mrpPaise: product.mrpPaise,
+    unit: product.unit || 'Piece',
+    bulkPriceTiers: product.bulkPriceTiers,
     rating: product.rating,
     reviewCount: product.reviewCount,
     imageUrl: product.imageUrls?.[0] || '/brand/ttrc-logo.png',
@@ -83,6 +90,7 @@ function mapProductDoc(p: any, manufacturerDoc?: any): StoreProductItem {
   const pricePaise = p.price ?? 0;
   const mrpPaise = p.compare_at_price ?? pricePaise;
   const discountPct = mrpPaise > pricePaise ? Math.round(((mrpPaise - pricePaise) / mrpPaise) * 100) : 0;
+  const showManufacturer = p.show_manufacturer_publicly ?? true;
 
   return {
     id: p._id.toString(),
@@ -90,6 +98,8 @@ function mapProductDoc(p: any, manufacturerDoc?: any): StoreProductItem {
     sku: p.sku,
     name: p.name,
     type: p.product_type === 'general' ? 'standard' : p.product_type,
+    unit: p.unit || 'Piece',
+    status: p.status || 'published',
     brand: p.brand || 'Tamizh Tech',
     categoryId: p.category_id,
     shortDescription: p.short_description || p.name,
@@ -108,6 +118,8 @@ function mapProductDoc(p: any, manufacturerDoc?: any): StoreProductItem {
     imageUrls: Array.isArray(p.images) && p.images.length > 0 ? p.images : ['/brand/ttrc-logo.png'],
     bulkPriceTiers: p.bulk_price_tiers || [],
     technicalSpecs: p.technical_specs || [],
+    applications: p.applications || [],
+    certifications: p.certifications || [],
     modelNumber: p.model_number,
     partNumber: p.part_number,
     voltage: p.voltage,
@@ -116,15 +128,17 @@ function mapProductDoc(p: any, manufacturerDoc?: any): StoreProductItem {
     material: p.material,
     dimensions: p.dimensions,
     warranty: p.warranty,
-    manufacturer: manufacturerDoc
-      ? {
-          id: manufacturerDoc._id.toString(),
-          name: manufacturerDoc.name,
-          slug: manufacturerDoc.slug,
-          logo: manufacturerDoc.logo,
-          country: manufacturerDoc.country,
-        }
-      : undefined,
+    showManufacturerPublicly: showManufacturer,
+    manufacturer:
+      showManufacturer && manufacturerDoc
+        ? {
+            id: manufacturerDoc._id.toString(),
+            name: manufacturerDoc.name,
+            slug: manufacturerDoc.slug,
+            logo: manufacturerDoc.logo,
+            country: manufacturerDoc.country,
+          }
+        : undefined,
     createdAt: p.created_at?.toISOString() || new Date().toISOString(),
     updatedAt: p.updated_at?.toISOString() || new Date().toISOString(),
   };

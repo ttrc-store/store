@@ -62,16 +62,42 @@ export default function FullCartPage() {
                         <p className="text-[11px] text-slate-500 font-mono">
                           Type: {item.productType.toUpperCase()} • GST: {item.gstPercent}%
                         </p>
-                        <PriceTag pricePaise={item.pricePaise} size="sm" />
+                        <div className="flex items-center gap-2">
+                          <PriceTag pricePaise={item.pricePaise} size="sm" />
+                          {item.unit && <span className="text-xs text-slate-500">/ {item.unit.toLowerCase()}</span>}
+                        </div>
+                        {item.appliedTierLabel && (
+                          <div className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded w-fit">
+                            Bulk Tier Applied: {item.appliedTierLabel}
+                          </div>
+                        )}
+                        {item.bulkPriceTiers && item.bulkPriceTiers.length > 0 && (
+                          (() => {
+                            const sorted = [...item.bulkPriceTiers].sort((a, b) => a.minQuantity - b.minQuantity);
+                            const nextTier = sorted.find((t) => t.minQuantity > item.quantity);
+                            if (!nextTier) return null;
+                            const diff = nextTier.minQuantity - item.quantity;
+                            return (
+                              <p className="text-xs text-purple-700 font-medium bg-purple-50 px-2 py-1 rounded border border-purple-100">
+                                Add {diff} more to unlock ₹{Math.round(nextTier.unitPricePaise / 100)} / {item.unit?.toLowerCase() || 'piece'}
+                              </p>
+                            );
+                          })()
+                        )}
                       </div>
                     </div>
 
                     <div className="flex items-center gap-6 w-full sm:w-auto justify-between sm:justify-end">
-                      <QuantitySelector
-                        quantity={item.quantity}
-                        onQuantityChange={(qty) => updateQuantity(item.id, qty)}
-                        max={item.stockQty}
-                      />
+                      <div className="space-y-1 text-right">
+                        <QuantitySelector
+                          quantity={item.quantity}
+                          onQuantityChange={(qty) => updateQuantity(item.id, qty)}
+                          max={item.stockQty}
+                        />
+                        <p className="text-xs font-bold text-slate-900">
+                          Total: ₹{((item.pricePaise * item.quantity) / 100).toLocaleString('en-IN')}
+                        </p>
+                      </div>
                       <button
                         onClick={() => removeItem(item.id)}
                         className="text-slate-400 hover:text-red-600 p-2 transition-colors"

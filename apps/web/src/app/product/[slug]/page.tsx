@@ -1,4 +1,5 @@
 import * as React from 'react';
+export const dynamic = 'force-dynamic';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -176,15 +177,21 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
           {/* Product Details & Ordering Column (7 cols) */}
           <div className="lg:col-span-7 space-y-6">
             <div>
-              {/* Manufacturer & Brand Ribbon (Requirement 15: Manufacturer Entity) */}
+              {/* Manufacturer & Brand Ribbon (Strictly Public Fields Only) */}
               <div className="flex flex-wrap items-center gap-3 mb-2">
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#EEE8FA] text-[#6721F2] text-xs font-bold border border-[#AF87F8]/40">
-                  <Factory size={13} />
-                  <span>Manufacturer: {product.manufacturer?.name || product.brand || 'Tamizh Tech / TTRC'}</span>
-                  <CheckCircle2 size={12} className="text-[#844AFB]" />
+                {product.showManufacturerPublicly && product.manufacturer ? (
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#EEE8FA] text-[#6721F2] text-xs font-bold border border-[#AF87F8]/40">
+                    <Factory size={13} />
+                    <span>Manufacturer: {product.manufacturer.name}</span>
+                    <CheckCircle2 size={12} className="text-[#844AFB]" />
+                  </div>
+                ) : null}
+
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 text-slate-800 text-xs font-semibold border border-slate-200">
+                  <span>Sold by: <strong>TTRC Store</strong></span>
                 </div>
 
-                {product.brand && product.brand !== product.manufacturer?.name && (
+                {product.brand && (!product.manufacturer || product.brand !== product.manufacturer?.name) && (
                   <span className="text-xs text-slate-500 font-medium">
                     Brand: <strong className="text-slate-800">{product.brand}</strong>
                   </span>
@@ -237,8 +244,23 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
               gstPercent={product.gstPercent}
               imageUrl={product.imageUrls[0]}
               productType={product.type}
+              unit={product.unit}
               bulkPriceTiers={product.bulkPriceTiers}
             />
+
+            {/* B2B Wholesale / Larger Quantity CTA (Requirement 78, 158) */}
+            <div className="p-3.5 rounded-xl bg-purple-50/60 border border-purple-100 flex items-center justify-between gap-3 text-xs">
+              <div>
+                <p className="font-bold text-slate-900">Need larger business quantities (50+ units)?</p>
+                <p className="text-slate-500">Get custom institutional procurement quotations with GST invoices.</p>
+              </div>
+              <Link
+                href="/bulk-orders"
+                className="px-3.5 py-2 rounded-lg bg-white border border-purple-200 text-purple-700 hover:bg-purple-50 font-bold flex-shrink-0 transition-colors shadow-xs"
+              >
+                Request Quote →
+              </Link>
+            </div>
 
             {/* Pincode Serviceability Check */}
             <div className="pt-2">
@@ -460,34 +482,74 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
             {/* Description Tab */}
             <TabsContent
               value="description"
-              className="p-6 sm:p-8 rounded-2xl bg-white border border-slate-200 space-y-4 text-sm text-slate-700 leading-relaxed"
+              className="p-6 sm:p-8 rounded-2xl bg-white border border-slate-200 space-y-6 text-sm text-slate-700 leading-relaxed"
             >
-              <h3 className="font-heading text-lg font-bold text-slate-900">Product Overview</h3>
-              <p className="whitespace-pre-line">{product.longDescription || product.shortDescription}</p>
+              <div>
+                <h3 className="font-heading text-lg font-bold text-slate-900 mb-2">Product Overview</h3>
+                <p className="whitespace-pre-line">{product.longDescription || product.shortDescription}</p>
+              </div>
+
+              {product.applications && product.applications.length > 0 && (
+                <div className="pt-4 border-t border-slate-100">
+                  <h4 className="font-heading text-base font-bold text-slate-900 mb-3 flex items-center gap-2">
+                    <CheckCircle2 size={16} className="text-[#844AFB]" /> Verified Applications &amp; Use Cases
+                  </h4>
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-600">
+                    {product.applications.map((app, i) => (
+                      <li key={i} className="flex items-center gap-2 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                        <span className="w-1.5 h-1.5 rounded-full bg-purple-600 flex-shrink-0" />
+                        <span>{app}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {product.certifications && product.certifications.length > 0 && (
+                <div className="pt-4 border-t border-slate-100">
+                  <h4 className="font-heading text-base font-bold text-slate-900 mb-3 flex items-center gap-2">
+                    <Award size={16} className="text-[#844AFB]" /> Compliance &amp; Certifications
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {product.certifications.map((cert, i) => (
+                      <span key={i} className="inline-flex items-center gap-1 px-3 py-1 rounded-md bg-emerald-50 text-emerald-800 text-xs font-bold border border-emerald-200">
+                        <CheckCircle2 size={12} className="text-emerald-600" />
+                        {cert}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </TabsContent>
 
-            {/* Manufacturer Tab (Requirement 15) */}
+            {/* Manufacturer Tab (Requirement 15, 31, 92, 93) */}
             <TabsContent
               value="manufacturer"
               className="p-6 sm:p-8 rounded-2xl bg-white border border-slate-200 space-y-4 text-sm text-slate-700"
             >
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-700 font-bold">
-                  <Factory size={24} />
+                <div className="w-12 h-12 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-700 font-bold overflow-hidden relative">
+                  {product.showManufacturerPublicly && product.manufacturer?.logo ? (
+                    <Image src={product.manufacturer.logo} alt={product.manufacturer.name} fill className="object-contain p-1" />
+                  ) : (
+                    <Factory size={24} />
+                  )}
                 </div>
                 <div>
                   <h3 className="font-heading text-lg font-bold text-slate-900">
-                    {product.manufacturer?.name || product.brand || 'Tamizh Tech / TTRC'}
+                    {product.showManufacturerPublicly && product.manufacturer
+                      ? product.manufacturer.name
+                      : product.brand || 'Tamizh Tech / TTRC'}
                   </h3>
                   <p className="text-xs text-slate-500">
-                    Origin: {product.manufacturer?.country || product.countryOfOrigin || 'India'} • Verified Maker
+                    Country of Origin: {product.countryOfOrigin || 'India'} • Distributed &amp; Sold by TTRC Store
                   </p>
                 </div>
               </div>
-              <p className="text-xs text-slate-600 leading-relaxed max-w-2xl">
-                Tamizh Tech engineers robotics kits, precision drive systems, and modular STEM components
-                designed specifically for national competitions and STEM lab environments.
-              </p>
+              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600 space-y-1">
+                <p><strong>Merchant of Record:</strong> TTRC Store (Tamizh Tech Robotics Company, Tamil Nadu, India)</p>
+                <p>All items undergo quality verification and functional bench testing prior to dispatch.</p>
+              </div>
             </TabsContent>
 
             {/* Reviews Tab (Requirement 29: No fake reviews, only verified buyers) */}

@@ -19,6 +19,8 @@ export interface ProductCardProps {
   productType?: 'kit' | 'spare_part' | 'standard';
   pricePaise: number;
   mrpPaise?: number;
+  unit?: string;
+  bulkPriceTiers?: Array<{ minQuantity: number; unitPricePaise: number }>;
   rating?: number;
   reviewCount?: number;
   imageUrl?: string;
@@ -35,6 +37,8 @@ export function ProductCard({
   productType = 'standard',
   pricePaise,
   mrpPaise,
+  unit = 'Piece',
+  bulkPriceTiers = [],
   rating = 4.8,
   reviewCount = 12,
   imageUrl = '/brand/ttrc-logo.png',
@@ -43,6 +47,11 @@ export function ProductCard({
   className,
 }: ProductCardProps) {
   const isOutOfStock = stockQty <= 0;
+
+  const lowestBulkPricePaise = React.useMemo(() => {
+    if (!bulkPriceTiers || bulkPriceTiers.length === 0) return null;
+    return Math.min(...bulkPriceTiers.map((t) => t.unitPricePaise));
+  }, [bulkPriceTiers]);
 
   return (
     <Card
@@ -57,6 +66,11 @@ export function ProductCard({
         <div className="absolute top-2.5 left-2.5 z-10 flex flex-col gap-1.5">
           {productType === 'kit' && <Badge variant="kit" className="bg-purple-700 text-white font-bold border-none shadow-xs">COMPLETE KIT</Badge>}
           {productType === 'spare_part' && <Badge variant="spare" className="bg-purple-100 text-purple-900 font-bold border-purple-200">SPARE PART</Badge>}
+          {lowestBulkPricePaise && lowestBulkPricePaise < pricePaise && (
+            <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 font-bold text-[10px]">
+              BULK PRICING
+            </Badge>
+          )}
         </div>
 
         {/* Wishlist Button */}
@@ -95,10 +109,21 @@ export function ProductCard({
           </h3>
         </Link>
 
-        <RatingStars rating={rating} reviewCount={reviewCount} size="sm" className="mb-3" />
+        <RatingStars rating={rating} reviewCount={reviewCount} size="sm" className="mb-2" />
+
+        {lowestBulkPricePaise && lowestBulkPricePaise < pricePaise && (
+          <p className="text-[11px] font-semibold text-emerald-700 mb-2">
+            Bulk from ₹{(lowestBulkPricePaise / 100).toLocaleString('en-IN')} / {unit.toLowerCase()}
+          </p>
+        )}
 
         <div className="mt-auto flex items-end justify-between pt-2 border-t border-slate-100">
-          <PriceTag pricePaise={pricePaise} mrpPaise={mrpPaise} size="sm" />
+          <div>
+            <div className="flex items-baseline gap-1">
+              <PriceTag pricePaise={pricePaise} mrpPaise={mrpPaise} size="sm" />
+              <span className="text-[10px] text-slate-500 font-medium">/ {unit.toLowerCase()}</span>
+            </div>
+          </div>
 
           <Button
             size="sm"

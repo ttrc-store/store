@@ -2,17 +2,66 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { computeOrderTotals, calculateGstFromInclusive, GstBreakdown } from '@ttrc/shared';
 
+export interface BulkPriceTier {
+  minQuantity: number;
+  maxQuantity?: number;
+  unitPricePaise: number;
+}
+
 export interface CartItem {
   id: string; // product id
   slug: string;
   name: string;
-  pricePaise: number;
+  pricePaise: number; // currently effective unit price in integer paise
+  basePricePaise?: number; // base 1-unit selling price
+  bulkPriceTiers?: BulkPriceTier[];
+  unit?: string; // e.g. 'Piece'
+  appliedTierLabel?: string;
   mrpPaise?: number;
   imageUrl: string;
   quantity: number;
   gstPercent: number;
   stockQty: number;
   productType: 'kit' | 'spare_part' | 'standard';
+}
+
+export function computeEffectiveUnitPrice(
+  basePricePaise: number,
+  tiers: BulkPriceTier[] | undefined,
+  quantity: number
+): { unitPricePaise: number; appliedTierLabel?: string } {
+  if (!tiers || tiers.length === 0) {
+    return { unitPricePaise: basePricePaise };
+  }
+
+  // Sort descending by minQuantity
+  const sorted = [...tiers].sort((a, b) => b.minQuantity - a.minQuantity);
+  const matched = sorted.find((t) => quantity >= t.minQuantity);
+  if (matched) {
+    return {
+      unitPricePaise: matched.unitPricePaise,
+      appliedTierLabel: `${matched.minQuantity}+ pcs tier`,
+    };
+  }
+
+  return { unitPricePaise: basePricePaise };
+}
+
+export function getNextTierIncentive(item: CartItem): string | null {
+  if (!item.bulkPriceTiers || item.bulkPriceTiers.length === 0) return null;
+
+  // Sort ascending by minQuantity
+  const sorted = [...item.bulkPriceTiers].sort((a, b) => a.minQuantity - b.minQuantity);
+  const nextTier = sorted.find((t) => t.minQuantity > item.quantity);
+  if (!nextTier) return null;
+
+  const diff = nextTier.minQuantity - item.quantity;
+  const basePrice = item.basePricePaise || item.pricePaise;
+  const savingsPerUnit = Math.round((basePrice - nextTier.unitPricePaise) / 100);
+
+  return `Add ${diff} more to unlock ₹${Math.round(nextTier.unitPricePaise / 100)} / ${item.unit || 'piece'}${
+    savingsPerUnit > 0 ? ` (Save ₹${savingsPerUnit} / unit)` : ''
+  }`;
 }
 
 interface CartStore {
@@ -56,15 +105,43 @@ export const useCartStore = create<CartStore>()(
 
       addItem: (newItem) => {
         set((state) => {
+          const basePrice = newItem.basePricePaise || newItem.pricePaise;
           const existingIdx = state.items.findIndex((i) => i.id === newItem.id);
+
           if (existingIdx > -1) {
             const updatedItems = [...state.items];
-            const currentQty = updatedItems[existingIdx].quantity;
+            const currentItem = updatedItems[existingIdx];
+            const currentQty = currentItem.quantity;
             const newQty = Math.min(currentQty + newItem.quantity, newItem.stockQty);
-            updatedItems[existingIdx] = { ...updatedItems[existingIdx], quantity: newQty };
+            const { unitPricePaise, appliedTierLabel } = computeEffectiveUnitPrice(
+              currentItem.basePricePaise || basePrice,
+              currentItem.bulkPriceTiers || newItem.bulkPriceTiers,
+              newQty
+            );
+
+            updatedItems[existingIdx] = {
+              ...currentItem,
+              quantity: newQty,
+              pricePaise: unitPricePaise,
+              appliedTierLabel,
+            };
             return { items: updatedItems, isDrawerOpen: true };
           }
-          return { items: [...state.items, newItem], isDrawerOpen: true };
+
+          const { unitPricePaise, appliedTierLabel } = computeEffectiveUnitPrice(
+            basePrice,
+            newItem.bulkPriceTiers,
+            newItem.quantity
+          );
+
+          const itemToAdd: CartItem = {
+            ...newItem,
+            basePricePaise: basePrice,
+            pricePaise: unitPricePaise,
+            appliedTierLabel,
+          };
+
+          return { items: [...state.items, itemToAdd], isDrawerOpen: true };
         });
       },
 
@@ -80,7 +157,18 @@ export const useCartStore = create<CartStore>()(
             .map((item) => {
               if (item.id === id) {
                 const validQty = Math.max(1, Math.min(quantity, item.stockQty));
-                return { ...item, quantity: validQty };
+                const basePrice = item.basePricePaise || item.pricePaise;
+                const { unitPricePaise, appliedTierLabel } = computeEffectiveUnitPrice(
+                  basePrice,
+                  item.bulkPriceTiers,
+                  validQty
+                );
+                return {
+                  ...item,
+                  quantity: validQty,
+                  pricePaise: unitPricePaise,
+                  appliedTierLabel,
+                };
               }
               return item;
             })

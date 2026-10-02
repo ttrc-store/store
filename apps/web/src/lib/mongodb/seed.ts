@@ -11,6 +11,7 @@ const INITIAL_CATEGORIES = [
   { name: 'Sensors', slug: 'sensors', description: 'IR, ultrasonic, IMU/gyro, colour and line sensor arrays', sort_order: 6 },
   { name: 'Drones', slug: 'drones', description: 'Drone kits, carbon frames, flight controllers, ESCs, props', sort_order: 7 },
   { name: 'Wires & Connectors', slug: 'wires-connectors', description: 'Jumper wires, XT60, JST connectors, headers and cables', sort_order: 8 },
+  { name: 'Industrial Components', slug: 'industrial-components', description: 'Precision valves, pumps, solenoids, and pneumatic fluid-control components', sort_order: 9 },
 ];
 
 const DEFAULT_SETTINGS = [

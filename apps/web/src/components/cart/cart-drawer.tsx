@@ -45,7 +45,28 @@ export function CartDrawer() {
                   >
                     {item.name}
                   </Link>
-                  <PriceTag pricePaise={item.pricePaise} size="sm" />
+                  <div className="flex items-center gap-2">
+                    <PriceTag pricePaise={item.pricePaise} size="sm" />
+                    {item.unit && <span className="text-[11px] text-slate-500">/ {item.unit.toLowerCase()}</span>}
+                  </div>
+                  {item.appliedTierLabel && (
+                    <div className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded w-fit">
+                      Bulk Tier: {item.appliedTierLabel}
+                    </div>
+                  )}
+                  {item.bulkPriceTiers && item.bulkPriceTiers.length > 0 && (
+                    (() => {
+                      const sorted = [...item.bulkPriceTiers].sort((a, b) => a.minQuantity - b.minQuantity);
+                      const nextTier = sorted.find((t) => t.minQuantity > item.quantity);
+                      if (!nextTier) return null;
+                      const diff = nextTier.minQuantity - item.quantity;
+                      return (
+                        <p className="text-[10px] text-purple-700 font-medium bg-purple-50 px-1.5 py-0.5 rounded border border-purple-100">
+                          Add {diff} more to unlock ₹{Math.round(nextTier.unitPricePaise / 100)} / {item.unit?.toLowerCase() || 'piece'}
+                        </p>
+                      );
+                    })()
+                  )}
                   <div className="flex items-center justify-between pt-1">
                     <QuantitySelector
                       quantity={item.quantity}
@@ -53,13 +74,18 @@ export function CartDrawer() {
                       max={item.stockQty}
                       size="sm"
                     />
-                    <button
-                      onClick={() => removeItem(item.id)}
-                      className="text-slate-400 hover:text-red-600 p-1 transition-colors"
-                      title="Remove item"
-                    >
-                      <Trash2 size={15} />
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-slate-900">
+                        ₹{((item.pricePaise * item.quantity) / 100).toLocaleString('en-IN')}
+                      </span>
+                      <button
+                        onClick={() => removeItem(item.id)}
+                        className="text-slate-400 hover:text-red-600 p-1 transition-colors"
+                        title="Remove item"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

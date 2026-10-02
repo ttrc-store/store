@@ -63,15 +63,28 @@ export interface IBulkPriceTier {
   unitPricePaise: number;
 }
 
+export interface IProductMedia {
+  url: string;
+  storage_path?: string;
+  alt_text?: string;
+  is_primary?: boolean;
+  sort_order?: number;
+  type?: 'image' | 'video';
+}
+
 export interface IProduct extends Document {
   name: string;
   slug: string;
   description?: string;
   short_description?: string;
   product_type: 'kit' | 'spare_part' | 'standard';
+  unit: string; // e.g. 'Piece', 'Set', 'Meter'
+  status: 'draft' | 'published' | 'archived';
   price: number; // in integer paise
-  compare_at_price?: number; // in integer paise
-  cost_price?: number;
+  compare_at_price?: number; // in integer paise (MRP)
+  cost_price?: number; // internal procurement supplier cost (paise)
+  landed_cost?: number; // internal estimated landed cost (paise)
+  internal_notes?: string; // internal procurement notes (strictly private)
   sku: string;
   barcode?: string;
   stock_quantity: number;
@@ -84,8 +97,12 @@ export interface IProduct extends Document {
   manufacturer_id?: string;
   brand?: string;
   supplier?: string;
+  show_manufacturer_publicly: boolean;
+  show_supplier_publicly: boolean;
   bulk_price_tiers?: IBulkPriceTier[];
   technical_specs?: Array<{ key: string; value: string }>;
+  applications?: string[];
+  certifications?: string[];
   model_number?: string;
   part_number?: string;
   voltage?: string;
@@ -98,6 +115,7 @@ export interface IProduct extends Document {
   rating?: number;
   review_count?: number;
   images: string[];
+  media?: IProductMedia[];
   attributes?: Record<string, any>;
   gst_percent: number;
   hsn_code: string;
@@ -126,6 +144,18 @@ const TechnicalSpecSchema = new Schema(
   { _id: false }
 );
 
+const ProductMediaSchema = new Schema<IProductMedia>(
+  {
+    url: { type: String, required: true },
+    storage_path: { type: String },
+    alt_text: { type: String },
+    is_primary: { type: Boolean, default: false },
+    sort_order: { type: Number, default: 0 },
+    type: { type: String, enum: ['image', 'video'], default: 'image' },
+  },
+  { _id: false }
+);
+
 const ProductSchema = new Schema<IProduct>(
   {
     name: { type: String, required: true },
@@ -133,9 +163,13 @@ const ProductSchema = new Schema<IProduct>(
     description: { type: String },
     short_description: { type: String },
     product_type: { type: String, enum: ['kit', 'spare_part', 'standard'], default: 'standard' },
+    unit: { type: String, default: 'Piece' },
+    status: { type: String, enum: ['draft', 'published', 'archived'], default: 'published' },
     price: { type: Number, required: true }, // integer paise
     compare_at_price: { type: Number },
     cost_price: { type: Number },
+    landed_cost: { type: Number },
+    internal_notes: { type: String },
     sku: { type: String, required: true, unique: true },
     barcode: { type: String },
     stock_quantity: { type: Number, default: 0 },
@@ -148,8 +182,12 @@ const ProductSchema = new Schema<IProduct>(
     manufacturer_id: { type: String },
     brand: { type: String, default: 'Tamizh Tech' },
     supplier: { type: String },
+    show_manufacturer_publicly: { type: Boolean, default: true },
+    show_supplier_publicly: { type: Boolean, default: false },
     bulk_price_tiers: [BulkPriceTierSchema],
     technical_specs: [TechnicalSpecSchema],
+    applications: [{ type: String }],
+    certifications: [{ type: String }],
     model_number: { type: String },
     part_number: { type: String },
     voltage: { type: String },
@@ -162,6 +200,7 @@ const ProductSchema = new Schema<IProduct>(
     rating: { type: Number, default: 0 },
     review_count: { type: Number, default: 0 },
     images: [{ type: String }],
+    media: [ProductMediaSchema],
     attributes: { type: Schema.Types.Mixed, default: {} },
     gst_percent: { type: Number, default: 18 },
     hsn_code: { type: String, default: '8542' },
@@ -173,13 +212,13 @@ const ProductSchema = new Schema<IProduct>(
   { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } }
 );
 
-ProductSchema.index({ category_id: 1, is_active: 1 });
+ProductSchema.index({ category_id: 1, is_active: 1, status: 1 });
 ProductSchema.index({ manufacturer_id: 1 });
-ProductSchema.index({ is_active: 1, is_featured: 1 });
-ProductSchema.index({ is_active: 1, is_bestseller: 1 });
-ProductSchema.index({ is_active: 1, is_new_arrival: 1 });
-ProductSchema.index({ is_active: 1, created_at: -1 });
-ProductSchema.index({ is_active: 1, price: 1 });
+ProductSchema.index({ is_active: 1, status: 1, is_featured: 1 });
+ProductSchema.index({ is_active: 1, status: 1, is_bestseller: 1 });
+ProductSchema.index({ is_active: 1, status: 1, is_new_arrival: 1 });
+ProductSchema.index({ is_active: 1, status: 1, created_at: -1 });
+ProductSchema.index({ is_active: 1, status: 1, price: 1 });
 
 // ---------------------------------------------------------------------------
 // 4. PRODUCT COMPATIBILITY SCHEMA
@@ -203,6 +242,8 @@ export interface IOrderItem {
   product_name: string;
   sku: string;
   unit_price: number;
+  mrp_price?: number;
+  bulk_tier_applied?: string;
   quantity: number;
   total_price: number;
   gst_percent: number;
@@ -241,6 +282,8 @@ const OrderItemSchema = new Schema<IOrderItem>({
   product_name: { type: String, required: true },
   sku: { type: String, required: true },
   unit_price: { type: Number, required: true },
+  mrp_price: { type: Number },
+  bulk_tier_applied: { type: String },
   quantity: { type: Number, required: true },
   total_price: { type: Number, required: true },
   gst_percent: { type: Number, default: 18 },
@@ -468,3 +511,39 @@ export const ReviewModel: Model<IReview> =
 
 export const AuditLogModel: Model<IAuditLog> =
   mongoose.models.AuditLog || mongoose.model<IAuditLog>('AuditLog', AuditLogSchema);
+
+// ---------------------------------------------------------------------------
+// 12. SUPPLIER SCHEMA & MODEL (Private internal procurement)
+// ---------------------------------------------------------------------------
+export interface ISupplier extends Document {
+  name: string;
+  slug: string;
+  contact_person?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  gstin?: string;
+  internal_notes?: string;
+  is_active: boolean;
+  created_at: Date;
+  updated_at: Date;
+}
+
+const SupplierSchema = new Schema<ISupplier>(
+  {
+    name: { type: String, required: true },
+    slug: { type: String, required: true, unique: true, lowercase: true },
+    contact_person: { type: String },
+    email: { type: String },
+    phone: { type: String },
+    address: { type: String },
+    gstin: { type: String },
+    internal_notes: { type: String },
+    is_active: { type: Boolean, default: true },
+  },
+  { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } }
+);
+
+export const SupplierModel: Model<ISupplier> =
+  mongoose.models.Supplier || mongoose.model<ISupplier>('Supplier', SupplierSchema);
+

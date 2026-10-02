@@ -320,6 +320,9 @@ export async function getAdminProductsAction(opts?: {
     if (opts?.type && opts.type !== 'all') {
       query.product_type = opts.type;
     }
+    if (opts?.status && opts.status !== 'all') {
+      query.status = opts.status;
+    }
     if (opts?.search) {
       query.$or = [
         { name: { $regex: opts.search, $options: 'i' } },
@@ -339,15 +342,18 @@ export async function getAdminProductsAction(opts?: {
         name: p.name,
         slug: p.slug,
         sku: p.sku,
+        unit: p.unit || 'Piece',
         type: p.product_type,
-        status: p.is_active ? 'published' : 'archived',
+        status: p.status || (p.is_active ? 'published' : 'archived'),
         price_paise: p.price,
         mrp_paise: p.compare_at_price ?? null,
+        bulk_price_tiers: p.bulk_price_tiers || [],
         gst_percent: p.gst_percent,
         stock_qty: p.stock_quantity,
         low_stock_threshold: p.low_stock_threshold,
         category_id: p.category_id,
-        brand: 'Tamizh Tech',
+        brand: p.brand || 'Tamizh Tech',
+        manufacturer: p.manufacturer_id,
         created_at: p.created_at.toISOString(),
         updated_at: p.updated_at.toISOString(),
         imageUrls: p.images || [],

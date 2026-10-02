@@ -1,4 +1,5 @@
 import * as React from 'react';
+export const dynamic = 'force-dynamic';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';

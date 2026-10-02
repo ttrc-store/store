@@ -77,10 +77,35 @@ export async function createOrderAction(raw: CreateOrderInput) {
           error: `"${product.name}" only has ${product.stock_quantity} units in stock.`,
         };
       }
+
+      // Authoritative server-side bulk tier price calculation
+      let effectiveUnitPrice = product.price;
+      let bulkTierApplied: string | undefined = undefined;
+
+      if (
+        product.bulk_price_tiers &&
+        Array.isArray(product.bulk_price_tiers) &&
+        product.bulk_price_tiers.length > 0
+      ) {
+        // Sort descending by minQuantity to find the highest qualifying quantity tier
+        const sortedTiers = [...product.bulk_price_tiers].sort(
+          (a, b) => b.minQuantity - a.minQuantity
+        );
+        const matchedTier = sortedTiers.find((t) => item.quantity >= t.minQuantity);
+        if (matchedTier) {
+          effectiveUnitPrice = matchedTier.unitPricePaise;
+          bulkTierApplied = `${matchedTier.minQuantity}+ pcs tier`;
+        }
+      }
+
+      const lineTotal = effectiveUnitPrice * item.quantity;
+
       validatedItems.push({
         product,
         quantity: item.quantity,
-        lineTotal: product.price * item.quantity,
+        effectiveUnitPrice,
+        bulkTierApplied,
+        lineTotal,
       });
     }
 
@@ -140,7 +165,9 @@ export async function createOrderAction(raw: CreateOrderInput) {
       product_id: item.product._id.toString(),
       product_name: item.product.name,
       sku: item.product.sku,
-      unit_price: item.product.price,
+      unit_price: item.effectiveUnitPrice,
+      mrp_price: item.product.compare_at_price,
+      bulk_tier_applied: item.bulkTierApplied,
       quantity: item.quantity,
       total_price: item.lineTotal,
       gst_percent: item.product.gst_percent || 18,

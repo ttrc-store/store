@@ -26,6 +26,7 @@ interface ProductOrderBoxProps {
   gstPercent: number;
   imageUrl: string;
   productType: 'kit' | 'spare_part' | 'standard';
+  unit?: string;
   bulkPriceTiers?: BulkPriceTier[];
 }
 
@@ -40,6 +41,7 @@ export function ProductOrderBox({
   gstPercent,
   imageUrl,
   productType,
+  unit = 'Piece',
   bulkPriceTiers = [],
 }: ProductOrderBoxProps) {
   const router = useRouter();
@@ -74,6 +76,9 @@ export function ProductOrderBox({
       slug,
       name,
       pricePaise: activeUnitPricePaise,
+      basePricePaise,
+      bulkPriceTiers,
+      unit,
       mrpPaise,
       imageUrl,
       quantity,
@@ -92,6 +97,9 @@ export function ProductOrderBox({
       slug,
       name,
       pricePaise: activeUnitPricePaise,
+      basePricePaise,
+      bulkPriceTiers,
+      unit,
       mrpPaise,
       imageUrl,
       quantity,
@@ -108,13 +116,14 @@ export function ProductOrderBox({
       <div className="p-4 rounded-xl bg-purple-50/50 border border-purple-100 flex flex-wrap items-baseline justify-between gap-4">
         <div>
           <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">
-            Applicable Unit Price
+            Applicable Price
           </span>
-          <div className="flex items-baseline gap-3 mt-1">
+          <div className="flex items-baseline gap-2.5 mt-1">
             <PriceTag pricePaise={activeUnitPricePaise} size="lg" />
+            <span className="text-sm font-semibold text-slate-600">/ {unit.toLowerCase()}</span>
             {mrpPaise > activeUnitPricePaise && (
-              <span className="text-sm text-slate-400 line-through">
-                ₹{(mrpPaise / 100).toLocaleString('en-IN')}
+              <span className="text-sm text-slate-400 line-through ml-1">
+                MRP: ₹{(mrpPaise / 100).toLocaleString('en-IN')}
               </span>
             )}
             {savingsPct > 0 && (
