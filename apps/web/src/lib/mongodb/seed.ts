@@ -56,12 +56,12 @@ export async function ensureDatabaseSeeded() {
     if (adminCount === 0) {
       const defaultPasswordHash = await bcrypt.hash('Admin@ttrc2026', 10);
       await UserModel.create({
-        email: 'admin@ttrcs.store',
+        email: 'admin@ttrc.store',
         password_hash: defaultPasswordHash,
         full_name: 'Store Admin',
         role: 'admin',
       });
-      console.log('[MongoDB Seed] Default admin created: admin@ttrcs.store');
+      console.log('[MongoDB Seed] Default admin created: admin@ttrc.store');
     }
 
     // 4. Seed Default Verified Manufacturer if empty

@@ -65,7 +65,7 @@ export async function getAuthenticatedUser(): Promise<
     return {
       user: {
         id: 'local-admin-id',
-        email: 'admin@tamizhtech.in',
+        email: 'admin@ttrc.store',
         role: 'admin',
         fullName: 'Store Admin',
       },
