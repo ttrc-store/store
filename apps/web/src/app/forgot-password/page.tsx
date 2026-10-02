@@ -34,14 +34,14 @@ export default function ForgotPasswordPage() {
     <div className="min-h-[85vh] bg-slate-50 text-slate-900 flex items-center justify-center py-12 px-4">
       <div className="w-full max-w-md space-y-8 p-8 rounded-2xl bg-white border border-slate-200 shadow-xl relative overflow-hidden">
         <div className="text-center space-y-3">
-          <Link href="/" className="inline-block p-3 rounded-xl bg-[#0B132B] border border-[#1E293B] shadow-md">
+          <Link href="/" className="inline-block p-2.5 rounded-2xl bg-white border border-slate-200 shadow-sm hover:border-[#844AFB] transition-all">
             <Image
               src="/brand/ttrc-logo.png"
               alt="TTRC Store Logo"
               width={160}
               height={44}
               priority
-              className="mx-auto object-contain"
+              className="h-10 w-auto mx-auto object-contain"
             />
           </Link>
           <h1 className="font-heading text-2xl font-bold text-slate-900 tracking-tight">

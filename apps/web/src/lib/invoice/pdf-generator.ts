@@ -129,6 +129,7 @@ export function generateInvoiceHtml(data: InvoicePayload): string {
     <body>
       <div class="header">
         <div>
+          <img src="/brand/ttrc-logo.png" alt="TTRC Store" style="height: 36px; object-fit: contain; margin-bottom: 6px; display: block;" />
           <div class="title">TAMIZH TECH</div>
           <div>${data.sellerAddress}</div>
           ${gstinRow}

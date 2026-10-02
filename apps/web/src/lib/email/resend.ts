@@ -55,8 +55,11 @@ async function dispatchEmail(to: string, subject: string, htmlContent: string) {
 export async function sendOrderConfirmationEmail(payload: OrderEmailPayload) {
   const subject = `Order Confirmed: ${payload.orderNumber} - Tamizh Tech Store`;
   const html = `
-    <div style="font-family: Arial, sans-serif; background: #FFFFFF; color: #111111; padding: 24px; border: 1px solid #E5E7EB; border-radius: 12px;">
-      <h2 style="color: #6D28D9;">Thank You for Your Order!</h2>
+    <div style="font-family: Arial, sans-serif; background: #FFFFFF; color: #111111; padding: 24px; border: 1px solid #E5E7EB; border-radius: 12px; max-width: 600px; margin: 0 auto;">
+      <div style="margin-bottom: 20px;">
+        <img src="https://ttrc.store/brand/ttrc-logo.png" alt="TTRC Store" height="38" style="display: block; object-fit: contain;" />
+      </div>
+      <h2 style="color: #6D28D9; margin-top: 0;">Thank You for Your Order!</h2>
       <p>Hi ${payload.customerName},</p>
       <p>Your order <strong>${payload.orderNumber}</strong> for <strong>${payload.totalAmountRupees}</strong> has been successfully placed and confirmed.</p>
       <p>We are preparing your robotics components for quality check &amp; shipment.</p>
@@ -72,8 +75,11 @@ export async function sendOrderConfirmationEmail(payload: OrderEmailPayload) {
 export async function sendShipmentDispatchedEmail(payload: OrderEmailPayload) {
   const subject = `Dispatched: ${payload.orderNumber} via ${payload.courierName || 'Courier'}`;
   const html = `
-    <div style="font-family: Arial, sans-serif; background: #FFFFFF; color: #111111; padding: 24px; border: 1px solid #E5E7EB; border-radius: 12px;">
-      <h2 style="color: #6D28D9;">Your Order is On Its Way!</h2>
+    <div style="font-family: Arial, sans-serif; background: #FFFFFF; color: #111111; padding: 24px; border: 1px solid #E5E7EB; border-radius: 12px; max-width: 600px; margin: 0 auto;">
+      <div style="margin-bottom: 20px;">
+        <img src="https://ttrc.store/brand/ttrc-logo.png" alt="TTRC Store" height="38" style="display: block; object-fit: contain;" />
+      </div>
+      <h2 style="color: #6D28D9; margin-top: 0;">Your Order is On Its Way!</h2>
       <p>Hi ${payload.customerName},</p>
       <p>Your order <strong>${payload.orderNumber}</strong> has been handed over to <strong>${payload.courierName || 'Shiprocket'}</strong>.</p>
       ${payload.trackingUrl ? `<p><a href="${payload.trackingUrl}" style="display: inline-block; background: #6D28D9; color: #FFFFFF; font-weight: bold; padding: 12px 20px; border-radius: 8px; text-decoration: none;">Track Shipment Package</a></p>` : ''}

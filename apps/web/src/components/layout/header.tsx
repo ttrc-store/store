@@ -56,15 +56,15 @@ export default function Header() {
       {/* Main Header Row */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-6">
         {/* Brand Logo Container (NO BACKGROUND COLOR - Clean Seamless Integration) */}
-        <Link href="/" className="flex items-center gap-3 group flex-shrink-0">
-          <div className="relative p-1">
+        <Link href="/" className="flex items-center gap-3 group flex-shrink-0" aria-label="TTRC Store Home">
+          <div className="relative py-1">
             <Image
               src="/brand/ttrc-logo.png"
               alt="TTRC Store Logo"
-              width={140}
-              height={40}
+              width={160}
+              height={48}
               priority
-              className="object-contain"
+              className="h-10 sm:h-12 w-auto object-contain transition-transform group-hover:scale-105"
             />
           </div>
         </Link>

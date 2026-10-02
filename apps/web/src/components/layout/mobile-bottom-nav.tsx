@@ -2,8 +2,9 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { Home, Grid, ShoppingBag, User } from 'lucide-react';
+import { Grid, ShoppingBag, User } from 'lucide-react';
 import { useCartStore } from '@/store/use-cart';
 import { cn } from '@/lib/utils';
 
@@ -13,7 +14,7 @@ export default function MobileBottomNav() {
   const cartCount = items.reduce((acc, i) => acc + i.quantity, 0);
 
   const navItems = [
-    { label: 'Home', href: '/', icon: Home },
+    { label: 'Store', href: '/', isLogo: true },
     { label: 'Categories', href: '/category/gamified-robots', icon: Grid },
     { label: 'Cart', href: '/cart', icon: ShoppingBag, badge: cartCount },
     { label: 'Profile', href: '/account', icon: User },
@@ -34,8 +35,20 @@ export default function MobileBottomNav() {
               isActive ? 'text-purple-700' : 'text-slate-500 hover:text-slate-900'
             )}
           >
-            <div className="relative">
-              <Icon size={20} className={cn(isActive && 'scale-110 transition-transform')} />
+            <div className="relative flex items-center justify-center">
+              {item.isLogo ? (
+                <div className={cn('w-6 h-6 flex items-center justify-center transition-transform', isActive && 'scale-110 drop-shadow-sm')}>
+                  <Image
+                    src="/brand/favicon-32x32.png"
+                    alt="TTRC Store"
+                    width={22}
+                    height={22}
+                    className="object-contain"
+                  />
+                </div>
+              ) : Icon ? (
+                <Icon size={20} className={cn(isActive && 'scale-110 transition-transform')} />
+              ) : null}
               {item.badge !== undefined && item.badge > 0 && (
                 <span className="absolute -top-1.5 -right-2.5 flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-purple-700 text-white text-[10px] font-extrabold font-mono shadow-xs">
                   {item.badge}

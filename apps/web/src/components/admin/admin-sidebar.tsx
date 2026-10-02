@@ -34,18 +34,18 @@ export function AdminSidebar() {
         {/* Brand Logo Header */}
         <div className="p-4 border-b border-slate-200 flex items-center justify-between">
           <Link href="/admin" className="flex items-center gap-2">
-            <div className="relative px-2.5 py-1.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center shadow-sm">
+            <div className="relative flex items-center justify-center p-1">
               <Image
                 src="/brand/ttrc-logo.png"
                 alt="TTRC Store"
-                width={100}
-                height={28}
+                width={120}
+                height={34}
                 priority
-                className="object-contain"
+                className="h-8 w-auto object-contain"
               />
             </div>
           </Link>
-          <span className="text-[10px] font-bold text-[#E3132A] bg-[#FDECEE] px-2 py-0.5 rounded-md border border-red-200 flex items-center gap-1">
+          <span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-md border border-purple-200 flex items-center gap-1">
             <ShieldCheck size={12} /> ADMIN
           </span>
         </div>

@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import { CheckCircle2, Package, Truck, ArrowRight, Download, FileText, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,20 @@ function CheckoutSuccessContent() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
+      {/* Brand Logo */}
+      <div className="flex justify-center mb-6">
+        <Link href="/" className="inline-block p-2 rounded-2xl bg-white border border-slate-200 shadow-xs hover:border-[#844AFB] transition-all">
+          <Image
+            src="/brand/ttrc-logo.png"
+            alt="TTRC Store"
+            width={140}
+            height={38}
+            priority
+            className="h-8 w-auto object-contain"
+          />
+        </Link>
+      </div>
+
       {/* Animated Glow & Check Circle */}
       <div className="relative flex justify-center mb-6">
         <div className="absolute -inset-4 rounded-full bg-emerald-500/10 blur-xl animate-pulse" />
