@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { MapPin, Mail, Phone, ShieldCheck, Truck, RefreshCw, CreditCard } from 'lucide-react';
 import { BUSINESS_INFO } from '@ttrc/shared';
+import { WhatsAppIcon, InstagramIcon } from '@/components/ui/brand-icons';
 
 export default function Footer() {
   return (
@@ -80,6 +81,28 @@ export default function Footer() {
               <a href="tel:+917904902978" className="hover:text-white transition-colors">{BUSINESS_INFO.phone}</a>
             </p>
             <p className="text-purple-400 font-mono text-[11px]">GSTIN: {BUSINESS_INFO.gstin}</p>
+
+            {/* Social Connect (Original WhatsApp & Instagram) */}
+            <div className="pt-2 flex items-center gap-2.5">
+              <a
+                href={BUSINESS_INFO.whatsapp || 'https://wa.me/917904902978'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-8 h-8 rounded-full bg-[#25D366] text-white flex items-center justify-center hover:scale-110 transition-transform shadow-sm"
+                aria-label="Chat on WhatsApp"
+              >
+                <WhatsAppIcon className="w-4 h-4 text-white" />
+              </a>
+              <a
+                href={BUSINESS_INFO.instagram || 'https://www.instagram.com/ttrc.store/'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] text-white flex items-center justify-center hover:scale-110 transition-transform shadow-sm"
+                aria-label="Follow TTRC Store on Instagram"
+              >
+                <InstagramIcon className="w-4 h-4 text-white" />
+              </a>
+            </div>
           </div>
         </div>
 

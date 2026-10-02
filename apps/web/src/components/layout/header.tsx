@@ -7,7 +7,6 @@ import { useRouter } from 'next/navigation';
 import { Search, ShoppingBag, User, Menu, ChevronDown, Truck, ShieldCheck, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ThemeToggle } from './theme-toggle';
 import { MegaMenu } from './mega-menu';
 import { CATALOG_PRODUCTS } from '@/lib/catalog-data';
 import { PriceTag } from '@/components/store/price-tag';
@@ -140,8 +139,6 @@ export default function Header() {
 
         {/* Right Action Icons */}
         <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
-          <ThemeToggle />
-
           <Link href="/account/wishlist" className="hidden sm:inline-block">
             <Button variant="ghost" size="icon" className="text-[#1E0D45] hover:text-[#844AFB] hover:bg-[#EEE8FA] rounded-xl">
               <Heart size={18} />

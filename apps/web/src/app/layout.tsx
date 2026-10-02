@@ -118,7 +118,7 @@ export default function RootLayout({
       className={`${inter.variable} ${rajdhani.variable} ${exo2.variable}`}
     >
       <body className="bg-background text-foreground antialiased min-h-screen flex flex-col">
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+        <ThemeProvider attribute="class" defaultTheme="light" forcedTheme="light" enableSystem={false}>
           <StorefrontShell>{children}</StorefrontShell>
         </ThemeProvider>
       </body>

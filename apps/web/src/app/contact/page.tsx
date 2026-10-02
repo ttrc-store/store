@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { Mail, Phone, MapPin, Send } from 'lucide-react';
+import { WhatsAppIcon, InstagramIcon } from '@/components/ui/brand-icons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -50,6 +51,25 @@ export default function ContactPage() {
                     <strong className="text-slate-900">Email Support:</strong>
                     <p className="text-slate-500">support@tamizhtech.in / contact@ttrc.store</p>
                   </div>
+                </div>
+
+                <div className="pt-2 flex flex-col sm:flex-row gap-2.5">
+                  <a
+                    href="https://wa.me/917904902978"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl bg-[#25D366] hover:bg-[#20ba5a] text-white font-bold text-xs shadow-sm transition-transform hover:scale-[1.02]"
+                  >
+                    <WhatsAppIcon className="w-4 h-4 text-white" /> WhatsApp Chat
+                  </a>
+                  <a
+                    href="https://www.instagram.com/ttrc.store/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] text-white font-bold text-xs shadow-sm transition-transform hover:scale-[1.02]"
+                  >
+                    <InstagramIcon className="w-4 h-4 text-white" /> @ttrc.store
+                  </a>
                 </div>
               </div>
             </div>

@@ -120,6 +120,8 @@ export const BUSINESS_INFO = {
   address: 'Coimbatore, Tamil Nadu, India', // TODO: Replace with full address
   email: 'support@ttrc.store',
   phone: '+91 7904902978',
+  whatsapp: 'https://wa.me/917904902978',
+  instagram: 'https://www.instagram.com/ttrc.store/',
   website: 'https://ttrc.store',
   parentSite: 'https://tamizhtech.in',
   grievanceOfficer: 'PLACEHOLDER_NAME', // TODO: Replace before launch
