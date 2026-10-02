@@ -57,6 +57,12 @@ const CategorySchema = new Schema<ICategory>(
 // ---------------------------------------------------------------------------
 // 3. PRODUCT SCHEMA & MODEL
 // ---------------------------------------------------------------------------
+export interface IBulkPriceTier {
+  minQuantity: number;
+  maxQuantity?: number;
+  unitPricePaise: number;
+}
+
 export interface IProduct extends Document {
   name: string;
   slug: string;
@@ -72,7 +78,25 @@ export interface IProduct extends Document {
   low_stock_threshold: number;
   is_active: boolean;
   is_featured: boolean;
+  is_bestseller?: boolean;
+  is_new_arrival?: boolean;
   category_id?: string;
+  manufacturer_id?: string;
+  brand?: string;
+  supplier?: string;
+  bulk_price_tiers?: IBulkPriceTier[];
+  technical_specs?: Array<{ key: string; value: string }>;
+  model_number?: string;
+  part_number?: string;
+  voltage?: string;
+  current?: string;
+  power?: string;
+  material?: string;
+  operating_temperature?: string;
+  dimensions?: string;
+  warranty?: string;
+  rating?: number;
+  review_count?: number;
   images: string[];
   attributes?: Record<string, any>;
   gst_percent: number;
@@ -84,6 +108,23 @@ export interface IProduct extends Document {
   created_at: Date;
   updated_at: Date;
 }
+
+const BulkPriceTierSchema = new Schema<IBulkPriceTier>(
+  {
+    minQuantity: { type: Number, required: true },
+    maxQuantity: { type: Number },
+    unitPricePaise: { type: Number, required: true },
+  },
+  { _id: false }
+);
+
+const TechnicalSpecSchema = new Schema(
+  {
+    key: { type: String, required: true },
+    value: { type: String, required: true },
+  },
+  { _id: false }
+);
 
 const ProductSchema = new Schema<IProduct>(
   {
@@ -101,7 +142,25 @@ const ProductSchema = new Schema<IProduct>(
     low_stock_threshold: { type: Number, default: 5 },
     is_active: { type: Boolean, default: true },
     is_featured: { type: Boolean, default: false },
+    is_bestseller: { type: Boolean, default: false },
+    is_new_arrival: { type: Boolean, default: false },
     category_id: { type: String },
+    manufacturer_id: { type: String },
+    brand: { type: String, default: 'Tamizh Tech' },
+    supplier: { type: String },
+    bulk_price_tiers: [BulkPriceTierSchema],
+    technical_specs: [TechnicalSpecSchema],
+    model_number: { type: String },
+    part_number: { type: String },
+    voltage: { type: String },
+    current: { type: String },
+    power: { type: String },
+    material: { type: String },
+    operating_temperature: { type: String },
+    dimensions: { type: String },
+    warranty: { type: String },
+    rating: { type: Number, default: 0 },
+    review_count: { type: Number, default: 0 },
     images: [{ type: String }],
     attributes: { type: Schema.Types.Mixed, default: {} },
     gst_percent: { type: Number, default: 18 },
@@ -113,6 +172,14 @@ const ProductSchema = new Schema<IProduct>(
   },
   { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } }
 );
+
+ProductSchema.index({ category_id: 1, is_active: 1 });
+ProductSchema.index({ manufacturer_id: 1 });
+ProductSchema.index({ is_active: 1, is_featured: 1 });
+ProductSchema.index({ is_active: 1, is_bestseller: 1 });
+ProductSchema.index({ is_active: 1, is_new_arrival: 1 });
+ProductSchema.index({ is_active: 1, created_at: -1 });
+ProductSchema.index({ is_active: 1, price: 1 });
 
 // ---------------------------------------------------------------------------
 // 4. PRODUCT COMPATIBILITY SCHEMA
@@ -273,6 +340,100 @@ const CouponSchema = new Schema<ICoupon>({
   usage_count: { type: Number, default: 0 },
 });
 
+// ---------------------------------------------------------------------------
+// 9. MANUFACTURER SCHEMA & MODEL
+// ---------------------------------------------------------------------------
+export interface IManufacturer extends Document {
+  name: string;
+  slug: string;
+  logo?: string;
+  description?: string;
+  website?: string;
+  country?: string;
+  support_info?: string;
+  verification_status: 'verified' | 'unverified';
+  is_active: boolean;
+  created_at: Date;
+  updated_at: Date;
+}
+
+const ManufacturerSchema = new Schema<IManufacturer>(
+  {
+    name: { type: String, required: true },
+    slug: { type: String, required: true, unique: true, lowercase: true },
+    logo: { type: String },
+    description: { type: String },
+    website: { type: String },
+    country: { type: String, default: 'India' },
+    support_info: { type: String },
+    verification_status: { type: String, enum: ['verified', 'unverified'], default: 'verified' },
+    is_active: { type: Boolean, default: true },
+  },
+  { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } }
+);
+
+// ---------------------------------------------------------------------------
+// 10. REVIEW SCHEMA & MODEL
+// ---------------------------------------------------------------------------
+export interface IReview extends Document {
+  product_id: string;
+  user_id: string;
+  user_name: string;
+  rating: number;
+  title?: string;
+  comment: string;
+  images: string[];
+  is_verified_purchase: boolean;
+  status: 'pending' | 'approved' | 'rejected';
+  admin_reply?: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+const ReviewSchema = new Schema<IReview>(
+  {
+    product_id: { type: String, required: true, index: true },
+    user_id: { type: String, required: true, index: true },
+    user_name: { type: String, required: true },
+    rating: { type: Number, required: true, min: 1, max: 5 },
+    title: { type: String },
+    comment: { type: String, required: true },
+    images: [{ type: String }],
+    is_verified_purchase: { type: Boolean, default: true },
+    status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'approved' },
+    admin_reply: { type: String },
+  },
+  { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } }
+);
+ReviewSchema.index({ product_id: 1, status: 1 });
+
+// ---------------------------------------------------------------------------
+// 11. AUDIT LOG SCHEMA & MODEL
+// ---------------------------------------------------------------------------
+export interface IAuditLog extends Document {
+  actor_id: string;
+  action: string;
+  entity: string;
+  entity_id: string;
+  metadata?: any;
+  ip?: string;
+  created_at: Date;
+}
+
+const AuditLogSchema = new Schema<IAuditLog>(
+  {
+    actor_id: { type: String, required: true, index: true },
+    action: { type: String, required: true },
+    entity: { type: String, required: true },
+    entity_id: { type: String, required: true },
+    metadata: { type: Schema.Types.Mixed },
+    ip: { type: String },
+  },
+  { timestamps: { createdAt: 'created_at', updatedAt: false } }
+);
+AuditLogSchema.index({ entity: 1, entity_id: 1 });
+AuditLogSchema.index({ created_at: -1 });
+
 // Export Models with cache check for hot-reloading
 export const UserModel: Model<IUser> =
   mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
@@ -298,3 +459,12 @@ export const PincodeModel: Model<IPincode> =
 
 export const CouponModel: Model<ICoupon> =
   mongoose.models.Coupon || mongoose.model<ICoupon>('Coupon', CouponSchema);
+
+export const ManufacturerModel: Model<IManufacturer> =
+  mongoose.models.Manufacturer || mongoose.model<IManufacturer>('Manufacturer', ManufacturerSchema);
+
+export const ReviewModel: Model<IReview> =
+  mongoose.models.Review || mongoose.model<IReview>('Review', ReviewSchema);
+
+export const AuditLogModel: Model<IAuditLog> =
+  mongoose.models.AuditLog || mongoose.model<IAuditLog>('AuditLog', AuditLogSchema);

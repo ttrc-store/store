@@ -4,8 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { ArrowLeft, Save, CheckCircle2, Trash2, AlertCircle } from 'lucide-react';
-import { CATALOG_PRODUCTS } from '@/lib/catalog-data';
-import { updateProductAction, deleteProductAction } from '@/actions/admin';
+import { updateProductAction, deleteProductAction, getAdminProductByIdAction } from '@/actions/admin';
 import { ProductType } from '@ttrc/shared';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,24 +14,56 @@ export default function EditProductPage() {
   const params = useParams();
   const productId = params.id as string;
 
-  const product = CATALOG_PRODUCTS.find((p) => p.id === productId);
-
-  const [name, setName] = React.useState(product?.name || '');
-  const [slug, setSlug] = React.useState(product?.slug || '');
-  const [sku, setSku] = React.useState(product?.sku || '');
-  const [productType, setProductType] = React.useState<ProductType>(product?.type || 'general');
-  const [price, setPrice] = React.useState(product ? (product.pricePaise / 100).toString() : '999');
-  const [mrp, setMrp] = React.useState(product?.mrpPaise ? (product.mrpPaise / 100).toString() : '');
-  const [stock, setStock] = React.useState(product ? product.stockQty.toString() : '10');
-  const [gstPercent, setGstPercent] = React.useState(product ? product.gstPercent.toString() : '18');
-  const [hsnCode, setHsnCode] = React.useState(product?.hsnCode || '84715000');
-  const [brand, setBrand] = React.useState(product?.brand || 'Tamizh Tech');
-  const [imageUrl, setImageUrl] = React.useState(product?.imageUrls?.[0] || '/brand/ttrc-logo.png');
+  const [loading, setLoading] = React.useState(true);
+  const [name, setName] = React.useState('');
+  const [slug, setSlug] = React.useState('');
+  const [sku, setSku] = React.useState('');
+  const [productType, setProductType] = React.useState<ProductType>('general');
+  const [price, setPrice] = React.useState('999');
+  const [mrp, setMrp] = React.useState('');
+  const [stock, setStock] = React.useState('10');
+  const [gstPercent, setGstPercent] = React.useState('18');
+  const [hsnCode, setHsnCode] = React.useState('84715000');
+  const [brand, setBrand] = React.useState('Tamizh Tech');
+  const [imageUrl, setImageUrl] = React.useState('/brand/ttrc-logo.png');
 
   const [saving, setSaving] = React.useState(false);
   const [deleting, setDeleting] = React.useState(false);
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
   const [success, setSuccess] = React.useState(false);
+
+  React.useEffect(() => {
+    let isMounted = true;
+    async function loadProduct() {
+      try {
+        const res = await getAdminProductByIdAction(productId);
+        if (res.product && isMounted) {
+          const p = res.product;
+          setName(p.name);
+          setSlug(p.slug);
+          setSku(p.sku);
+          setProductType((p.productType as ProductType) || 'general');
+          setPrice((p.pricePaise / 100).toString());
+          setMrp(p.mrpPaise ? (p.mrpPaise / 100).toString() : '');
+          setStock(p.stockQty.toString());
+          setGstPercent(p.gstPercent.toString());
+          setHsnCode(p.hsnCode || '84715000');
+          setBrand(p.brand || 'Tamizh Tech');
+          setImageUrl(p.imageUrls?.[0] || '/brand/ttrc-logo.png');
+        } else if (res.error && isMounted) {
+          setErrorMsg(res.error);
+        }
+      } catch (err: any) {
+        if (isMounted) setErrorMsg('Failed to load product details');
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    }
+    loadProduct();
+    return () => {
+      isMounted = false;
+    };
+  }, [productId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

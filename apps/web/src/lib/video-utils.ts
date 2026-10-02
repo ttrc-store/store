@@ -35,8 +35,26 @@ export const ProductSchema = z.object({
   stockQty: z.number().nonnegative('Stock quantity cannot be negative'),
   weightGrams: z.number().positive().default(450),
   brand: z.string().optional(),
+  manufacturerId: z.string().optional(),
+  supplier: z.string().optional(),
   countryOfOrigin: z.string().optional(),
-  imageUrls: z.array(z.string()).min(1, 'Minimum 1 product image is required').max(5, 'Maximum 5 media items allowed total'),
+  modelNumber: z.string().optional(),
+  partNumber: z.string().optional(),
+  voltage: z.string().optional(),
+  current: z.string().optional(),
+  dimensions: z.string().optional(),
+  material: z.string().optional(),
+  warranty: z.string().optional(),
+  bulkPriceTiers: z
+    .array(
+      z.object({
+        minQuantity: z.number().positive(),
+        maxQuantity: z.number().positive().optional(),
+        unitPricePaise: z.number().positive(),
+      })
+    )
+    .optional(),
+  imageUrls: z.array(z.string()).min(1, 'Minimum 1 product image is required').max(10, 'Maximum 10 media items allowed total'),
   videoUrl: z.string().optional(),
   tags: z.array(z.string()).optional(),
   relatedProductIds: z.array(z.string()).optional(),

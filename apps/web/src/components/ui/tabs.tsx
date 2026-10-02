@@ -11,18 +11,30 @@ interface TabsContextValue {
 const TabsContext = React.createContext<TabsContextValue | undefined>(undefined);
 
 export function Tabs({
-  value: defaultValue,
+  value: controlledValue,
+  defaultValue,
   onValueChange,
   children,
   className,
 }: {
-  value: string;
-  onValueChange: (value: string) => void;
+  value?: string;
+  defaultValue?: string;
+  onValueChange?: (value: string) => void;
   children: React.ReactNode;
   className?: string;
 }) {
+  const [internalValue, setInternalValue] = React.useState(defaultValue || '');
+  const activeValue = controlledValue !== undefined ? controlledValue : internalValue;
+
+  const handleValueChange = (val: string) => {
+    if (controlledValue === undefined) {
+      setInternalValue(val);
+    }
+    onValueChange?.(val);
+  };
+
   return (
-    <TabsContext.Provider value={{ value: defaultValue, onValueChange }}>
+    <TabsContext.Provider value={{ value: activeValue, onValueChange: handleValueChange }}>
       <div className={cn('w-full', className)}>{children}</div>
     </TabsContext.Provider>
   );

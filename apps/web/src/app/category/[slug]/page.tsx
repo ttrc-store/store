@@ -3,11 +3,13 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import { SlidersHorizontal, Package, Cpu } from 'lucide-react';
-import { CATALOG_PRODUCTS, toProductCardProps } from '@/lib/catalog-data';
+import { getStoreProducts, toStoreProductCardProps } from '@/lib/mongodb/catalog';
 import { ProductCard } from '@/components/store/product-card';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator, BreadcrumbList } from '@/components/ui/breadcrumb';
 import { BreadcrumbJsonLd } from '@/components/seo/json-ld';
 import { CATEGORY_TREE } from '@ttrc/shared';
+import { CategoryModel } from '@/lib/mongodb/models';
+import { connectToDatabase } from '@/lib/mongodb/client';
 
 interface CategoryPageProps {
   params: Promise<{ slug: string }>;
@@ -16,7 +18,9 @@ interface CategoryPageProps {
 
 export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const category = CATEGORY_TREE.find((c) => c.slug === slug);
+  await connectToDatabase();
+  const dbCat = await CategoryModel.findOne({ slug }).lean();
+  const category = dbCat ? { name: dbCat.name, slug: dbCat.slug } : CATEGORY_TREE.find((c) => c.slug === slug);
 
   if (!category) {
     return { title: 'Category Not Found | TTRC Store' };
@@ -38,48 +42,25 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   const typeFilter = typeof resolvedParams.type === 'string' ? resolvedParams.type : 'all';
   const sort = typeof resolvedParams.sort === 'string' ? resolvedParams.sort : 'featured';
 
-  const category = CATEGORY_TREE.find((c) => c.slug === slug);
+  await connectToDatabase();
+  const dbCat = await CategoryModel.findOne({ slug }).lean();
+  const category = dbCat ? { name: dbCat.name, slug: dbCat.slug, description: dbCat.description } : CATEGORY_TREE.find((c) => c.slug === slug);
 
   if (!category) {
     notFound();
   }
 
-  // Filter products by category or gamified sub-categories
-  let products = CATALOG_PRODUCTS.filter((p) => {
-    if (category.slug === 'gamified-robots') {
-      return p.categoryId === 'gamified-robots' || p.categoryId === '00000000-0000-4000-a000-000000000001';
-    }
-    if (category.slug === 'stem-kits') {
-      return p.categoryId === 'stem-kits' || p.categoryId === '00000000-0000-4000-a000-000000000002';
-    }
-    if (category.slug === 'fasteners') {
-      return p.categoryId === 'fasteners' || p.categoryId === '00000000-0000-4000-a000-000000000003';
-    }
-    if (category.slug === 'batteries') {
-      return p.categoryId === 'batteries' || p.categoryId === '00000000-0000-4000-a000-000000000004';
-    }
-    return true;
+  // Fetch real products from MongoDB
+  const { products } = await getStoreProducts({
+    categorySlug: slug,
+    productType: typeFilter,
+    sort,
+    limit: 60,
   });
-
-  // Apply Type Filter (Kits vs Spare Parts)
-  if (typeFilter === 'kit') {
-    products = products.filter((p) => p.type === 'kit');
-  } else if (typeFilter === 'spare_part') {
-    products = products.filter((p) => p.type === 'spare_part');
-  }
-
-  // Apply Sorting
-  if (sort === 'price_asc') {
-    products.sort((a, b) => a.pricePaise - b.pricePaise);
-  } else if (sort === 'price_desc') {
-    products.sort((a, b) => b.pricePaise - a.pricePaise);
-  } else if (sort === 'rating') {
-    products.sort((a, b) => b.rating - a.rating);
-  }
 
   const breadcrumbItems = [
     { name: 'Home', url: 'https://ttrc.store' },
-    { name: 'Categories', url: 'https://ttrc.store/categories' },
+    { name: 'Categories', url: 'https://ttrc.store/category/gamified-robots' },
     { name: category.name, url: `https://ttrc.store/category/${slug}` },
   ];
 
@@ -242,7 +223,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
             {products.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {products.map((product) => (
-                  <ProductCard key={product.id} {...toProductCardProps(product)} />
+                  <ProductCard key={product.id} {...toStoreProductCardProps(product)} />
                 ))}
               </div>
             ) : (

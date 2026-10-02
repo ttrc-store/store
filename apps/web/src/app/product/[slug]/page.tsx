@@ -1,18 +1,45 @@
 import * as React from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
-import { ShoppingBag, Zap, ShieldCheck, Truck, RefreshCw, Cpu, Layers, Video } from 'lucide-react';
-import { CATALOG_PRODUCTS, toProductCardProps } from '@/lib/catalog-data';
+import {
+  ShoppingBag,
+  Zap,
+  ShieldCheck,
+  Truck,
+  RefreshCw,
+  Cpu,
+  Layers,
+  Video,
+  Award,
+  Factory,
+  Globe,
+  Info,
+  CheckCircle2,
+} from 'lucide-react';
+import {
+  getProductBySlug,
+  getCompatibleProducts,
+  getStoreProducts,
+  toStoreProductCardProps,
+} from '@/lib/mongodb/catalog';
 import { PriceTag } from '@/components/store/price-tag';
 import { RatingStars } from '@/components/store/rating-stars';
-import { QuantitySelector } from '@/components/store/quantity-selector';
 import { ProductCard } from '@/components/store/product-card';
 import { PincodeChecker } from '@/components/store/pincode-checker';
+import { ProductOrderBox } from '@/components/store/product-order-box';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator, BreadcrumbList } from '@/components/ui/breadcrumb';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  BreadcrumbList,
+} from '@/components/ui/breadcrumb';
 import { ProductJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
 
 interface ProductPageProps {
@@ -21,7 +48,7 @@ interface ProductPageProps {
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const product = CATALOG_PRODUCTS.find((p) => p.slug === slug);
+  const product = await getProductBySlug(slug);
 
   if (!product) {
     return { title: 'Product Not Found | TTRC Store' };
@@ -38,7 +65,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
       description: product.shortDescription,
       images: [
         {
-          url: product.imageUrls?.[0] || '/brand/og-image.jpg',
+          url: product.imageUrls?.[0] || '/brand/ttrc-logo.png',
           width: 1200,
           height: 630,
           alt: product.name,
@@ -50,30 +77,26 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 
 export default async function ProductDetailPage({ params }: ProductPageProps) {
   const { slug } = await params;
-  const product = CATALOG_PRODUCTS.find((p) => p.slug === slug);
+  const product = await getProductBySlug(slug);
 
   if (!product) {
     notFound();
   }
 
-  // Find compatible spare parts if this is a kit
-  const compatibleSpares = product.type === 'kit' && product.compatibleSpareIds
-    ? CATALOG_PRODUCTS.filter((p) => product.compatibleSpareIds?.includes(p.id))
-    : [];
+  // Find real compatible spare parts & kits from MongoDB
+  const { compatibleSpares, compatibleKits } = await getCompatibleProducts(product.id, product.type);
 
-  // Find compatible kits if this is a spare part
-  const compatibleKits = product.type === 'spare_part' && product.compatibleKitIds
-    ? CATALOG_PRODUCTS.filter((p) => product.compatibleKitIds?.includes(p.id))
-    : [];
-
-  // Related products strategy: Admin manual list override if specified, otherwise auto-suggested from same category
-  const relatedProducts = product.relatedProductIds && product.relatedProductIds.length > 0
-    ? CATALOG_PRODUCTS.filter((p) => product.relatedProductIds?.includes(p.id))
-    : CATALOG_PRODUCTS.filter((p) => p.categoryId === product.categoryId && p.id !== product.id).slice(0, 4);
+  // Fetch real related products from same category in MongoDB
+  const { products: relatedProducts } = await getStoreProducts({
+    categorySlug: product.categoryId,
+    limit: 4,
+  });
+  const filteredRelated = relatedProducts.filter((p) => p.id !== product.id).slice(0, 4);
 
   // Bundle calculation (Kit + top 2 spare parts)
   const bundleSpares = compatibleSpares.slice(0, 2);
-  const bundleTotalPricePaise = product.pricePaise + bundleSpares.reduce((acc, s) => acc + s.pricePaise, 0);
+  const bundleTotalPricePaise =
+    product.pricePaise + bundleSpares.reduce((acc, s) => acc + s.pricePaise, 0);
 
   const breadcrumbItems = [
     { name: 'Home', url: 'https://ttrc.store' },
@@ -86,7 +109,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
       <ProductJsonLd
         name={product.name}
         description={product.longDescription || product.shortDescription}
-        images={product.imageUrls || ['/products/robo-race-kit.png']}
+        images={product.imageUrls}
         sku={product.sku}
         brand={product.brand || 'Tamizh Tech'}
         pricePaise={product.pricePaise}
@@ -105,26 +128,32 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
+              <BreadcrumbLink href={`/category/${product.categoryId || 'gamified-robots'}`}>
+                {product.categoryId ? product.categoryId.replace(/-/g, ' ') : 'Catalog'}
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
               <BreadcrumbPage className="truncate max-w-xs">{product.name}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
 
         {/* Top Product Hero Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
-          {/* Gallery & Video Embed Column */}
-          <div className="space-y-4">
-            <div className="relative aspect-square rounded-2xl bg-slate-50 border border-slate-200 overflow-hidden flex items-center justify-center group shadow-sm">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 mb-16 items-start">
+          {/* Gallery Column (5 cols) */}
+          <div className="lg:col-span-5 space-y-4">
+            <div className="relative aspect-square rounded-2xl bg-[#FDFDFD] border border-slate-200 overflow-hidden flex items-center justify-center group shadow-xs">
               <Image
-                src={product.imageUrls?.[0] || '/products/robo-race-kit.png'}
+                src={product.imageUrls?.[0] || '/brand/ttrc-logo.png'}
                 alt={product.name}
                 fill
                 priority
                 className="object-contain p-8 group-hover:scale-105 transition-transform duration-300"
               />
               <span className="absolute top-4 left-4">
-                <Badge variant={product.type === 'kit' ? 'kit' : 'spare'}>
-                  {product.type === 'kit' ? 'Complete Kit' : 'Spare Part'}
+                <Badge variant={product.type === 'kit' ? 'purple' : 'default'}>
+                  {product.type === 'kit' ? 'Complete Kit' : product.type === 'spare_part' ? 'Spare Part' : 'Standard Component'}
                 </Badge>
               </span>
             </div>
@@ -135,64 +164,60 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
                 {product.imageUrls.map((img, idx) => (
                   <div
                     key={idx}
-                    className="relative w-20 h-20 rounded-xl bg-purple-50/40 border border-purple-100 overflow-hidden cursor-pointer hover:border-purple-600 transition-colors flex-shrink-0"
+                    className="relative w-20 h-20 rounded-xl bg-purple-50/40 border border-purple-100 overflow-hidden cursor-pointer hover:border-[#844AFB] transition-colors flex-shrink-0"
                   >
                     <Image src={img} alt="" fill className="object-contain p-2" />
                   </div>
                 ))}
               </div>
             )}
-
-            {/* Sanitized Official Video Embed Player */}
-            {product.videoEmbedUrl && (
-              <div className="mt-4 p-4 rounded-2xl bg-purple-50/40 border border-purple-100 space-y-2">
-                <div className="flex items-center gap-2 text-xs font-bold text-slate-800 uppercase tracking-wide">
-                  <Video size={16} className="text-purple-700" />
-                  <span>Product Demonstration Video</span>
-                </div>
-                <div className="relative aspect-video w-full rounded-xl overflow-hidden border border-purple-100 shadow-sm">
-                  <iframe
-                    src={product.videoEmbedUrl}
-                    title={`${product.name} Video`}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    className="w-full h-full border-none"
-                  />
-                </div>
-              </div>
-            )}
           </div>
 
-          {/* Details & Buy Column */}
-          <div className="space-y-6">
+          {/* Product Details & Ordering Column (7 cols) */}
+          <div className="lg:col-span-7 space-y-6">
             <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-purple-700 mb-1">
-                {product.brand} • SKU: {product.sku}
-              </p>
-              <h1 className="font-heading text-2xl sm:text-3xl font-extrabold text-slate-900 leading-tight mb-3">
+              {/* Manufacturer & Brand Ribbon (Requirement 15: Manufacturer Entity) */}
+              <div className="flex flex-wrap items-center gap-3 mb-2">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#EEE8FA] text-[#6721F2] text-xs font-bold border border-[#AF87F8]/40">
+                  <Factory size={13} />
+                  <span>Manufacturer: {product.manufacturer?.name || product.brand || 'Tamizh Tech / TTRC'}</span>
+                  <CheckCircle2 size={12} className="text-[#844AFB]" />
+                </div>
+
+                {product.brand && product.brand !== product.manufacturer?.name && (
+                  <span className="text-xs text-slate-500 font-medium">
+                    Brand: <strong className="text-slate-800">{product.brand}</strong>
+                  </span>
+                )}
+
+                <span className="text-xs text-slate-400">|</span>
+                <span className="text-xs font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+                  SKU: {product.sku}
+                </span>
+              </div>
+
+              {/* Product Title */}
+              <h1 className="font-heading text-2xl sm:text-3xl font-extrabold text-[#050507] tracking-tight leading-snug">
                 {product.name}
               </h1>
 
-              {/* Rating & Reviews */}
-              <div className="flex items-center gap-3">
-                <RatingStars rating={product.rating} size="lg" />
-                <span className="text-xs text-slate-500 font-semibold">
-                  {product.rating} ({product.reviewCount} customer reviews)
+              {/* Rating Summary */}
+              <div className="flex items-center gap-3 mt-2">
+                <div className="flex items-center gap-1.5">
+                  <RatingStars rating={product.rating} size="sm" />
+                  <span className="text-xs font-bold text-slate-800">
+                    {product.rating > 0 ? product.rating.toFixed(1) : 'New'}
+                  </span>
+                </div>
+                <span className="text-slate-300">•</span>
+                <span className="text-xs text-slate-500">
+                  {product.reviewCount > 0 ? `${product.reviewCount} verified reviews` : 'Zero buyer reviews yet'}
+                </span>
+                <span className="text-slate-300">•</span>
+                <span className="text-xs text-slate-500 flex items-center gap-1">
+                  <Globe size={12} /> Origin: {product.countryOfOrigin}
                 </span>
               </div>
-            </div>
-
-            {/* Price Box with Strikethrough & Auto-Calculated Discount */}
-            <div className="p-4 rounded-xl bg-purple-50/50 border border-purple-100 space-y-1">
-              <PriceTag
-                pricePaise={product.pricePaise}
-                mrpPaise={product.mrpPaise}
-                size="lg"
-                showDiscountBadge
-              />
-              <p className="text-[11px] text-slate-500">
-                Inclusive of all GST ({product.gstPercent}%). Free Shipping on orders over ₹999.
-              </p>
             </div>
 
             {/* Short Description */}
@@ -200,56 +225,42 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
               {product.shortDescription}
             </p>
 
-            {/* Stock Availability */}
-            <div className="flex items-center gap-2">
-              <span
-                className={`w-2.5 h-2.5 rounded-full ${
-                  product.stockQty > 0 ? 'bg-emerald-600 animate-pulse' : 'bg-red-600'
-                }`}
-              />
-              <span className="text-xs font-semibold text-slate-700">
-                {product.stockQty > 0 ? `In Stock (${product.stockQty} available)` : 'Out of Stock'}
-              </span>
-            </div>
+            {/* Interactive Order Box (Bulk Pricing, Dynamic Tiers, Add to Cart) */}
+            <ProductOrderBox
+              id={product.id}
+              slug={product.slug}
+              name={product.name}
+              sku={product.sku}
+              basePricePaise={product.pricePaise}
+              mrpPaise={product.mrpPaise}
+              stockQty={product.stockQty}
+              gstPercent={product.gstPercent}
+              imageUrl={product.imageUrls[0]}
+              productType={product.type}
+              bulkPriceTiers={product.bulkPriceTiers}
+            />
 
-            {/* Quantity & CTA Buttons */}
-            <div className="space-y-4 pt-2">
-              <div className="flex items-center gap-4">
-                <QuantitySelector quantity={1} onQuantityChange={() => {}} max={product.stockQty} />
-                <Button
-                  size="lg"
-                  className="flex-1 bg-purple-700 hover:bg-purple-800 text-white font-bold text-sm h-12 shadow-md shadow-purple-900/20 rounded-xl"
-                >
-                  <ShoppingBag size={18} className="mr-2" />
-                  Add to Cart
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="h-12 px-6 border-purple-200 text-purple-950 font-bold text-sm hover:bg-purple-50 rounded-xl"
-                >
-                  <Zap size={18} className="mr-1 text-purple-700" />
-                  Buy Now
-                </Button>
-              </div>
-
-              {/* Pincode Checker Component */}
+            {/* Pincode Serviceability Check */}
+            <div className="pt-2">
               <PincodeChecker />
             </div>
 
-            {/* Guarantee Badges */}
+            {/* Guarantee / Value Badges */}
             <div className="grid grid-cols-3 gap-3 pt-4 border-t border-slate-200 text-center text-[11px] text-slate-500">
               <div className="flex flex-col items-center gap-1">
-                <ShieldCheck size={20} className="text-purple-700" />
-                <span>100% Genuine</span>
+                <ShieldCheck size={20} className="text-[#844AFB]" />
+                <span className="font-semibold text-slate-800">100% Genuine</span>
+                <span className="text-[10px] text-slate-400">Direct from Maker</span>
               </div>
               <div className="flex flex-col items-center gap-1">
-                <Truck size={20} className="text-purple-700" />
-                <span>Fast India Shipping</span>
+                <Truck size={20} className="text-[#844AFB]" />
+                <span className="font-semibold text-slate-800">Pan-India Courier</span>
+                <span className="text-[10px] text-slate-400">Insured Delivery</span>
               </div>
               <div className="flex flex-col items-center gap-1">
-                <RefreshCw size={20} className="text-purple-700" />
-                <span>7-Day Replacement</span>
+                <RefreshCw size={20} className="text-[#844AFB]" />
+                <span className="font-semibold text-slate-800">7-Day Replacement</span>
+                <span className="text-[10px] text-slate-400">For transit defects</span>
               </div>
             </div>
           </div>
@@ -260,7 +271,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
           <div className="space-y-10 mb-16">
             {/* Frequently Bought Together Bundle Box */}
             {bundleSpares.length > 0 && (
-              <div className="p-6 sm:p-8 rounded-2xl bg-gradient-to-r from-purple-50/50 via-white to-purple-50/50 border border-purple-200 shadow-md space-y-6">
+              <div className="p-6 sm:p-8 rounded-2xl bg-gradient-to-r from-purple-50/50 via-white to-purple-50/50 border border-purple-200 shadow-xs space-y-6">
                 <div className="flex items-center gap-2">
                   <Badge variant="purple">Frequently Bought Together Bundle</Badge>
                   <span className="text-xs text-slate-500">• Save time &amp; guarantee 100% compatibility</span>
@@ -270,7 +281,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
                   {/* Bundle Product 1: Main Kit */}
                   <div className="flex items-center gap-3">
                     <div className="relative w-16 h-16 rounded-xl bg-white border border-slate-200 flex-shrink-0">
-                      <Image src={product.imageUrls?.[0] || ''} alt="" fill className="object-contain p-2" />
+                      <Image src={product.imageUrls?.[0] || '/brand/ttrc-logo.png'} alt="" fill className="object-contain p-2" />
                     </div>
                     <div>
                       <p className="text-xs font-bold text-slate-900 line-clamp-2">{product.name}</p>
@@ -286,7 +297,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
                       </div>
                       <div className="flex items-center gap-3">
                         <div className="relative w-16 h-16 rounded-xl bg-white border border-slate-200 flex-shrink-0">
-                          <Image src={spare.imageUrls?.[0] || ''} alt="" fill className="object-contain p-2" />
+                          <Image src={spare.imageUrls?.[0] || '/brand/ttrc-logo.png'} alt="" fill className="object-contain p-2" />
                         </div>
                         <div>
                           <p className="text-xs font-bold text-slate-900 line-clamp-2">{spare.name}</p>
@@ -300,7 +311,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
                   <div className="md:col-span-1 border-t md:border-t-0 md:border-l border-slate-200 pt-4 md:pt-0 md:pl-6 space-y-2">
                     <p className="text-xs text-slate-500 font-semibold">Total Bundle Price:</p>
                     <PriceTag pricePaise={bundleTotalPricePaise} size="lg" />
-                    <Button className="w-full bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs h-10 shadow-md shadow-purple-900/20 rounded-xl">
+                    <Button className="w-full bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold text-xs h-10 shadow-md shadow-purple-900/20 rounded-xl">
                       Add All {1 + bundleSpares.length} Items to Cart
                     </Button>
                   </div>
@@ -313,7 +324,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
               <div className="flex items-center justify-between border-b border-slate-200 pb-4">
                 <div>
                   <h2 className="font-heading text-xl font-bold text-slate-900 flex items-center gap-2">
-                    <Cpu className="text-purple-700" size={22} />
+                    <Cpu className="text-[#844AFB]" size={22} />
                     Compatible Spare Parts for this Kit
                   </h2>
                   <p className="text-xs text-slate-500">Guaranteed replacement parts tested for {product.name}</p>
@@ -322,7 +333,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {compatibleSpares.map((spare) => (
-                  <ProductCard key={spare.id} {...toProductCardProps(spare)} />
+                  <ProductCard key={spare.id} {...toStoreProductCardProps(spare)} />
                 ))}
               </div>
             </div>
@@ -335,7 +346,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
             <div className="flex items-center justify-between border-b border-slate-200 pb-4">
               <div>
                 <h2 className="font-heading text-xl font-bold text-slate-900 flex items-center gap-2">
-                  <Layers className="text-purple-700" size={22} />
+                  <Layers className="text-[#844AFB]" size={22} />
                   Compatible Kits
                 </h2>
                 <p className="text-xs text-slate-500">Kits that use or support this spare part</p>
@@ -344,68 +355,179 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {compatibleKits.map((kit) => (
-                <ProductCard key={kit.id} {...toProductCardProps(kit)} />
+                <ProductCard key={kit.id} {...toStoreProductCardProps(kit)} />
               ))}
             </div>
           </div>
         )}
 
-        {/* Specifications & Tabbed Information */}
+        {/* Specifications & Tabbed Information (JetBrains Mono for Specs) */}
         <div className="mb-16">
-          <Tabs value="description" onValueChange={() => {}} className="w-full">
+          <Tabs defaultValue="specs" className="w-full">
             <TabsList className="bg-purple-50/60 border border-purple-100 p-1 rounded-xl mb-6">
-              <TabsTrigger value="description" className="text-xs font-bold px-6">Description</TabsTrigger>
-              <TabsTrigger value="specs" className="text-xs font-bold px-6">Specifications</TabsTrigger>
-              <TabsTrigger value="reviews" className="text-xs font-bold px-6">Reviews ({product.reviewCount})</TabsTrigger>
+              <TabsTrigger value="specs" className="text-xs font-bold px-6">
+                Technical Specifications
+              </TabsTrigger>
+              <TabsTrigger value="description" className="text-xs font-bold px-6">
+                Description &amp; Applications
+              </TabsTrigger>
+              <TabsTrigger value="manufacturer" className="text-xs font-bold px-6">
+                Manufacturer &amp; Provenance
+              </TabsTrigger>
+              <TabsTrigger value="reviews" className="text-xs font-bold px-6">
+                Reviews ({product.reviewCount})
+              </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="description" className="p-6 rounded-2xl bg-purple-50/30 border border-purple-100 space-y-4 text-sm text-slate-700 leading-relaxed">
-              <h3 className="font-heading text-lg font-bold text-slate-900">Product Overview</h3>
-              <p>{product.longDescription || product.shortDescription}</p>
-            </TabsContent>
+            {/* Technical Specifications Tab */}
+            <TabsContent
+              value="specs"
+              className="p-6 sm:p-8 rounded-2xl bg-white border border-slate-200 space-y-4"
+            >
+              <h3 className="font-heading text-lg font-bold text-slate-900 flex items-center gap-2">
+                <Cpu className="text-[#844AFB]" size={20} /> Engineering &amp; Hardware Specifications
+              </h3>
+              <div className="max-w-3xl divide-y divide-slate-100 text-xs sm:text-sm">
+                <div className="py-2.5 flex justify-between items-center">
+                  <span className="font-semibold text-slate-500">SKU / Part Code</span>
+                  <span className="font-mono font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded">
+                    {product.sku}
+                  </span>
+                </div>
+                {product.modelNumber && (
+                  <div className="py-2.5 flex justify-between items-center">
+                    <span className="font-semibold text-slate-500">Model Number</span>
+                    <span className="font-mono text-slate-900">{product.modelNumber}</span>
+                  </div>
+                )}
+                {product.voltage && (
+                  <div className="py-2.5 flex justify-between items-center">
+                    <span className="font-semibold text-slate-500">Operating Voltage</span>
+                    <span className="font-mono text-slate-900">{product.voltage}</span>
+                  </div>
+                )}
+                {product.current && (
+                  <div className="py-2.5 flex justify-between items-center">
+                    <span className="font-semibold text-slate-500">Operating Current</span>
+                    <span className="font-mono text-slate-900">{product.current}</span>
+                  </div>
+                )}
+                {product.power && (
+                  <div className="py-2.5 flex justify-between items-center">
+                    <span className="font-semibold text-slate-500">Power Rating</span>
+                    <span className="font-mono text-slate-900">{product.power}</span>
+                  </div>
+                )}
+                {product.material && (
+                  <div className="py-2.5 flex justify-between items-center">
+                    <span className="font-semibold text-slate-500">Material Composition</span>
+                    <span className="font-mono text-slate-900">{product.material}</span>
+                  </div>
+                )}
+                {product.dimensions && (
+                  <div className="py-2.5 flex justify-between items-center">
+                    <span className="font-semibold text-slate-500">Dimensions</span>
+                    <span className="font-mono text-slate-900">{product.dimensions}</span>
+                  </div>
+                )}
+                <div className="py-2.5 flex justify-between items-center">
+                  <span className="font-semibold text-slate-500">Net Weight</span>
+                  <span className="font-mono text-slate-900">{product.weightGrams} grams</span>
+                </div>
+                <div className="py-2.5 flex justify-between items-center">
+                  <span className="font-semibold text-slate-500">Harmonized Tariff (HSN)</span>
+                  <span className="font-mono text-slate-900">{product.hsnCode}</span>
+                </div>
+                <div className="py-2.5 flex justify-between items-center">
+                  <span className="font-semibold text-slate-500">Applicable GST Rate</span>
+                  <span className="font-mono text-slate-900">{product.gstPercent}% (Inclusive)</span>
+                </div>
+                <div className="py-2.5 flex justify-between items-center">
+                  <span className="font-semibold text-slate-500">Country of Origin</span>
+                  <span className="font-mono text-slate-900">{product.countryOfOrigin}</span>
+                </div>
 
-            <TabsContent value="specs" className="p-6 rounded-2xl bg-purple-50/30 border border-purple-100">
-              <div className="max-w-2xl divide-y divide-purple-100 text-sm">
-                {product.specs?.map((s, idx) => (
-                  <div key={idx} className="py-3 flex justify-between">
-                    <span className="font-bold text-slate-600">{s.key}</span>
-                    <span className="text-slate-900 font-mono">{s.value}</span>
+                {/* Dynamic Specs Array from DB */}
+                {product.technicalSpecs?.map((spec, idx) => (
+                  <div key={idx} className="py-2.5 flex justify-between items-center">
+                    <span className="font-semibold text-slate-500">{spec.key}</span>
+                    <span className="font-mono text-slate-900">{spec.value}</span>
                   </div>
                 ))}
               </div>
             </TabsContent>
 
-            <TabsContent value="reviews" className="p-6 rounded-2xl bg-purple-50/30 border border-purple-100 space-y-4">
-              <div className="flex items-center justify-between border-b border-purple-100 pb-4">
+            {/* Description Tab */}
+            <TabsContent
+              value="description"
+              className="p-6 sm:p-8 rounded-2xl bg-white border border-slate-200 space-y-4 text-sm text-slate-700 leading-relaxed"
+            >
+              <h3 className="font-heading text-lg font-bold text-slate-900">Product Overview</h3>
+              <p className="whitespace-pre-line">{product.longDescription || product.shortDescription}</p>
+            </TabsContent>
+
+            {/* Manufacturer Tab (Requirement 15) */}
+            <TabsContent
+              value="manufacturer"
+              className="p-6 sm:p-8 rounded-2xl bg-white border border-slate-200 space-y-4 text-sm text-slate-700"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-700 font-bold">
+                  <Factory size={24} />
+                </div>
+                <div>
+                  <h3 className="font-heading text-lg font-bold text-slate-900">
+                    {product.manufacturer?.name || product.brand || 'Tamizh Tech / TTRC'}
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Origin: {product.manufacturer?.country || product.countryOfOrigin || 'India'} • Verified Maker
+                  </p>
+                </div>
+              </div>
+              <p className="text-xs text-slate-600 leading-relaxed max-w-2xl">
+                Tamizh Tech engineers robotics kits, precision drive systems, and modular STEM components
+                designed specifically for national competitions and STEM lab environments.
+              </p>
+            </TabsContent>
+
+            {/* Reviews Tab (Requirement 29: No fake reviews, only verified buyers) */}
+            <TabsContent
+              value="reviews"
+              className="p-6 sm:p-8 rounded-2xl bg-white border border-slate-200 space-y-6"
+            >
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                 <div>
                   <h3 className="font-heading text-lg font-bold text-slate-900">Customer Reviews</h3>
                   <div className="flex items-center gap-2 mt-1">
                     <RatingStars rating={product.rating} size="default" />
-                    <span className="text-xs font-bold text-slate-900">{product.rating} out of 5</span>
+                    <span className="text-xs font-bold text-slate-900">
+                      {product.rating > 0 ? `${product.rating.toFixed(1)} out of 5` : 'No ratings yet'}
+                    </span>
                   </div>
                 </div>
-                <Button className="bg-purple-700 text-white font-bold text-xs hover:bg-purple-800 shadow-md shadow-purple-900/20 rounded-xl">
-                  Write a Review
-                </Button>
               </div>
 
-              <div className="p-8 text-center text-xs text-slate-500 space-y-1">
-                <p className="font-bold text-slate-700 text-sm">Only Verified Buyers Can Submit Reviews</p>
-                <p>Reviews are submitted after order completion and approved by the store administrator.</p>
+              {/* Zero-Fake Reviews Empty State */}
+              <div className="p-8 text-center text-xs text-slate-500 space-y-2 bg-slate-50/60 rounded-xl border border-slate-200">
+                <Award size={36} className="mx-auto text-purple-400" />
+                <p className="font-bold text-slate-700 text-sm">No reviews yet for this product</p>
+                <p className="max-w-md mx-auto text-slate-500">
+                  Only customers who have purchased this component through TTRC Store can submit verified buyer reviews.
+                </p>
               </div>
             </TabsContent>
           </Tabs>
         </div>
 
-        {/* Related Products Section ("You May Also Like") */}
-        {relatedProducts.length > 0 && (
+        {/* Related Products ("You May Also Like") from MongoDB */}
+        {filteredRelated.length > 0 && (
           <div className="space-y-6">
-            <h2 className="font-heading text-xl font-bold text-slate-900 uppercase tracking-wider border-l-4 border-purple-700 pl-3">
+            <h2 className="font-heading text-xl font-bold text-slate-900 uppercase tracking-wider border-l-4 border-[#844AFB] pl-3">
               You May Also Like
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {relatedProducts.map((p) => (
-                <ProductCard key={p.id} {...toProductCardProps(p)} />
+              {filteredRelated.map((p) => (
+                <ProductCard key={p.id} {...toStoreProductCardProps(p)} />
               ))}
             </div>
           </div>

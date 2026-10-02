@@ -43,6 +43,9 @@ export async function createProductAction(input: z.infer<typeof ProductSchema>) 
       sku: data.sku || `TTRC-PRD-${Date.now().toString().slice(-4)}`,
       product_type: data.productType === 'general' ? 'standard' : data.productType,
       category_id: data.categoryId || undefined,
+      manufacturer_id: data.manufacturerId || undefined,
+      brand: data.brand || 'Tamizh Tech',
+      supplier: data.supplier || undefined,
       short_description: data.shortDescription || data.name,
       description: data.longDescription || data.shortDescription || data.name,
       price: data.pricePaise,
@@ -52,6 +55,15 @@ export async function createProductAction(input: z.infer<typeof ProductSchema>) 
       stock_quantity: data.stockQty,
       weight_grams: data.weightGrams || 100,
       country_of_origin: data.countryOfOrigin || 'India',
+      model_number: data.modelNumber,
+      part_number: data.partNumber,
+      voltage: data.voltage,
+      current: data.current,
+      dimensions: data.dimensions,
+      material: data.material,
+      warranty: data.warranty,
+      bulk_price_tiers: data.bulkPriceTiers || [],
+      technical_specs: data.specs || [],
       images,
       meta_title: data.seoTitle || undefined,
       meta_description: data.seoDescription || undefined,
@@ -101,6 +113,9 @@ export async function updateProductAction(
           sku: data.sku,
           product_type: data.productType === 'general' ? 'standard' : data.productType,
           category_id: data.categoryId || undefined,
+          manufacturer_id: data.manufacturerId || undefined,
+          brand: data.brand || 'Tamizh Tech',
+          supplier: data.supplier || undefined,
           short_description: data.shortDescription || data.name,
           description: data.longDescription || data.shortDescription || data.name,
           price: data.pricePaise,
@@ -110,6 +125,15 @@ export async function updateProductAction(
           stock_quantity: data.stockQty,
           weight_grams: data.weightGrams || 100,
           country_of_origin: data.countryOfOrigin || 'India',
+          model_number: data.modelNumber,
+          part_number: data.partNumber,
+          voltage: data.voltage,
+          current: data.current,
+          dimensions: data.dimensions,
+          material: data.material,
+          warranty: data.warranty,
+          bulk_price_tiers: data.bulkPriceTiers || [],
+          technical_specs: data.specs || [],
           images,
           meta_title: data.seoTitle || undefined,
           meta_description: data.seoDescription || undefined,
@@ -128,6 +152,52 @@ export async function updateProductAction(
     return { success: true };
   } catch (err: any) {
     return { error: err.message || 'Failed to update product.' };
+  }
+}
+
+export async function getAdminProductByIdAction(id: string) {
+  const auth = await requireAdmin();
+  if ('error' in auth) return { error: auth.error };
+
+  try {
+    await connectToDatabase();
+    const doc = await ProductModel.findById(id).lean();
+    if (!doc) return { error: 'Product not found' };
+
+    return {
+      product: {
+        id: doc._id.toString(),
+        name: doc.name,
+        slug: doc.slug,
+        sku: doc.sku,
+        productType: doc.product_type,
+        categoryId: doc.category_id,
+        manufacturerId: doc.manufacturer_id,
+        brand: doc.brand || 'Tamizh Tech',
+        supplier: doc.supplier,
+        shortDescription: doc.short_description,
+        longDescription: doc.description,
+        pricePaise: doc.price,
+        mrpPaise: doc.compare_at_price,
+        gstPercent: doc.gst_percent,
+        hsnCode: doc.hsn_code,
+        stockQty: doc.stock_quantity,
+        weightGrams: doc.weight_grams,
+        countryOfOrigin: doc.country_of_origin,
+        imageUrls: doc.images || [],
+        bulkPriceTiers: doc.bulk_price_tiers || [],
+        specs: doc.technical_specs || [],
+        modelNumber: doc.model_number,
+        partNumber: doc.part_number,
+        voltage: doc.voltage,
+        current: doc.current,
+        material: doc.material,
+        dimensions: doc.dimensions,
+        warranty: doc.warranty,
+      },
+    };
+  } catch (err: any) {
+    return { error: err.message || 'Failed to fetch product' };
   }
 }
 

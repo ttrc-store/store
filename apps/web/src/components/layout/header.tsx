@@ -8,25 +8,56 @@ import { Search, ShoppingBag, User, Menu, ChevronDown, Truck, ShieldCheck, Heart
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { MegaMenu } from './mega-menu';
-import { CATALOG_PRODUCTS } from '@/lib/catalog-data';
 import { PriceTag } from '@/components/store/price-tag';
 import { useCartStore } from '@/store/use-cart';
 import { cn } from '@/lib/utils';
+
+interface SearchResultItem {
+  id: string;
+  slug: string;
+  name: string;
+  brand?: string;
+  pricePaise: number;
+  imageUrl: string;
+  type: string;
+  stockQty: number;
+}
 
 export default function Header() {
   const router = useRouter();
   const [isMegaMenuOpen, setIsMegaMenuOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState('');
   const [isSearchFocused, setIsSearchFocused] = React.useState(false);
+  const [suggestions, setSuggestions] = React.useState<SearchResultItem[]>([]);
+  const [isSearching, setIsSearching] = React.useState(false);
 
   const { items, openDrawer } = useCartStore();
   const totalCartQty = items.reduce((acc, i) => acc + i.quantity, 0);
 
-  const suggestions = CATALOG_PRODUCTS.filter((item) =>
-    item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.slug.includes(searchQuery.toLowerCase()) ||
-    item.tags.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()))
-  ).slice(0, 5);
+  React.useEffect(() => {
+    const trimmed = searchQuery.trim();
+    if (trimmed.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(trimmed)}`);
+        if (res.ok) {
+          const data = await res.json();
+          setSuggestions(data.results || []);
+        }
+      } catch (err) {
+        console.error('Search suggestions error:', err);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -118,7 +149,7 @@ export default function Header() {
                       className="flex items-center gap-3 p-3 hover:bg-[#EEE8FA] transition-colors"
                     >
                       <div className="relative w-10 h-10 rounded-lg bg-[#EEE8FA]/60 border border-[#AF87F8]/30 flex-shrink-0 overflow-hidden">
-                        <Image src={item.imageUrls[0] || '/brand/ttrc-logo.png'} alt={item.name} fill className="object-contain p-1" />
+                        <Image src={item.imageUrl || '/brand/ttrc-logo.png'} alt={item.name} fill className="object-contain p-1" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-semibold text-[#050507] line-clamp-1">{item.name}</p>

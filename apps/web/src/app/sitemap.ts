@@ -1,10 +1,9 @@
 import type { MetadataRoute } from 'next';
-import { CATALOG_PRODUCTS } from '@/lib/catalog-data';
-import { CATEGORY_TREE } from '@ttrc/shared';
+import { getStoreCategories, getStoreProducts } from '@/lib/mongodb/catalog';
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ttrc.store';
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages: MetadataRoute.Sitemap = [
     {
       url: BASE_URL,
@@ -18,16 +17,30 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'daily',
       priority: 0.8,
     },
+    {
+      url: `${BASE_URL}/bulk-enquiry`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${BASE_URL}/contact`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.6,
+    },
   ];
 
-  const categoryPages: MetadataRoute.Sitemap = CATEGORY_TREE.map((cat) => ({
+  const categories = await getStoreCategories();
+  const categoryPages: MetadataRoute.Sitemap = categories.map((cat) => ({
     url: `${BASE_URL}/category/${cat.slug}`,
     lastModified: new Date(),
     changeFrequency: 'weekly',
     priority: 0.9,
   }));
 
-  const productPages: MetadataRoute.Sitemap = CATALOG_PRODUCTS.map((prod) => ({
+  const { products } = await getStoreProducts({ limit: 500 });
+  const productPages: MetadataRoute.Sitemap = products.map((prod) => ({
     url: `${BASE_URL}/product/${prod.slug}`,
     lastModified: new Date(prod.updatedAt),
     changeFrequency: 'daily',

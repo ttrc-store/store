@@ -94,7 +94,45 @@ export const CATEGORIES: CategoryItem[] = [
 ];
 
 export function MegaMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const [categories, setCategories] = React.useState<CategoryItem[]>(CATEGORIES);
   const [activeCat, setActiveCat] = React.useState<CategoryItem>(CATEGORIES[0]);
+
+  React.useEffect(() => {
+    let isMounted = true;
+    async function loadCategories() {
+      try {
+        const res = await fetch('/api/categories');
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data.categories) && data.categories.length > 0) {
+            // Map or augment with subcategories
+            const merged = data.categories.map((c: any) => {
+              const matchedStatic = CATEGORIES.find((sc) => sc.slug === c.slug);
+              return {
+                name: c.name,
+                slug: c.slug,
+                subcategories: matchedStatic?.subcategories || [
+                  { name: `All ${c.name}`, slug: c.slug },
+                  { name: 'Kits & Assemblies', slug: `${c.slug}?type=kit` },
+                  { name: 'Spare Parts & Hardware', slug: `${c.slug}?type=spare_part` },
+                ],
+              };
+            });
+            if (isMounted) {
+              setCategories(merged);
+              setActiveCat(merged[0]);
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load categories in MegaMenu:', err);
+      }
+    }
+    loadCategories();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   if (!isOpen) return null;
 
@@ -110,7 +148,7 @@ export function MegaMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
             Product Categories
           </p>
           <div className="space-y-1">
-            {CATEGORIES.map((cat) => (
+            {categories.map((cat) => (
               <button
                 key={cat.slug}
                 onMouseEnter={() => setActiveCat(cat)}

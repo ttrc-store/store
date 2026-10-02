@@ -1,28 +1,26 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, Rajdhani, Exo_2 } from 'next/font/google';
+import { Plus_Jakarta_Sans, Space_Grotesk, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/theme-provider';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
 import MobileBottomNav from '@/components/layout/mobile-bottom-nav';
 
-const inter = Inter({
+const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
-  variable: '--font-inter',
+  variable: '--font-sans',
   display: 'swap',
 });
 
-const rajdhani = Rajdhani({
-  weight: ['500', '600', '700'],
+const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
-  variable: '--font-rajdhani',
+  variable: '--font-heading',
   display: 'swap',
 });
 
-const exo2 = Exo_2({
-  weight: ['500', '600', '700', '800'],
+const jetbrainsMono = JetBrains_Mono({
   subsets: ['latin'],
-  variable: '--font-exo2',
+  variable: '--font-mono',
   display: 'swap',
 });
 
@@ -115,7 +113,7 @@ export default function RootLayout({
     <html
       lang="en-IN"
       suppressHydrationWarning
-      className={`${inter.variable} ${rajdhani.variable} ${exo2.variable}`}
+      className={`${plusJakartaSans.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable}`}
     >
       <body className="bg-background text-foreground antialiased min-h-screen flex flex-col">
         <ThemeProvider attribute="class" defaultTheme="light" forcedTheme="light" enableSystem={false}>

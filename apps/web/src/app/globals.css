@@ -78,7 +78,7 @@
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: var(--font-inter), 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-family: var(--font-sans), 'Plus Jakarta Sans', system-ui, sans-serif;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -87,9 +87,17 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6, .font-heading {
-  font-family: 'Space Grotesk', system-ui, sans-serif;
+  font-family: var(--font-heading), 'Space Grotesk', system-ui, sans-serif;
   font-weight: 700;
   letter-spacing: -0.01em;
+}
+
+.font-mono,
+code,
+pre,
+.sku-text,
+.technical-spec {
+  font-family: var(--font-mono), 'JetBrains Mono', monospace;
 }
 
 /* Tabular numerals for all prices */

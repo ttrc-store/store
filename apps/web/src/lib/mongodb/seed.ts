@@ -55,12 +55,30 @@ export async function ensureDatabaseSeeded() {
     if (adminCount === 0) {
       const defaultPasswordHash = await bcrypt.hash('Admin@ttrc2026', 10);
       await UserModel.create({
-        email: 'admin@tamizhtech.in',
+        email: 'admin@ttrcs.store',
         password_hash: defaultPasswordHash,
         full_name: 'Store Admin',
         role: 'admin',
       });
-      console.log('[MongoDB Seed] Default admin created: admin@tamizhtech.in / Admin@ttrc2026');
+      console.log('[MongoDB Seed] Default admin created: admin@ttrcs.store');
+    }
+
+    // 4. Seed Default Verified Manufacturer if empty
+    const { ManufacturerModel } = await import('./models');
+    const mfgCount = await ManufacturerModel.countDocuments();
+    if (mfgCount === 0) {
+      await ManufacturerModel.create({
+        name: 'Tamizh Tech / TTRC',
+        slug: 'tamizh-tech',
+        logo: '/brand/ttrc-logo.png',
+        description: 'Indigenous robotics hardware, competition chassis, and STEM educational technology designed and engineered in Tamil Nadu, India.',
+        website: 'https://tamizhtech.in',
+        country: 'India',
+        support_info: 'support@ttrc.store | +91 7904902978',
+        verification_status: 'verified',
+        is_active: true,
+      });
+      console.log('[MongoDB Seed] Default manufacturer created: Tamizh Tech / TTRC');
     }
 
     seeded = true;

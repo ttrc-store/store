@@ -34,6 +34,23 @@ export default function NewProductPage() {
     { key: 'Chassis Material', value: '3mm Laser-Cut Acrylic' },
   ]);
 
+  // Hardware specifications (Requirement 4 & 18)
+  const [modelNumber, setModelNumber] = React.useState('');
+  const [partNumber, setPartNumber] = React.useState('');
+  const [voltage, setVoltage] = React.useState('');
+  const [current, setCurrent] = React.useState('');
+  const [dimensions, setDimensions] = React.useState('');
+  const [material, setMaterial] = React.useState('');
+  const [warranty, setWarranty] = React.useState('6 Months Replacement');
+
+  // Bulk Price Tiers (Requirement 19)
+  const [bulkTiers, setBulkTiers] = React.useState<
+    Array<{ minQuantity: number; maxQuantity?: number; unitPrice: string }>
+  >([
+    { minQuantity: 5, maxQuantity: 9, unitPrice: '1399' },
+    { minQuantity: 10, unitPrice: '1299' },
+  ]);
+
   const [saving, setSaving] = React.useState(false);
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
   const [success, setSuccess] = React.useState(false);
@@ -118,6 +135,14 @@ export default function NewProductPage() {
     const pricePaise = Math.round(numericPrice * 100);
     const mrpPaise = numericMrp ? Math.round(numericMrp * 100) : pricePaise;
 
+    const formattedBulkTiers = bulkTiers
+      .filter((t) => t.minQuantity > 0 && parseFloat(t.unitPrice || '0') > 0)
+      .map((t) => ({
+        minQuantity: Number(t.minQuantity),
+        maxQuantity: t.maxQuantity ? Number(t.maxQuantity) : undefined,
+        unitPricePaise: Math.round(parseFloat(t.unitPrice) * 100),
+      }));
+
     const res = await createProductAction({
       name,
       slug,
@@ -134,6 +159,15 @@ export default function NewProductPage() {
       longDescription: description,
       imageUrls,
       videoUrl: videoUrl.trim() || undefined,
+      modelNumber: modelNumber.trim() || undefined,
+      partNumber: partNumber.trim() || undefined,
+      voltage: voltage.trim() || undefined,
+      current: current.trim() || undefined,
+      dimensions: dimensions.trim() || undefined,
+      material: material.trim() || undefined,
+      warranty: warranty.trim() || undefined,
+      bulkPriceTiers: formattedBulkTiers.length > 0 ? formattedBulkTiers : undefined,
+      specs: specs.filter((s) => s.key.trim() && s.value.trim()),
     });
 
     setSaving(false);
@@ -405,6 +439,155 @@ export default function NewProductPage() {
                 value={hsnCode}
                 onChange={(e) => setHsnCode(e.target.value)}
                 className="bg-slate-50 border-slate-200 h-10 font-mono text-slate-900 focus:border-purple-600 focus:ring-purple-600"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Bulk Pricing Tiers (Requirement 19: Bulk Pricing System) */}
+        <div className="p-6 rounded-2xl bg-white border border-slate-200 space-y-4 shadow-sm">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div>
+              <h2 className="font-heading font-bold text-base text-slate-900">
+                Bulk Quantity Pricing Tiers
+              </h2>
+              <p className="text-xs text-slate-500">
+                Encourage institutional and volume purchases by defining tiered wholesale discounts.
+              </p>
+            </div>
+            <Button
+              type="button"
+              onClick={() =>
+                setBulkTiers([
+                  ...bulkTiers,
+                  { minQuantity: 10, unitPrice: (numericPrice * 0.9).toFixed(0) },
+                ])
+              }
+              variant="outline"
+              size="sm"
+              className="h-8 text-xs font-bold border-purple-200 text-purple-700 hover:bg-purple-50 flex items-center gap-1"
+            >
+              <Plus size={14} /> Add Tier
+            </Button>
+          </div>
+
+          <div className="space-y-3">
+            {bulkTiers.map((tier, idx) => (
+              <div key={idx} className="flex flex-wrap sm:flex-nowrap items-center gap-3 bg-purple-50/40 p-3 rounded-xl border border-purple-100 text-xs">
+                <div className="flex-1 min-w-[120px]">
+                  <label className="text-[11px] font-bold text-slate-600 block mb-1">Min Quantity</label>
+                  <Input
+                    type="number"
+                    value={tier.minQuantity}
+                    onChange={(e) => {
+                      const updated = [...bulkTiers];
+                      updated[idx].minQuantity = parseInt(e.target.value, 10) || 1;
+                      setBulkTiers(updated);
+                    }}
+                    className="h-9 bg-white border-slate-200 text-xs font-mono"
+                  />
+                </div>
+                <div className="flex-1 min-w-[120px]">
+                  <label className="text-[11px] font-bold text-slate-600 block mb-1">Max Quantity (Optional)</label>
+                  <Input
+                    type="number"
+                    placeholder="Unlimited"
+                    value={tier.maxQuantity || ''}
+                    onChange={(e) => {
+                      const updated = [...bulkTiers];
+                      updated[idx].maxQuantity = e.target.value ? parseInt(e.target.value, 10) : undefined;
+                      setBulkTiers(updated);
+                    }}
+                    className="h-9 bg-white border-slate-200 text-xs font-mono"
+                  />
+                </div>
+                <div className="flex-1 min-w-[140px]">
+                  <label className="text-[11px] font-bold text-slate-600 block mb-1">Tier Unit Price (₹)</label>
+                  <Input
+                    type="number"
+                    value={tier.unitPrice}
+                    onChange={(e) => {
+                      const updated = [...bulkTiers];
+                      updated[idx].unitPrice = e.target.value;
+                      setBulkTiers(updated);
+                    }}
+                    className="h-9 bg-white border-slate-200 text-xs font-mono font-bold text-purple-900"
+                  />
+                </div>
+                <div className="pt-5">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setBulkTiers(bulkTiers.filter((_, i) => i !== idx))}
+                    className="h-9 px-3 text-red-600 border-slate-200 hover:bg-red-50"
+                  >
+                    <Trash2 size={14} />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Hardware & Engineering Specifications (Requirement 4 & 18) */}
+        <div className="p-6 rounded-2xl bg-white border border-slate-200 space-y-4 shadow-sm">
+          <h2 className="font-heading font-bold text-base text-slate-900 border-b border-slate-100 pb-3">
+            Hardware &amp; Engineering Parameters
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+            <div className="space-y-1">
+              <label className="font-bold text-slate-700">Model Number</label>
+              <Input
+                placeholder="e.g. TT-RACE-V3"
+                value={modelNumber}
+                onChange={(e) => setModelNumber(e.target.value)}
+                className="bg-slate-50 border-slate-200 h-9 font-mono text-xs"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="font-bold text-slate-700">Operating Voltage</label>
+              <Input
+                placeholder="e.g. 6V - 12V DC"
+                value={voltage}
+                onChange={(e) => setVoltage(e.target.value)}
+                className="bg-slate-50 border-slate-200 h-9 font-mono text-xs"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="font-bold text-slate-700">Operating Current / Stall</label>
+              <Input
+                placeholder="e.g. 1.2A Stall"
+                value={current}
+                onChange={(e) => setCurrent(e.target.value)}
+                className="bg-slate-50 border-slate-200 h-9 font-mono text-xs"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="font-bold text-slate-700">Chassis Dimensions</label>
+              <Input
+                placeholder="e.g. 180 x 140 x 55 mm"
+                value={dimensions}
+                onChange={(e) => setDimensions(e.target.value)}
+                className="bg-slate-50 border-slate-200 h-9 font-mono text-xs"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="font-bold text-slate-700">Material Composition</label>
+              <Input
+                placeholder="e.g. 3mm Laser Acrylic"
+                value={material}
+                onChange={(e) => setMaterial(e.target.value)}
+                className="bg-slate-50 border-slate-200 h-9 font-mono text-xs"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="font-bold text-slate-700">Warranty Term</label>
+              <Input
+                placeholder="e.g. 6 Months Replacement"
+                value={warranty}
+                onChange={(e) => setWarranty(e.target.value)}
+                className="bg-slate-50 border-slate-200 h-9 text-xs"
               />
             </div>
           </div>

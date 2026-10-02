@@ -2,7 +2,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { Metadata } from 'next';
 import { Search, Package } from 'lucide-react';
-import { CATALOG_PRODUCTS, toProductCardProps } from '@/lib/catalog-data';
+import { searchStoreProducts, getStoreProducts, toStoreProductCardProps } from '@/lib/mongodb/catalog';
 import { ProductCard } from '@/components/store/product-card';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator, BreadcrumbList } from '@/components/ui/breadcrumb';
 
@@ -22,17 +22,16 @@ export async function generateMetadata({ searchParams }: SearchPageProps): Promi
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
   const { q } = await searchParams;
-  const query = (q || '').trim().toLowerCase();
+  const query = (q || '').trim();
 
-  const results = query
-    ? CATALOG_PRODUCTS.filter(
-        (p) =>
-          p.name.toLowerCase().includes(query) ||
-          p.shortDescription.toLowerCase().includes(query) ||
-          p.tags.some((t) => t.toLowerCase().includes(query)) ||
-          (p.brand && p.brand.toLowerCase().includes(query))
-      )
-    : CATALOG_PRODUCTS;
+  let products = [];
+  if (query) {
+    products = await searchStoreProducts(query, { limit: 50 });
+  } else {
+    const res = await getStoreProducts({ limit: 50 });
+    products = res.products;
+  }
+  const results = products;
 
   return (
     <div className="min-h-screen bg-white text-foreground pb-20 pt-6">
@@ -71,7 +70,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         {results.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {results.map((product) => (
-              <ProductCard key={product.id} {...toProductCardProps(product)} />
+              <ProductCard key={product.id} {...toStoreProductCardProps(product)} />
             ))}
           </div>
         ) : (

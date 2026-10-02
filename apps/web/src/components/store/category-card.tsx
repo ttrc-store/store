@@ -1,50 +1,83 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { Card } from '@/components/ui/card';
-import { Bot, Cpu, Wrench, BatteryCharging, Zap, Radio, Cable, ArrowRight } from 'lucide-react';
+import { Bot, Cpu, Wrench, BatteryCharging, Zap, Radio, Cable, ArrowRight, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface CategoryCardProps {
   slug: string;
   name: string;
+  description?: string;
   itemCount?: number;
   iconName?: string;
+  imageUrl?: string;
   className?: string;
 }
 
 const iconMap: Record<string, React.ReactNode> = {
-  robot: <Bot className="w-8 h-8 text-red-600" />,
-  stem: <Cpu className="w-8 h-8 text-red-600" />,
-  fastener: <Wrench className="w-8 h-8 text-red-600" />,
-  battery: <BatteryCharging className="w-8 h-8 text-red-600" />,
-  motor: <Zap className="w-8 h-8 text-red-600" />,
-  sensor: <Radio className="w-8 h-8 text-red-600" />,
-  drone: <Bot className="w-8 h-8 text-red-600" />,
-  wire: <Cable className="w-8 h-8 text-red-600" />,
+  robot: <Bot className="w-7 h-7 text-[#844AFB]" />,
+  stem: <Cpu className="w-7 h-7 text-[#844AFB]" />,
+  fastener: <Wrench className="w-7 h-7 text-[#844AFB]" />,
+  battery: <BatteryCharging className="w-7 h-7 text-[#844AFB]" />,
+  motor: <Zap className="w-7 h-7 text-[#844AFB]" />,
+  sensor: <Radio className="w-7 h-7 text-[#844AFB]" />,
+  drone: <Bot className="w-7 h-7 text-[#844AFB]" />,
+  wire: <Cable className="w-7 h-7 text-[#844AFB]" />,
 };
 
-export function CategoryCard({ slug, name, itemCount, iconName = 'robot', className }: CategoryCardProps) {
+function getCategoryIcon(slug: string, iconName?: string) {
+  if (iconName && iconMap[iconName]) return iconMap[iconName];
+  if (slug.includes('robot')) return iconMap.robot;
+  if (slug.includes('stem')) return iconMap.stem;
+  if (slug.includes('fastener')) return iconMap.fastener;
+  if (slug.includes('batter')) return iconMap.battery;
+  if (slug.includes('motor')) return iconMap.motor;
+  if (slug.includes('sensor')) return iconMap.sensor;
+  if (slug.includes('drone')) return iconMap.drone;
+  if (slug.includes('wire') || slug.includes('connect')) return iconMap.wire;
+  return <Bot className="w-7 h-7 text-[#844AFB]" />;
+}
+
+export function CategoryCard({
+  slug,
+  name,
+  description,
+  itemCount,
+  iconName,
+  className,
+}: CategoryCardProps) {
+  const icon = getCategoryIcon(slug, iconName);
+
   return (
-    <Link href={`/category/${slug}`}>
+    <Link href={`/category/${slug}`} className="block h-full group">
       <Card
         className={cn(
-          'group relative p-5 flex flex-col justify-between bg-white border-slate-200 hover:border-red-600 transition-all duration-300 hover:shadow-lg cursor-pointer overflow-hidden',
+          'p-5 h-full flex flex-col justify-between bg-white border border-slate-200 rounded-2xl hover:border-[#844AFB] transition-all duration-300 hover:shadow-md cursor-pointer overflow-hidden group-hover:-translate-y-0.5',
           className
         )}
       >
-        <div className="flex items-start justify-between mb-4">
-          <div className="p-3 rounded-xl bg-red-50 group-hover:bg-red-100 transition-colors">
-            {iconMap[iconName] || iconMap.robot}
+        <div className="flex items-start justify-between mb-3">
+          <div className="p-3 rounded-xl bg-[#EEE8FA] group-hover:bg-[#EEE8FA]/80 transition-colors">
+            {icon}
           </div>
-          <ArrowRight size={18} className="text-slate-400 group-hover:text-red-600 group-hover:translate-x-1 transition-all" />
+          <div className="w-7 h-7 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-[#844AFB] group-hover:bg-[#EEE8FA] transition-all">
+            <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+          </div>
         </div>
 
-        <div>
-          <h3 className="font-heading text-lg font-bold text-slate-900 group-hover:text-red-600 transition-colors">
+        <div className="space-y-1">
+          <h3 className="font-heading text-base sm:text-lg font-bold text-[#050507] group-hover:text-[#6721F2] transition-colors leading-snug">
             {name}
           </h3>
-          <p className="text-xs text-slate-500 font-medium mt-0.5">
-            {itemCount !== undefined ? `${itemCount} Product${itemCount === 1 ? '' : 's'}` : 'View Products'}
+          {description && (
+            <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">
+              {description}
+            </p>
+          )}
+          <p className="text-[11px] font-mono font-semibold text-[#844AFB] pt-1">
+            {itemCount !== undefined
+              ? `${itemCount} Product${itemCount === 1 ? '' : 's'}`
+              : 'Browse Hardware'}
           </p>
         </div>
       </Card>
