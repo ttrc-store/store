@@ -1,67 +1,62 @@
 /**
  * @ttrc/ui-tokens
- * Brand design tokens for TTRC Store — Purple + White Design System.
- * All values are plain TypeScript so they can be consumed by both web and mobile platforms.
- * The web app also defines matching CSS custom properties in globals.css.
+ * Brand design tokens for TTRC Store — Master Violet & Deep Purple Visual System.
+ * All values are plain TypeScript so they can be consumed across all packages.
  */
 
-// ─── Colors (White + Red System per AGENTS.md) ────────────────────────────────
-
 export const colors = {
-  // Brand Red Palette
-  primaryRed: '#E3132A',
-  primaryDarkRed: '#B80F21',
-  deepRed: '#B80F21',
-  lightRed: '#E3132A',
-  softRed: '#FDECEE',
-  veryLightRed: '#FDECEE',
-  redTint: '#FDECEE',
-
-  // Neutrals & Surfaces
+  // Master TTRC Store Purple Visual System
+  primaryViolet: '#844AFB',
+  deepPurple: '#6721F2',
+  darkNavyPurple: '#1E0D45',
+  black: '#050507',
+  offWhite: '#FDFDFD',
+  lightLavender: '#EEE8FA',
+  softLavender: '#AF87F8',
+  neutralGray: '#6D6A6A',
   white: '#FFFFFF',
-  offWhite: '#F7F7F8',
-  ink: '#14141A',
-  richBlack: '#14141A',
-  darkGray: '#374151',
-  mediumGray: '#6B7280',
-  lightGray: '#E5E7EB',
 
   // Core Theme Aliases
-  red: '#E3132A',
-  redHover: '#B80F21',
-  redLight: '#E3132A',
-  redSoft: '#FDECEE',
-  redBg: '#FDECEE',
-  redTintBg: '#FDECEE',
+  primary: '#844AFB',
+  primaryHover: '#6721F2',
+  primaryDark: '#6721F2',
+  primaryLight: '#EEE8FA',
+  primarySoft: '#AF87F8',
 
-  // Compatibility Aliases (Aliased to Red System)
-  primaryPurple: '#E3132A',
-  primaryDarkPurple: '#B80F21',
-  deepPurple: '#B80F21',
-  lightPurple: '#E3132A',
-  softPurple: '#FDECEE',
-  veryLightPurple: '#FDECEE',
-  purpleTint: '#FDECEE',
-  purple: '#E3132A',
-  purpleHover: '#B80F21',
-  purpleLight: '#E3132A',
-  purpleSoft: '#FDECEE',
-  purpleBg: '#FDECEE',
-  purpleTintBg: '#FDECEE',
+  // Legacy Compatibility Aliases (Aliased to Purple Palette)
+  primaryRed: '#844AFB',
+  primaryDarkRed: '#6721F2',
+  deepRed: '#6721F2',
+  lightRed: '#AF87F8',
+  softRed: '#EEE8FA',
+  veryLightRed: '#EEE8FA',
+  redTint: '#EEE8FA',
+  red: '#844AFB',
+  redHover: '#6721F2',
+  redLight: '#AF87F8',
+  redSoft: '#EEE8FA',
+  redBg: '#EEE8FA',
+  redTintBg: '#EEE8FA',
+  primaryPurple: '#844AFB',
+  primaryDarkPurple: '#6721F2',
+  purple: '#844AFB',
+  purpleHover: '#6721F2',
+  purpleLight: '#AF87F8',
+  purpleSoft: '#EEE8FA',
+  purpleBg: '#EEE8FA',
+  purpleTintBg: '#EEE8FA',
 
   // Semantic Status Colors
   success: '#16A34A',
   warning: '#D97706',
-  danger: '#E3132A',
+  danger: '#EF4444',
   info: '#2563EB',
 } as const;
 
 export type ColorToken = keyof typeof colors;
 
-// ─── Typography ──────────────────────────────────────────────────────────────
-
 export const fonts = {
-  display: 'Space Grotesk, Rajdhani, Exo 2, system-ui, sans-serif',
+  display: 'Space Grotesk, system-ui, sans-serif',
   body: 'Plus Jakarta Sans, Inter, system-ui, sans-serif',
   mono: 'Space Mono, ui-monospace, SFMono-Regular, Menlo, monospace',
 } as const;
@@ -87,8 +82,6 @@ export const fontWeights = {
   extrabold: '800',
 } as const;
 
-// ─── Spacing ─────────────────────────────────────────────────────────────────
-
 export const spacing = {
   0: 0,
   1: 4,
@@ -104,8 +97,6 @@ export const spacing = {
   20: 80,
 } as const;
 
-// ─── Border Radii ────────────────────────────────────────────────────────────
-
 export const radii = {
   sm: 4,
   md: 8,
@@ -115,11 +106,9 @@ export const radii = {
   full: 9999,
 } as const;
 
-// ─── Shadows / Glows ─────────────────────────────────────────────────────────
-
 export const shadows = {
-  glowPurple: '0 0 15px rgba(109, 40, 217, 0.35)',
-  glowPurpleSm: '0 0 8px rgba(109, 40, 217, 0.25)',
+  glowPurple: '0 0 15px rgba(132, 74, 251, 0.35)',
+  glowPurpleSm: '0 0 8px rgba(132, 74, 251, 0.25)',
   card: '0 1px 3px rgba(0, 0, 0, 0.05)',
-  elevated: '0 10px 25px -5px rgba(109, 40, 217, 0.1)',
+  elevated: '0 10px 25px -5px rgba(132, 74, 251, 0.1)',
 } as const;

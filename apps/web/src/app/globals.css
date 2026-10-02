@@ -2,70 +2,75 @@
 
 @layer base {
   :root {
-    /* ── TTRC Brand Tokens (White + Red System per AGENTS.md) ── */
+    /* ── TTRC Brand Tokens (Master Violet & Deep Purple Visual System) ── */
+    --ttrc-violet: #844AFB;
+    --ttrc-deep-purple: #6721F2;
+    --ttrc-dark-navy: #1E0D45;
+    --ttrc-black: #050507;
+    --ttrc-off-white: #FDFDFD;
+    --ttrc-light-lavender: #EEE8FA;
+    --ttrc-soft-lavender: #AF87F8;
+    --ttrc-gray: #6D6A6A;
+
+    /* Legacy Alias Variables */
     --ttrc-white: #FFFFFF;
-    --ttrc-off-white: #F7F7F8;
-    --ttrc-ink: #14141A;
-    --ttrc-grey: #6B7280;
+    --ttrc-ink: #050507;
+    --ttrc-grey: #6D6A6A;
     --ttrc-line: #E5E7EB;
+    --ttrc-red: #844AFB;
+    --ttrc-red-dark: #6721F2;
+    --ttrc-red-tint: #EEE8FA;
+    --ttrc-purple: #844AFB;
+    --ttrc-purple-dark: #6721F2;
+    --ttrc-purple-deep: #6721F2;
+    --ttrc-purple-light: #AF87F8;
+    --ttrc-purple-soft: #EEE8FA;
 
-    --ttrc-red: #E3132A;
-    --ttrc-red-dark: #B80F21;
-    --ttrc-red-tint: #FDECEE;
-
-    --ttrc-purple: #E3132A;
-    --ttrc-purple-dark: #B80F21;
-    --ttrc-purple-deep: #B80F21;
-    --ttrc-purple-light: #E3132A;
-    --ttrc-purple-soft: #FDECEE;
-    --ttrc-purple-bg: #FDECEE;
-    --ttrc-purple-tint: #FDECEE;
-
-    /* Semantic Tokens */
-    --background: #FFFFFF;
-    --foreground: #14141A;
+    /* Semantic UI Tokens */
+    --background: #FDFDFD;
+    --foreground: #050507;
     --card: #FFFFFF;
-    --card-foreground: #14141A;
+    --card-foreground: #050507;
     --popover: #FFFFFF;
-    --popover-foreground: #14141A;
-    --primary: #E3132A;
+    --popover-foreground: #050507;
+    --primary: #844AFB;
     --primary-foreground: #FFFFFF;
-    --secondary: #FDECEE;
-    --secondary-foreground: #B80F21;
-    --muted: #F7F7F8;
-    --muted-foreground: #6B7280;
-    --accent: #FDECEE;
-    --accent-foreground: #E3132A;
-    --destructive: #E3132A;
+    --secondary: #EEE8FA;
+    --secondary-foreground: #6721F2;
+    --muted: #EEE8FA;
+    --muted-foreground: #6D6A6A;
+    --accent: #EEE8FA;
+    --accent-foreground: #844AFB;
+    --destructive: #EF4444;
     --destructive-foreground: #FFFFFF;
     --success: #16A34A;
     --warning: #D97706;
     --border: #E5E7EB;
     --input: #E5E7EB;
-    --ring: #E3132A;
+    --ring: #AF87F8;
     --radius: 0.75rem;
   }
 
   .dark {
-    --background: #FFFFFF;
-    --foreground: #14141A;
+    --background: #FDFDFD;
+    --foreground: #050507;
     --card: #FFFFFF;
-    --card-foreground: #14141A;
+    --card-foreground: #050507;
     --popover: #FFFFFF;
-    --popover-foreground: #14141A;
-    --primary: #E3132A;
+    --popover-foreground: #050507;
+    --primary: #844AFB;
     --primary-foreground: #FFFFFF;
-    --secondary: #FDECEE;
-    --secondary-foreground: #B80F21;
-    --muted: #F7F7F8;
-    --muted-foreground: #6B7280;
-    --accent: #FDECEE;
-    --accent-foreground: #E3132A;
-    --destructive: #E3132A;
+    --secondary: #EEE8FA;
+    --secondary-foreground: #6721F2;
+    --muted: #EEE8FA;
+    --muted-foreground: #6D6A6A;
+    --accent: #EEE8FA;
+    --accent-foreground: #844AFB;
+    --destructive: #EF4444;
     --destructive-foreground: #FFFFFF;
     --border: #E5E7EB;
     --input: #E5E7EB;
-    --ring: #E3132A;
+    --ring: #AF87F8;
   }
 }
 
@@ -82,9 +87,9 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6, .font-heading {
-  font-family: 'Space Grotesk', var(--font-rajdhani), system-ui, sans-serif;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
   font-weight: 700;
-  letter-spacing: 0.01em;
+  letter-spacing: -0.01em;
 }
 
 /* Tabular numerals for all prices */
@@ -95,47 +100,47 @@ h1, h2, h3, h4, h5, h6, .font-heading {
   font-feature-settings: "tnum";
 }
 
-/* ── Glow Utilities ── */
-.glow-red,
-.glow-purple {
-  box-shadow: 0 0 15px rgba(227, 19, 42, 0.35);
+/* ── Purple Glow Utilities ── */
+.glow-purple,
+.glow-red {
+  box-shadow: 0 0 15px rgba(132, 74, 251, 0.35);
 }
 
-.glow-red-sm,
-.glow-purple-sm {
-  box-shadow: 0 0 8px rgba(227, 19, 42, 0.25);
+.glow-purple-sm,
+.glow-red-sm {
+  box-shadow: 0 0 8px rgba(132, 74, 251, 0.25);
 }
 
-.glow-red-lg,
-.glow-purple-lg {
-  box-shadow: 0 0 30px rgba(227, 19, 42, 0.4), 0 0 60px rgba(227, 19, 42, 0.15);
+.glow-purple-lg,
+.glow-red-lg {
+  box-shadow: 0 0 30px rgba(132, 74, 251, 0.4), 0 0 60px rgba(132, 74, 251, 0.15);
 }
 
-/* Focus ring using red glow */
+/* Focus ring using soft lavender glow */
 .glow-focus:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px var(--background), 0 0 0 4px #E3132A, 0 0 8px rgba(227, 19, 42, 0.4);
+  box-shadow: 0 0 0 2px var(--background), 0 0 0 4px #844AFB, 0 0 8px rgba(132, 74, 251, 0.4);
 }
 
-/* ── Gradient Utilities ── */
-.gradient-red,
-.gradient-purple {
-  background: linear-gradient(135deg, #E3132A 0%, #B80F21 100%);
+/* ── Master Purple Gradient System ── */
+.gradient-purple,
+.gradient-red {
+  background: linear-gradient(135deg, #844AFB 0%, #6721F2 100%);
 }
 
-.gradient-red-horizontal,
-.gradient-purple-horizontal {
-  background: linear-gradient(90deg, #E3132A 0%, #B80F21 100%);
+.gradient-purple-horizontal,
+.gradient-red-horizontal {
+  background: linear-gradient(90deg, #844AFB 0%, #6721F2 100%);
 }
 
 .gradient-light {
-  background: linear-gradient(180deg, #FFFFFF 0%, #FDECEE 100%);
+  background: linear-gradient(180deg, #FDFDFD 0%, #EEE8FA 100%);
 }
 
-/* Red gradient text */
-.gradient-text-red,
-.gradient-text-purple {
-  background: linear-gradient(90deg, #E3132A 0%, #B80F21 100%);
+/* Purple gradient text */
+.gradient-text-purple,
+.gradient-text-red {
+  background: linear-gradient(90deg, #844AFB 0%, #6721F2 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -144,10 +149,10 @@ h1, h2, h3, h4, h5, h6, .font-heading {
 /* ── Animations ── */
 @keyframes pulse-glow {
   0%, 100% {
-    box-shadow: 0 0 8px rgba(109, 40, 217, 0.25);
+    box-shadow: 0 0 8px rgba(132, 74, 251, 0.25);
   }
   50% {
-    box-shadow: 0 0 20px rgba(109, 40, 217, 0.5);
+    box-shadow: 0 0 20px rgba(132, 74, 251, 0.5);
   }
 }
 
@@ -167,7 +172,6 @@ h1, h2, h3, h4, h5, h6, .font-heading {
   100% { background-position: 200% 0; }
 }
 
-/* Respect user motion preferences */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -190,9 +194,9 @@ h1, h2, h3, h4, h5, h6, .font-heading {
 .skeleton-shimmer {
   background: linear-gradient(
     90deg,
-    var(--muted) 25%,
-    color-mix(in srgb, var(--muted) 60%, var(--muted-foreground) 40%) 50%,
-    var(--muted) 75%
+    #EEE8FA 25%,
+    #AF87F8 50%,
+    #EEE8FA 75%
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
@@ -215,12 +219,12 @@ h1, h2, h3, h4, h5, h6, .font-heading {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #FDECEE;
+  background: #EEE8FA;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #E3132A;
+  background: #844AFB;
 }
 
 /* ── Typography Utilities ── */
@@ -228,7 +232,7 @@ h1, h2, h3, h4, h5, h6, .font-heading {
   text-wrap: balance;
 }
 
-/* ── Red accent line ── */
+/* ── Purple accent line ── */
 .purple-accent-line,
 .red-accent-line {
   position: relative;
@@ -242,5 +246,5 @@ h1, h2, h3, h4, h5, h6, .font-heading {
   bottom: -1px;
   width: 100%;
   height: 2px;
-  background: linear-gradient(90deg, #E3132A, #B80F21, transparent);
+  background: linear-gradient(90deg, #844AFB, #6721F2, transparent);
 }
