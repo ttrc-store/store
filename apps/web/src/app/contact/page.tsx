@@ -40,7 +40,7 @@ export default function ContactPage() {
                   <Phone className="text-purple-700 flex-shrink-0" size={18} />
                   <div>
                     <strong className="text-slate-900">Phone Support:</strong>
-                    <p className="text-slate-500">+91 98765 43210 (Mon-Sat, 9:30 AM - 6:30 PM IST)</p>
+                    <p className="text-slate-500">+91 7904902978 (Mon-Sat, 9:30 AM - 6:30 PM IST)</p>
                   </div>
                 </div>
 

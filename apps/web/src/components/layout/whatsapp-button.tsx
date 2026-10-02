@@ -4,7 +4,7 @@ import * as React from 'react';
 import { MessageCircle } from 'lucide-react';
 
 export function WhatsAppButton() {
-  const phone = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '919876543210';
+  const phone = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '917904902978';
   const url = `https://wa.me/${phone}?text=Hello%20Tamizh%20Tech%20Support!%20I%20have%20an%20inquiry%20regarding%20TTRC%20Store%20products.`;
 
   return (

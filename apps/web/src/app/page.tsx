@@ -63,10 +63,6 @@ export default function HomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             {/* Left Hero Content */}
             <div className="lg:col-span-7 space-y-6 text-left">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-purple-50 border border-purple-200 text-purple-700 text-xs font-bold uppercase tracking-widest">
-                <Sparkles size={14} /> Official Tamizh Tech Store
-              </div>
-
               <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-950 leading-tight">
                 PRO-GRADE <span className="text-purple-700">ROBOTICS</span> &amp; HARDWARE COMPONENTS
               </h1>

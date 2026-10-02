@@ -119,7 +119,7 @@ export const BUSINESS_INFO = {
   gstin: 'Not Registered (Bill of Supply)', // Updated when GSTIN added in site_settings
   address: 'Coimbatore, Tamil Nadu, India', // TODO: Replace with full address
   email: 'support@ttrc.store',
-  phone: '+91-0000000000', // TODO: Replace
+  phone: '+91 7904902978',
   website: 'https://ttrc.store',
   parentSite: 'https://tamizhtech.in',
   grievanceOfficer: 'PLACEHOLDER_NAME', // TODO: Replace before launch

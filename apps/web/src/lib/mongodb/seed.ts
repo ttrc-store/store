@@ -19,7 +19,7 @@ const DEFAULT_SETTINGS = [
   { key: 'store_name', value: 'Tamizh Tech Robotics & Components Store' },
   { key: 'gstin', value: '' },
   { key: 'support_email', value: 'support@ttrc.store' },
-  { key: 'support_phone', value: '+91 98765 43210' },
+  { key: 'support_phone', value: '+91 7904902978' },
   { key: 'store_address', value: 'Tamizh Tech, Tamil Nadu, India' },
   { key: 'cod_limit_paise', value: 500000 }, // ₹5000 limit
   { key: 'cod_fee_paise', value: 4900 }, // ₹49 COD fee

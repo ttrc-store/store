@@ -77,7 +77,7 @@ export default function Footer() {
             </p>
             <p className="flex items-center gap-2 text-slate-300">
               <Phone size={14} className="text-purple-400" />
-              <span>{BUSINESS_INFO.phone}</span>
+              <a href="tel:+917904902978" className="hover:text-white transition-colors">{BUSINESS_INFO.phone}</a>
             </p>
             <p className="text-purple-400 font-mono text-[11px]">GSTIN: {BUSINESS_INFO.gstin}</p>
           </div>
