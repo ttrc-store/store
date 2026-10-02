@@ -113,7 +113,7 @@ export default async function AccountOrdersPage() {
                   <span>
                     Shipping:{' '}
                     <strong className="text-slate-900">
-                      {order.shipping_paise === 0 ? 'Free' : `₹${Math.round(order.shipping_paise / 100)}`}
+                      {(order.shipping_paise ?? 0) === 0 ? 'Free' : `₹${Math.round((order.shipping_paise ?? 0) / 100)}`}
                     </strong>
                   </span>
                 </div>

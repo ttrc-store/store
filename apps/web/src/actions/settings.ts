@@ -1,6 +1,8 @@
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
+import { connectToDatabase } from '@/lib/mongodb/client';
+import { SiteSettingModel } from '@/lib/mongodb/models';
+import { ensureDatabaseSeeded } from '@/lib/mongodb/seed';
 
 export interface SiteSettings {
   gst_enabled: boolean;
@@ -24,15 +26,17 @@ export async function getSiteSettingsAction(): Promise<SiteSettings> {
   };
 
   try {
-    const supabase = await createClient();
-    const { data } = await supabase.from('site_settings').select('key, value');
+    await connectToDatabase();
+    await ensureDatabaseSeeded();
 
-    if (!data || data.length === 0) {
+    const dbSettings = await SiteSettingModel.find().lean();
+
+    if (!dbSettings || dbSettings.length === 0) {
       return defaultSettings;
     }
 
     const settings = { ...defaultSettings };
-    for (const item of data) {
+    for (const item of dbSettings) {
       if (item.key === 'gst_enabled') settings.gst_enabled = Boolean(item.value);
       if (item.key === 'razorpay_enabled') settings.razorpay_enabled = Boolean(item.value);
       if (item.key === 'gstin') settings.gstin = String(item.value);
@@ -46,26 +50,29 @@ export async function getSiteSettingsAction(): Promise<SiteSettings> {
 }
 
 export async function updateSiteSettingAction(key: keyof SiteSettings, value: unknown) {
-  const supabase = await createClient();
+  try {
+    await connectToDatabase();
+    await ensureDatabaseSeeded();
 
-  // Startup warning check per project rules
-  if (key === 'razorpay_enabled' && value === true) {
-    const keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
-    const secret = process.env.RAZORPAY_KEY_SECRET;
-    if (!keyId || !secret) {
-      console.warn(
-        '[TTRC Startup Warning] razorpay_enabled set to true, but RAZORPAY_KEY_ID or RAZORPAY_KEY_SECRET environment variables are missing! Automatically falling back to COD-only mode.'
-      );
+    // Startup warning check per project rules
+    if (key === 'razorpay_enabled' && value === true) {
+      const keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+      const secret = process.env.RAZORPAY_KEY_SECRET;
+      if (!keyId || !secret) {
+        console.warn(
+          '[TTRC Startup Warning] razorpay_enabled set to true, but RAZORPAY_KEY_ID or RAZORPAY_KEY_SECRET environment variables are missing! Automatically falling back to COD-only mode.'
+        );
+      }
     }
+
+    await SiteSettingModel.updateOne(
+      { key },
+      { $set: { key, value } },
+      { upsert: true }
+    );
+
+    return { success: true };
+  } catch (err: any) {
+    return { error: err.message || 'Failed to update setting' };
   }
-
-  const { error } = await supabase
-    .from('site_settings')
-    .upsert({ key, value: JSON.stringify(value), updated_at: new Date().toISOString() });
-
-  if (error) {
-    return { error: error.message };
-  }
-
-  return { success: true };
 }

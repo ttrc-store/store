@@ -40,9 +40,9 @@ export default function AccountPrivacyPage() {
     setRequestingDeletion(true);
     setError(null);
     const res = await requestAccountDeletionAction();
-    if ('error' in res && res.error) {
+    if (res && 'error' in res && typeof res.error === 'string') {
       setError(res.error);
-    } else if (res.success) {
+    } else if (res && 'success' in res && typeof res.success === 'string') {
       setDeletionMessage(res.success);
     }
     setRequestingDeletion(false);

@@ -1,76 +1,53 @@
-import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
 export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
-  });
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-          supabaseResponse = NextResponse.next({
-            request,
-          });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  const response = NextResponse.next({ request });
   const pathname = request.nextUrl.pathname;
 
+  const sessionToken = request.cookies.get('ttrc_session')?.value;
   const isTestBypass =
     request.cookies.get('ttrc_test_bypass')?.value === 'true' &&
     (process.env.E2E_TEST === 'true' || process.env.ALLOW_TEST_BYPASS === 'true');
 
+  // Decode JWT payload without signature check in Edge Middleware for ultra-fast response
+  let userPayload: { userId: string; email: string; role: string } | null = null;
+  if (sessionToken) {
+    try {
+      const parts = sessionToken.split('.');
+      if (parts.length === 3) {
+        const payloadJson = Buffer.from(parts[1], 'base64').toString('utf-8');
+        userPayload = JSON.parse(payloadJson);
+      }
+    } catch {
+      userPayload = null;
+    }
+  }
+
   // 1. Protect Customer Account & Checkout Routes
-  if (!user && !isTestBypass && (pathname.startsWith('/account') || pathname.startsWith('/checkout'))) {
+  if (!userPayload && !isTestBypass && (pathname.startsWith('/account') || pathname.startsWith('/checkout'))) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     url.searchParams.set('redirectTo', pathname);
     return NextResponse.redirect(url);
   }
 
-  // 2. Protect Admin Routes (Role Check Defense-in-Depth)
+  // 2. Protect Admin Routes
   if (pathname.startsWith('/admin') && pathname !== '/admin/login' && !isTestBypass) {
-    if (!user) {
+    if (!userPayload) {
       const url = request.nextUrl.clone();
       url.pathname = '/login';
       url.searchParams.set('redirectTo', pathname);
       return NextResponse.redirect(url);
     }
 
-    // Check user_roles table for admin/staff role
-    const { data: roleData } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .single();
-
-    const role = roleData?.role;
-    if (role !== 'admin' && role !== 'staff') {
-      // Access denied for normal customers trying to view admin panel
+    if (userPayload.role !== 'admin' && userPayload.role !== 'staff') {
       const url = request.nextUrl.clone();
       url.pathname = '/';
       return NextResponse.redirect(url);
     }
   }
 
-  return supabaseResponse;
+  return response;
 }
 
 export const config = {

@@ -1,12 +1,16 @@
 /**
- * Server-side authorization helpers.
+ * Server-side authorization helpers backed by MongoDB Atlas.
  * Import these in Server Actions and Route Handlers to verify identity and roles.
  */
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
-
 import { cookies } from 'next/headers';
+import jwt from 'jsonwebtoken';
+import { connectToDatabase } from './mongodb/client';
+import { UserModel, IUser } from './mongodb/models';
+import { ensureDatabaseSeeded } from './mongodb/seed';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'ttrc_store_jwt_secret_2026_key_secure_auth';
 
 export type UserRole = 'customer' | 'admin' | 'staff';
 
@@ -14,12 +18,15 @@ export interface AuthenticatedUser {
   id: string;
   email: string;
   role: UserRole;
+  fullName?: string;
 }
 
-/**
- * Returns the current authenticated user with their role.
- * Throws a structured error object (not an exception) if unauthenticated.
- */
+interface JWTPayload {
+  userId: string;
+  email: string;
+  role: UserRole;
+}
+
 async function checkTestBypass(): Promise<boolean> {
   const cookieStore = await cookies();
   const hasBypassCookie = cookieStore.get('ttrc_test_bypass')?.value === 'true';
@@ -27,109 +34,102 @@ async function checkTestBypass(): Promise<boolean> {
   return hasBypassCookie && isTestEnv;
 }
 
-/**
- * Returns the current authenticated user with their role.
- * Throws a structured error object (not an exception) if unauthenticated.
- */
+export async function createSessionCookie(user: IUser) {
+  const payload: JWTPayload = {
+    userId: user._id.toString(),
+    email: user.email,
+    role: user.role,
+  };
+
+  const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
+  const cookieStore = await cookies();
+  cookieStore.set('ttrc_session', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 7 * 24 * 60 * 60,
+  });
+}
+
+export async function clearSessionCookie() {
+  const cookieStore = await cookies();
+  cookieStore.delete('ttrc_session');
+}
+
 export async function getAuthenticatedUser(): Promise<
   { user: AuthenticatedUser } | { error: string; status: number }
 > {
   const isTestBypass = await checkTestBypass();
+  if (isTestBypass) {
+    return {
+      user: {
+        id: 'local-admin-id',
+        email: 'admin@tamizhtech.in',
+        role: 'admin',
+        fullName: 'Store Admin',
+      },
+    };
+  }
 
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+    const cookieStore = await cookies();
+    const token = cookieStore.get('ttrc_session')?.value;
 
-    if (authError || !user) {
-      if (isTestBypass) {
-        return {
-          user: {
-            id: 'local-admin-id',
-            email: 'admin@ttrc.store',
-            role: 'admin',
-          },
-        };
-      }
+    if (!token) {
       return { error: 'Unauthenticated', status: 401 };
     }
 
-    const { data: roleData } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .single();
+    const decoded = jwt.verify(token, JWT_SECRET) as JWTPayload;
 
-    const role: UserRole =
-      (roleData?.role as UserRole) ?? (user.email?.includes('admin') ? 'admin' : 'customer');
+    await connectToDatabase();
+    await ensureDatabaseSeeded();
+    const dbUser = await UserModel.findById(decoded.userId).lean();
+
+    if (!dbUser) {
+      return { error: 'Unauthenticated', status: 401 };
+    }
 
     return {
       user: {
-        id: user.id,
-        email: user.email ?? 'customer@ttrc.store',
-        role: isTestBypass ? 'admin' : role,
+        id: dbUser._id.toString(),
+        email: dbUser.email,
+        role: dbUser.role,
+        fullName: dbUser.full_name,
       },
     };
-  } catch (err) {
-    if (isTestBypass) {
-      return {
-        user: {
-          id: 'local-admin-id',
-          email: 'admin@ttrc.store',
-          role: 'admin',
-        },
-      };
-    }
+  } catch {
     return { error: 'Unauthenticated', status: 401 };
   }
 }
 
-/**
- * Returns the current user if they are admin or staff.
- * Returns an error object otherwise.
- */
 export async function requireAdmin(): Promise<
   { user: AuthenticatedUser } | { error: string; status: number }
 > {
-  const result = await getAuthenticatedUser();
-  if ('error' in result) {
-    const isTestBypass = await checkTestBypass();
-    if (isTestBypass) {
-      return {
-        user: {
-          id: 'local-admin-id',
-          email: 'admin@ttrc.store',
-          role: 'admin',
-        },
-      };
-    }
-    return result;
-  }
-
   const isTestBypass = await checkTestBypass();
-
-  if (result.user.role !== 'admin' && result.user.role !== 'staff' && !isTestBypass) {
-    return { error: 'Forbidden: Admin or Staff role required', status: 403 };
-  }
-
   if (isTestBypass) {
     return {
       user: {
-        ...result.user,
+        id: 'local-admin-id',
+        email: 'admin@tamizhtech.in',
         role: 'admin',
+        fullName: 'Store Admin',
       },
     };
+  }
+
+  const result = await getAuthenticatedUser();
+  if ('error' in result) {
+    return result;
+  }
+
+  if (result.user.role !== 'admin' && result.user.role !== 'staff') {
+    return { error: 'Forbidden: Admin or Staff role required', status: 403 };
   }
 
   return result;
 }
 
-/**
- * Returns the current user if authenticated (any role).
- * Returns an error object if not authenticated.
- */
 export async function requireAuth(): Promise<
   { user: AuthenticatedUser } | { error: string; status: number }
 > {

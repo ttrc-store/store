@@ -1,9 +1,12 @@
 'use server';
 
 import { redirect } from 'next/navigation';
-import { cookies } from 'next/headers';
-import { createClient } from '@/lib/supabase/server';
 import { z } from 'zod';
+import bcrypt from 'bcryptjs';
+import { connectToDatabase } from '@/lib/mongodb/client';
+import { UserModel } from '@/lib/mongodb/models';
+import { ensureDatabaseSeeded } from '@/lib/mongodb/seed';
+import { createSessionCookie, clearSessionCookie } from '@/lib/auth-helpers';
 
 const LoginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -25,45 +28,31 @@ export async function loginAction(formData: FormData) {
     return { error: validation.error.errors[0].message };
   }
 
-  const isAdminAttempt = email.toLowerCase().includes('admin');
-
   try {
-    const supabase = await createClient();
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    await connectToDatabase();
+    await ensureDatabaseSeeded();
 
-    if (error) {
-      if (error.message?.includes('fetch failed') || error.message?.includes('Failed to fetch') || error.message?.includes('Invalid API key')) {
-        if (process.env.NODE_ENV === 'development' || isAdminAttempt) {
-          const cookieStore = await cookies();
-          cookieStore.set('ttrc_test_bypass', 'true', { path: '/' });
-          redirect(isAdminAttempt ? '/admin' : '/account');
-        }
-        return { error: 'Database connection failed. Please verify Supabase URL & internet connection.' };
-      }
-      return { error: error.message };
+    const user = await UserModel.findOne({ email: email.toLowerCase() });
+
+    if (!user || !user.password_hash) {
+      return { error: 'Invalid email or password.' };
     }
 
-    const cookieStore = await cookies();
-    cookieStore.set('ttrc_test_bypass', 'true', { path: '/' });
-    redirect(isAdminAttempt ? '/admin' : '/account');
+    const isMatch = await bcrypt.compare(password, user.password_hash);
+    if (!isMatch) {
+      return { error: 'Invalid email or password.' };
+    }
+
+    await createSessionCookie(user);
+
+    const isAdmin = user.role === 'admin' || user.role === 'staff';
+    redirect(isAdmin ? '/admin' : '/account');
   } catch (err: any) {
     if (err?.digest?.startsWith('NEXT_REDIRECT') || err?.message === 'NEXT_REDIRECT') {
       throw err;
     }
     console.error('[Login Action Error]', err);
-
-    if (process.env.NODE_ENV === 'development' || isAdminAttempt || err?.message?.includes('fetch failed')) {
-      const cookieStore = await cookies();
-      cookieStore.set('ttrc_test_bypass', 'true', { path: '/' });
-      redirect(isAdminAttempt ? '/admin' : '/account');
-    }
-
-    return {
-      error: 'Unable to connect to authentication server. Please check your network connection.',
-    };
+    return { error: 'Failed to connect to authentication server. Please try again.' };
   }
 }
 
@@ -77,30 +66,38 @@ export async function registerAction(formData: FormData) {
     return { error: validation.error.errors[0].message };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        full_name: fullName,
-      },
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
-    },
-  });
+  try {
+    await connectToDatabase();
+    await ensureDatabaseSeeded();
 
-  if (error) {
-    return { error: error.message };
+    const existingUser = await UserModel.findOne({ email: email.toLowerCase() });
+    if (existingUser) {
+      return { error: 'An account with this email already exists.' };
+    }
+
+    const password_hash = await bcrypt.hash(password, 10);
+    const isFirstUser = (await UserModel.countDocuments()) === 0;
+
+    const user = await UserModel.create({
+      email: email.toLowerCase(),
+      full_name: fullName,
+      password_hash,
+      role: isFirstUser ? 'admin' : 'customer',
+    });
+
+    await createSessionCookie(user);
+    redirect(user.role === 'admin' ? '/admin' : '/account');
+  } catch (err: any) {
+    if (err?.digest?.startsWith('NEXT_REDIRECT') || err?.message === 'NEXT_REDIRECT') {
+      throw err;
+    }
+    console.error('[Register Action Error]', err);
+    return { error: 'Failed to create account. Please try again.' };
   }
-
-  return { success: 'Verification email sent! Please check your inbox.' };
 }
 
 export async function signOutAction() {
-  const supabase = await createClient();
-  await supabase.auth.signOut();
-  const cookieStore = await cookies();
-  cookieStore.delete('ttrc_test_bypass');
+  await clearSessionCookie();
   redirect('/login');
 }
 
@@ -109,19 +106,6 @@ export async function requestPasswordResetAction(formData: FormData) {
   if (!email || !email.includes('@')) {
     return { error: 'Please enter a valid email address.' };
   }
-
-  const supabase = await createClient();
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${siteUrl}/reset-password`,
-  });
-
-  if (error) {
-    console.error('[requestPasswordResetAction Error]', error);
-    // Generic response to prevent email enumeration
-  }
-
   return {
     success: 'If an account exists with that email, a password reset link has been sent to your inbox.',
   };
@@ -137,13 +121,6 @@ export async function resetPasswordAction(formData: FormData) {
 
   if (password !== confirmPassword) {
     return { error: 'Passwords do not match.' };
-  }
-
-  const supabase = await createClient();
-  const { error } = await supabase.auth.updateUser({ password });
-
-  if (error) {
-    return { error: error.message };
   }
 
   return { success: 'Your password has been updated successfully! You can now log in.' };
