@@ -1,12 +1,14 @@
-'use client';
+// SERVER COMPONENT — no 'use client'.
+// The wishlist button and Add to Cart are purely visual here;
+// actual cart interaction is handled by ProductOrderBox on the product detail page.
+// Removing 'use client' from ProductCard saves hydration for every card in the grid.
 
 import * as React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ShoppingCart, Heart } from 'lucide-react';
+import { ShoppingCart } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { PriceTag } from './price-tag';
 import { RatingStars } from './rating-stars';
 import { cn } from '@/lib/utils';
@@ -25,7 +27,6 @@ export interface ProductCardProps {
   reviewCount?: number;
   imageUrl?: string;
   stockQty?: number;
-  onAddToCart?: (id: string) => void;
   className?: string;
 }
 
@@ -39,19 +40,18 @@ export function ProductCard({
   mrpPaise,
   unit = 'Piece',
   bulkPriceTiers = [],
-  rating = 4.8,
-  reviewCount = 12,
+  rating = 0,
+  reviewCount = 0,
   imageUrl = '/brand/ttrc-logo.png',
-  stockQty = 15,
-  onAddToCart,
+  stockQty = 0,
   className,
 }: ProductCardProps) {
   const isOutOfStock = stockQty <= 0;
 
-  const lowestBulkPricePaise = React.useMemo(() => {
-    if (!bulkPriceTiers || bulkPriceTiers.length === 0) return null;
-    return Math.min(...bulkPriceTiers.map((t) => t.unitPricePaise));
-  }, [bulkPriceTiers]);
+  const lowestBulkPricePaise =
+    bulkPriceTiers && bulkPriceTiers.length > 0
+      ? Math.min(...bulkPriceTiers.map((t) => t.unitPricePaise))
+      : null;
 
   return (
     <Card
@@ -61,11 +61,19 @@ export function ProductCard({
       )}
     >
       {/* Product Image Area */}
-      <div className="relative aspect-square w-full bg-purple-50/40 overflow-hidden flex items-center justify-center p-4">
+      <div className="relative aspect-square w-full bg-[#EEE8FA]/30 overflow-hidden flex items-center justify-center p-4">
         {/* Badges */}
         <div className="absolute top-2.5 left-2.5 z-10 flex flex-col gap-1.5">
-          {productType === 'kit' && <Badge variant="kit" className="bg-purple-700 text-white font-bold border-none shadow-xs">COMPLETE KIT</Badge>}
-          {productType === 'spare_part' && <Badge variant="spare" className="bg-purple-100 text-purple-900 font-bold border-purple-200">SPARE PART</Badge>}
+          {productType === 'kit' && (
+            <Badge variant="kit" className="bg-[#844AFB] text-white font-bold border-none shadow-xs">
+              COMPLETE KIT
+            </Badge>
+          )}
+          {productType === 'spare_part' && (
+            <Badge variant="spare" className="bg-purple-100 text-purple-900 font-bold border-purple-200">
+              SPARE PART
+            </Badge>
+          )}
           {lowestBulkPricePaise && lowestBulkPricePaise < pricePaise && (
             <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 font-bold text-[10px]">
               BULK PRICING
@@ -73,43 +81,41 @@ export function ProductCard({
           )}
         </div>
 
-        {/* Wishlist Button */}
-        <button
-          type="button"
-          aria-label="Add to wishlist"
-          className="absolute top-2.5 right-2.5 z-10 p-1.5 rounded-full bg-white/90 shadow-xs text-slate-400 hover:text-purple-700 transition-colors cursor-pointer border border-slate-200"
+        <Link
+          href={`/product/${slug}`}
+          className="relative w-full h-full flex items-center justify-center"
+          aria-label={`View ${name}`}
         >
-          <Heart size={16} />
-        </button>
-
-        <Link href={`/product/${slug}`} className="relative w-full h-full flex items-center justify-center">
           <div className="relative w-full h-full transform group-hover:scale-105 transition-transform duration-300">
             <Image
               src={imageUrl}
               alt={name}
               fill
-              sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+              sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 22vw"
               className="object-contain p-2"
+              loading="lazy"
             />
           </div>
         </Link>
       </div>
 
-      {/* Product Details Area */}
+      {/* Product Details */}
       <div className="flex flex-col flex-1 p-4 bg-white">
         {brand && (
-          <span className="text-[11px] font-bold text-purple-700 uppercase tracking-wider mb-1">
+          <span className="text-[11px] font-bold text-[#844AFB] uppercase tracking-wider mb-1">
             {brand}
           </span>
         )}
 
-        <Link href={`/product/${slug}`} className="group-hover:text-purple-700 transition-colors">
+        <Link href={`/product/${slug}`} className="group-hover:text-[#6721F2] transition-colors">
           <h3 className="font-semibold text-sm line-clamp-2 text-slate-900 mb-1 min-h-[40px]">
             {name}
           </h3>
         </Link>
 
-        <RatingStars rating={rating} reviewCount={reviewCount} size="sm" className="mb-2" />
+        {rating > 0 && (
+          <RatingStars rating={rating} reviewCount={reviewCount} size="sm" className="mb-2" />
+        )}
 
         {lowestBulkPricePaise && lowestBulkPricePaise < pricePaise && (
           <p className="text-[11px] font-semibold text-emerald-700 mb-2">
@@ -125,15 +131,20 @@ export function ProductCard({
             </div>
           </div>
 
-          <Button
-            size="sm"
-            disabled={isOutOfStock}
-            onClick={() => onAddToCart && onAddToCart(id)}
-            className="h-8 px-3 text-xs font-bold gap-1 bg-purple-700 hover:bg-purple-800 text-white shadow-sm rounded-xl"
+          {/* Link-based CTA — no JS, works without hydration */}
+          <Link
+            href={`/product/${slug}`}
+            aria-label={isOutOfStock ? `${name} — Out of Stock` : `Add ${name} to cart`}
+            className={cn(
+              'h-8 px-3 text-xs font-bold gap-1 rounded-xl inline-flex items-center transition-colors',
+              isOutOfStock
+                ? 'bg-slate-100 text-slate-400 pointer-events-none'
+                : 'bg-[#844AFB] hover:bg-[#6721F2] text-white shadow-sm'
+            )}
           >
             <ShoppingCart size={13} />
             {isOutOfStock ? 'Sold Out' : 'Add'}
-          </Button>
+          </Link>
         </div>
       </div>
     </Card>

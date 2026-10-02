@@ -1,8 +1,11 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
 export async function middleware(request: NextRequest) {
-  const response = NextResponse.next({ request });
   const pathname = request.nextUrl.pathname;
+  // Forward pathname so StorefrontShell (server component) can detect /admin without usePathname
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-pathname', pathname);
+  const response = NextResponse.next({ request: { headers: requestHeaders } });
 
   const sessionToken = request.cookies.get('ttrc_session')?.value;
   const isTestBypass =
