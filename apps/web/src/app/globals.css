@@ -1,0 +1,246 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    /* ── TTRC Brand Tokens (White + Red System per AGENTS.md) ── */
+    --ttrc-white: #FFFFFF;
+    --ttrc-off-white: #F7F7F8;
+    --ttrc-ink: #14141A;
+    --ttrc-grey: #6B7280;
+    --ttrc-line: #E5E7EB;
+
+    --ttrc-red: #E3132A;
+    --ttrc-red-dark: #B80F21;
+    --ttrc-red-tint: #FDECEE;
+
+    --ttrc-purple: #E3132A;
+    --ttrc-purple-dark: #B80F21;
+    --ttrc-purple-deep: #B80F21;
+    --ttrc-purple-light: #E3132A;
+    --ttrc-purple-soft: #FDECEE;
+    --ttrc-purple-bg: #FDECEE;
+    --ttrc-purple-tint: #FDECEE;
+
+    /* Semantic Tokens */
+    --background: #FFFFFF;
+    --foreground: #14141A;
+    --card: #FFFFFF;
+    --card-foreground: #14141A;
+    --popover: #FFFFFF;
+    --popover-foreground: #14141A;
+    --primary: #E3132A;
+    --primary-foreground: #FFFFFF;
+    --secondary: #FDECEE;
+    --secondary-foreground: #B80F21;
+    --muted: #F7F7F8;
+    --muted-foreground: #6B7280;
+    --accent: #FDECEE;
+    --accent-foreground: #E3132A;
+    --destructive: #E3132A;
+    --destructive-foreground: #FFFFFF;
+    --success: #16A34A;
+    --warning: #D97706;
+    --border: #E5E7EB;
+    --input: #E5E7EB;
+    --ring: #E3132A;
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: #FFFFFF;
+    --foreground: #14141A;
+    --card: #FFFFFF;
+    --card-foreground: #14141A;
+    --popover: #FFFFFF;
+    --popover-foreground: #14141A;
+    --primary: #E3132A;
+    --primary-foreground: #FFFFFF;
+    --secondary: #FDECEE;
+    --secondary-foreground: #B80F21;
+    --muted: #F7F7F8;
+    --muted-foreground: #6B7280;
+    --accent: #FDECEE;
+    --accent-foreground: #E3132A;
+    --destructive: #E3132A;
+    --destructive-foreground: #FFFFFF;
+    --border: #E5E7EB;
+    --input: #E5E7EB;
+    --ring: #E3132A;
+  }
+}
+
+/* ── Base Styles ── */
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter), 'Plus Jakarta Sans', system-ui, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6, .font-heading {
+  font-family: 'Space Grotesk', var(--font-rajdhani), system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+/* Tabular numerals for all prices */
+.tabular-nums,
+[data-price],
+.price {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* ── Glow Utilities ── */
+.glow-red,
+.glow-purple {
+  box-shadow: 0 0 15px rgba(227, 19, 42, 0.35);
+}
+
+.glow-red-sm,
+.glow-purple-sm {
+  box-shadow: 0 0 8px rgba(227, 19, 42, 0.25);
+}
+
+.glow-red-lg,
+.glow-purple-lg {
+  box-shadow: 0 0 30px rgba(227, 19, 42, 0.4), 0 0 60px rgba(227, 19, 42, 0.15);
+}
+
+/* Focus ring using red glow */
+.glow-focus:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--background), 0 0 0 4px #E3132A, 0 0 8px rgba(227, 19, 42, 0.4);
+}
+
+/* ── Gradient Utilities ── */
+.gradient-red,
+.gradient-purple {
+  background: linear-gradient(135deg, #E3132A 0%, #B80F21 100%);
+}
+
+.gradient-red-horizontal,
+.gradient-purple-horizontal {
+  background: linear-gradient(90deg, #E3132A 0%, #B80F21 100%);
+}
+
+.gradient-light {
+  background: linear-gradient(180deg, #FFFFFF 0%, #FDECEE 100%);
+}
+
+/* Red gradient text */
+.gradient-text-red,
+.gradient-text-purple {
+  background: linear-gradient(90deg, #E3132A 0%, #B80F21 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Animations ── */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(109, 40, 217, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(109, 40, 217, 0.5);
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Respect user motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.3s ease-out forwards;
+}
+
+/* ── Skeleton Shimmer ── */
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--muted) 25%,
+    color-mix(in srgb, var(--muted) 60%, var(--muted-foreground) 40%) 50%,
+    var(--muted) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer {
+    animation: none;
+  }
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--ttrc-off-white);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #FDECEE;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #E3132A;
+}
+
+/* ── Typography Utilities ── */
+.text-balance {
+  text-wrap: balance;
+}
+
+/* ── Red accent line ── */
+.purple-accent-line,
+.red-accent-line {
+  position: relative;
+}
+
+.purple-accent-line::after,
+.red-accent-line::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, #E3132A, #B80F21, transparent);
+}

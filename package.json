@@ -1,0 +1,26 @@
+{
+  "name": "ttrc-store",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "turbo dev --filter=@ttrc/web",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "test": "turbo test:unit",
+    "test:unit": "turbo test:unit",
+    "test:e2e": "turbo test:e2e",
+    "clean": "turbo clean",
+    "prepare": "husky || true"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.3",
+    "husky": "^9.1.7",
+    "prettier": "^3.4.2"
+  },
+  "packageManager": "pnpm@12.5.1",
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=12"
+  }
+}
