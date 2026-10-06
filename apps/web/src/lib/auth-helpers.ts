@@ -28,6 +28,9 @@ interface JWTPayload {
 }
 
 async function checkTestBypass(): Promise<boolean> {
+  if (process.env.NODE_ENV === 'production') {
+    return false;
+  }
   const cookieStore = await cookies();
   const hasBypassCookie = cookieStore.get('ttrc_test_bypass')?.value === 'true';
   const isTestEnv = process.env.E2E_TEST === 'true' || process.env.ALLOW_TEST_BYPASS === 'true';

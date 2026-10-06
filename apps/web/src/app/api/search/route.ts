@@ -1,14 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { searchStoreProducts } from '@/lib/mongodb/catalog';
+import { checkRateLimit } from '@/lib/security/rate-limiter';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
-    const query = searchParams.get('q') || '';
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'local-client';
+    const rateLimit = await checkRateLimit({
+      key: `search:${ip}`,
+      limit: 40,
+      windowMs: 60 * 1000,
+    });
 
-    if (!query.trim()) {
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        { error: 'Search rate limit exceeded. Please slow down.' },
+        { status: 429 }
+      );
+    }
+
+    const { searchParams } = new URL(req.url);
+    const rawQuery = searchParams.get('q') || '';
+    const query = rawQuery.trim().slice(0, 100);
+
+    if (!query) {
       return NextResponse.json({ results: [] });
     }
 

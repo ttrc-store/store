@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Plus_Jakarta_Sans, Space_Grotesk, JetBrains_Mono } from 'next/font/google';
+import { Analytics } from '@vercel/analytics/next';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import './globals.css';
 import { StorefrontShell } from '@/components/layout/storefront-shell';
 
@@ -105,6 +107,8 @@ export default function RootLayout({
     >
       <body className="bg-background text-foreground antialiased min-h-screen flex flex-col">
         <StorefrontShell>{children}</StorefrontShell>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

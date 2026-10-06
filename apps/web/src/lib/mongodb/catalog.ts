@@ -395,6 +395,10 @@ export async function getStoreSiteSettings() {
       gstEnabled: Boolean(map.get('gst_enabled')),
       razorpayEnabled: Boolean(map.get('razorpay_enabled')),
       gstin: map.get('gstin') || '',
+      // Announcement bar
+      announcementEnabled: Boolean(map.get('announcement_enabled')),
+      announcementText: (map.get('announcement_text') as string | undefined) || '',
+      announcementLink: (map.get('announcement_link') as string | undefined) || '',
     };
   } catch (err) {
     console.error('[MongoDB Catalog] Error fetching site settings:', err);
@@ -410,6 +414,9 @@ export async function getStoreSiteSettings() {
       gstEnabled: false,
       razorpayEnabled: false,
       gstin: '',
+      announcementEnabled: false,
+      announcementText: '',
+      announcementLink: '',
     };
   }
 }

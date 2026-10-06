@@ -547,3 +547,24 @@ const SupplierSchema = new Schema<ISupplier>(
 export const SupplierModel: Model<ISupplier> =
   mongoose.models.Supplier || mongoose.model<ISupplier>('Supplier', SupplierSchema);
 
+// ---------------------------------------------------------------------------
+// 13. DISTRIBUTED RATE LIMIT SCHEMA & MODEL (MongoDB fallback for multi-instance Vercel)
+// ---------------------------------------------------------------------------
+export interface IRateLimitRecord extends Document {
+  key: string;
+  count: number;
+  reset_at: Date;
+}
+
+const RateLimitSchema = new Schema<IRateLimitRecord>(
+  {
+    key: { type: String, required: true, unique: true },
+    count: { type: Number, required: true, default: 1 },
+    reset_at: { type: Date, required: true, index: { expires: 0 } },
+  },
+  { timestamps: false }
+);
+
+export const RateLimitModel: Model<IRateLimitRecord> =
+  mongoose.models.RateLimit || mongoose.model<IRateLimitRecord>('RateLimit', RateLimitSchema);
+

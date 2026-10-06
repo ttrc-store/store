@@ -12,7 +12,9 @@ import {
   Users,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { PriceTag } from '@/components/store/price-tag';
+import { PriceDisplay, PriceTag } from '@/components/store/price-display';
+import { MetricCard } from '@/components/admin/metric-card';
+import { formatRupees } from '@/lib/utils';
 import { getAdminDashboardMetricsAction } from '@/actions/orders';
 import { ORDER_STATUS_LABELS } from '@ttrc/shared';
 
@@ -86,16 +88,16 @@ export default async function AdminDashboardOverview() {
       {/* Top Banner & Quick Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="font-heading text-2xl sm:text-3xl font-extrabold text-slate-900">
+          <h1 className="font-heading text-2xl sm:text-3xl font-extrabold text-[#050507]">
             Admin Overview
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Live store metrics from Supabase — {new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}.
+            Live store metrics from MongoDB Atlas — {new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}.
           </p>
         </div>
         <div className="flex items-center gap-3">
           <Link href="/admin/products/new">
-            <Button className="bg-[#E3132A] hover:bg-[#B80F21] text-white font-bold text-xs rounded-xl flex items-center gap-2 shadow-md shadow-red-900/20">
+            <Button className="bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold text-xs rounded-xl flex items-center gap-2 shadow-md shadow-purple-900/20">
               <Plus size={16} /> Add Product
             </Button>
           </Link>
@@ -109,34 +111,16 @@ export default async function AdminDashboardOverview() {
 
       {/* Metric Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat, idx) => {
-          const Icon = stat.icon;
-          return (
-            <div
-              key={idx}
-              className={`p-5 rounded-2xl border transition-all ${
-                stat.isWarning
-                  ? 'bg-amber-50/80 border-amber-200'
-                  : 'bg-white border-slate-200 shadow-sm'
-              }`}
-            >
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-bold text-slate-500">{stat.title}</span>
-                <div className={`p-2 rounded-xl ${stat.isWarning ? 'bg-amber-100 text-amber-700' : 'bg-red-50 text-red-600 border border-red-200'}`}>
-                  <Icon size={18} />
-                </div>
-              </div>
-              <div className="flex items-baseline justify-between">
-                {stat.isPrice ? (
-                  <PriceTag pricePaise={stat.value as number} size="lg" />
-                ) : (
-                  <span className="font-heading text-2xl font-extrabold text-slate-900">{stat.value}</span>
-                )}
-                <span className="text-[10px] font-bold text-slate-400">{stat.change}</span>
-              </div>
-            </div>
-          );
-        })}
+        {stats.map((stat, idx) => (
+          <MetricCard
+            key={idx}
+            title={stat.title}
+            value={stat.isPrice ? formatRupees(stat.value as number) : stat.value}
+            subtitle={stat.change}
+            icon={stat.icon}
+            isWarning={stat.isWarning}
+          />
+        ))}
       </div>
 
       {/* Summary Stats Row */}
@@ -159,10 +143,10 @@ export default async function AdminDashboardOverview() {
         {/* Recent Orders Table (2 Cols) */}
         <div className="lg:col-span-2 p-6 rounded-2xl bg-white border border-slate-200 space-y-4 shadow-sm">
           <div className="flex items-center justify-between border-b border-slate-200 pb-4">
-            <h2 className="font-heading font-bold text-base text-slate-900 flex items-center gap-2">
-              <ShoppingBag size={18} className="text-[#E3132A]" /> Recent Orders
+            <h2 className="font-heading font-bold text-base text-[#050507] flex items-center gap-2">
+              <ShoppingBag size={18} className="text-[#844AFB]" /> Recent Orders
             </h2>
-            <Link href="/admin/orders" className="text-xs font-bold text-[#E3132A] hover:underline flex items-center gap-1">
+            <Link href="/admin/orders" className="text-xs font-bold text-[#844AFB] hover:text-[#6721F2] hover:underline flex items-center gap-1">
               View All <ArrowRight size={14} />
             </Link>
           </div>
@@ -181,7 +165,7 @@ export default async function AdminDashboardOverview() {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {metrics.recentOrders.map((order) => (
-                    <tr key={order.id} className="hover:bg-red-50/50 transition-colors">
+                    <tr key={order.id} className="hover:bg-[#EEE8FA]/30 transition-colors">
                       <td className="py-3">
                         <p className="font-mono font-bold text-slate-900 text-[11px]">
                           {order.order_number ?? order.id.slice(0, 8)}
@@ -193,7 +177,7 @@ export default async function AdminDashboardOverview() {
                         </p>
                       </td>
                       <td className="py-3">
-                        <PriceTag pricePaise={order.total_paise} size="sm" />
+                        <PriceDisplay pricePaise={order.total_paise} size="sm" />
                       </td>
                       <td className="py-3 text-slate-500 capitalize">
                         {order.payment_method}
@@ -202,7 +186,7 @@ export default async function AdminDashboardOverview() {
                         <StatusBadge status={order.status} />
                       </td>
                       <td className="py-3 text-right">
-                        <Link href={`/admin/orders/${order.id}`} className="p-1 text-slate-400 hover:text-red-600 inline-block">
+                        <Link href={`/admin/orders/${order.id}`} className="p-1 text-slate-400 hover:text-[#844AFB] inline-block">
                           <Eye size={16} />
                         </Link>
                       </td>
@@ -213,7 +197,7 @@ export default async function AdminDashboardOverview() {
             </div>
           ) : (
             <div className="py-8 text-center text-slate-400 text-sm">
-              <ShoppingBag size={32} className="mx-auto mb-2 opacity-40" />
+              <ShoppingBag size={32} className="mx-auto mb-2 opacity-40 text-[#844AFB]" />
               No orders yet. When customers place orders, they will appear here.
             </div>
           )}
@@ -222,10 +206,10 @@ export default async function AdminDashboardOverview() {
         {/* Top Selling Products */}
         <div className="p-6 rounded-2xl bg-white border border-slate-200 space-y-4 shadow-sm">
           <div className="flex items-center justify-between border-b border-slate-200 pb-4">
-            <h2 className="font-heading font-bold text-base text-slate-900 flex items-center gap-2">
-              <TrendingUp size={18} className="text-[#E3132A]" /> Top Products
+            <h2 className="font-heading font-bold text-base text-[#050507] flex items-center gap-2">
+              <TrendingUp size={18} className="text-[#844AFB]" /> Top Products
             </h2>
-            <Link href="/admin/products" className="text-xs font-bold text-[#E3132A] hover:underline">
+            <Link href="/admin/products" className="text-xs font-bold text-[#844AFB] hover:text-[#6721F2] hover:underline">
               Manage
             </Link>
           </div>
@@ -240,7 +224,7 @@ export default async function AdminDashboardOverview() {
                       {product.total_qty} sold • SKU: <span className="font-mono">{product.sku}</span>
                     </p>
                   </div>
-                  <PriceTag pricePaise={product.price} size="sm" />
+                  <PriceDisplay pricePaise={product.price} size="sm" />
                 </div>
               ))}
             </div>

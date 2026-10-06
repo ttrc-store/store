@@ -65,8 +65,8 @@ export function AdminSidebar() {
                 href={item.href}
                 className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                   isActive
-                    ? 'bg-[#E3132A] text-white shadow-md shadow-red-900/20'
-                    : 'text-slate-600 hover:text-red-700 hover:bg-red-50/70'
+                    ? 'bg-[#844AFB] text-white shadow-md shadow-purple-900/20'
+                    : 'text-slate-600 hover:text-[#6721F2] hover:bg-[#EEE8FA]/60'
                 }`}
               >
                 <Icon size={18} />

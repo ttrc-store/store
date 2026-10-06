@@ -1,12 +1,19 @@
 import * as React from 'react';
+import { redirect } from 'next/navigation';
 import { AdminSidebar } from '@/components/admin/admin-sidebar';
 import { AdminHeader } from '@/components/admin/admin-header';
+import { requireAdmin } from '@/lib/auth-helpers';
 
 export const metadata = {
   title: 'TTRC Admin Dashboard | Tamizh Tech Store Management',
 };
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const auth = await requireAdmin();
+  if ('error' in auth) {
+    redirect('/login?redirectTo=/admin');
+  }
+
   return (
     <div className="min-h-screen bg-[#F7F7F8] text-slate-900 flex">
       {/* Sidebar */}

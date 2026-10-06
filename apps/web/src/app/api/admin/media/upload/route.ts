@@ -48,6 +48,18 @@ export async function POST(req: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
+    // Validate Magic Bytes (File Signature)
+    const isJpeg = buffer.length > 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
+    const isPng = buffer.length > 8 && buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47;
+    const isWebp = buffer.length > 12 && buffer.subarray(0, 4).toString('ascii') === 'RIFF' && buffer.subarray(8, 12).toString('ascii') === 'WEBP';
+
+    if (!isJpeg && !isPng && !isWebp) {
+      return NextResponse.json(
+        { error: 'File signature verification failed. Only genuine JPEG, PNG, or WebP images are allowed.' },
+        { status: 400 }
+      );
+    }
+
     await fs.writeFile(filePath, buffer);
 
     const publicUrl = `/uploads/products/${filename}`;

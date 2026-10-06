@@ -42,12 +42,12 @@ export default function CheckoutPage() {
   }, []);
 
   // Address State
-  const [fullName, setFullName] = React.useState('Karthik Raja');
-  const [phone, setPhone] = React.useState('+91 98765 43210');
-  const [addressLine, setAddressLine] = React.useState('12/42 Tamizh Tech Robotics Club, Peelamedu');
-  const [pincode, setPincode] = React.useState('641004');
-  const [city] = React.useState('Coimbatore');
-  const [stateName] = React.useState('Tamil Nadu');
+  const [fullName, setFullName] = React.useState('');
+  const [phone, setPhone] = React.useState('');
+  const [addressLine, setAddressLine] = React.useState('');
+  const [pincode, setPincode] = React.useState('');
+  const [city, setCity] = React.useState('');
+  const [stateName, setStateName] = React.useState('Tamil Nadu');
 
   const isCodDisabled = totals.totalPaise > 500000; // > ₹5,000
 
@@ -138,27 +138,37 @@ export default function CheckoutPage() {
                 <div className="space-y-4 text-xs">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <label className="font-bold text-slate-700">Full Name</label>
-                      <Input value={fullName} onChange={(e) => setFullName(e.target.value)} className="bg-slate-50 border-slate-300 h-10 rounded-xl focus:ring-purple-600" />
+                      <label className="font-bold text-slate-700">Full Name *</label>
+                      <Input placeholder="Enter your full name" value={fullName} onChange={(e) => setFullName(e.target.value)} className="bg-slate-50 border-slate-300 h-10 rounded-xl focus:ring-red-600" />
                     </div>
                     <div className="space-y-1">
-                      <label className="font-bold text-slate-700">Phone Number</label>
-                      <Input value={phone} onChange={(e) => setPhone(e.target.value)} className="bg-slate-50 border-slate-300 h-10 rounded-xl focus:ring-purple-600" />
+                      <label className="font-bold text-slate-700">Phone Number *</label>
+                      <Input placeholder="10-digit mobile number" value={phone} onChange={(e) => setPhone(e.target.value)} className="bg-slate-50 border-slate-300 h-10 rounded-xl focus:ring-red-600" />
                     </div>
                     <div className="sm:col-span-2 space-y-1">
-                      <label className="font-bold text-slate-700">Street Address</label>
-                      <Input value={addressLine} onChange={(e) => setAddressLine(e.target.value)} className="bg-slate-50 border-slate-300 h-10 rounded-xl focus:ring-purple-600" />
+                      <label className="font-bold text-slate-700">Street Address *</label>
+                      <Input placeholder="House/Flat no., building, street, area" value={addressLine} onChange={(e) => setAddressLine(e.target.value)} className="bg-slate-50 border-slate-300 h-10 rounded-xl focus:ring-red-600" />
                     </div>
                     <div className="space-y-1">
-                      <label className="font-bold text-slate-700">Pincode</label>
-                      <Input value={pincode} onChange={(e) => setPincode(e.target.value)} maxLength={6} className="bg-slate-50 border-slate-300 h-10 font-mono rounded-xl focus:ring-purple-600" />
+                      <label className="font-bold text-slate-700">Pincode *</label>
+                      <Input placeholder="6-digit PIN code" value={pincode} onChange={(e) => setPincode(e.target.value)} maxLength={6} className="bg-slate-50 border-slate-300 h-10 font-mono rounded-xl focus:ring-red-600" />
                     </div>
                     <div className="space-y-1">
-                      <label className="font-bold text-slate-700">City &amp; State</label>
-                      <Input value={`${city}, ${stateName}`} readOnly className="bg-slate-100 border-slate-300 h-10 text-slate-500 cursor-not-allowed rounded-xl" />
+                      <label className="font-bold text-slate-700">City *</label>
+                      <Input placeholder="City / Town" value={city} onChange={(e) => setCity(e.target.value)} className="bg-slate-50 border-slate-300 h-10 rounded-xl focus:ring-red-600" />
                     </div>
                   </div>
-                  <Button onClick={() => setStep(2)} className="bg-purple-700 text-white font-bold text-xs hover:bg-purple-800 rounded-xl">
+                  <Button
+                    onClick={() => {
+                      if (!fullName.trim() || !phone.trim() || !addressLine.trim() || !pincode.trim() || !city.trim()) {
+                        setError('Please fill in all required shipping address fields.');
+                        return;
+                      }
+                      setError(null);
+                      setStep(2);
+                    }}
+                    className="bg-red-600 text-white font-bold text-xs hover:bg-red-700 rounded-xl"
+                  >
                     Continue to Payment
                   </Button>
                 </div>

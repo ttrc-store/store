@@ -430,11 +430,23 @@ export async function requestReturnAction(input: {
 
     if (!order) return { error: 'Order not found.' };
 
-    order.status = 'refunded';
+    if (order.status !== 'delivered') {
+      return { error: 'Return requests can only be submitted for delivered orders.' };
+    }
+
+    // Append return request note rather than automatically executing financial refund
+    const existingNotes = order.notes || '';
+    order.notes = existingNotes
+      ? `${existingNotes} | Return request: ${input.reason}`
+      : `Return request: ${input.reason}`;
     await order.save();
 
     revalidatePath(`/account/orders`);
-    return { success: true, returnId: `${input.orderId}-return` };
+    return {
+      success: true,
+      message: 'Return request submitted successfully. Our support team will review within 24-48 hours.',
+      returnId: `${input.orderId}-return`,
+    };
   } catch {
     return { error: 'Failed to submit return request.' };
   }

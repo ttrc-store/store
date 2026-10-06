@@ -1,6 +1,21 @@
 import mongoose from 'mongoose';
+import dns from 'node:dns';
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://ttrcstoree_db_user:ZjFSWGqEKH4rQ6OY@ttrc-store.imdmatw.mongodb.net/ttrc_store?retryWrites=true&w=majority';
+// Fix for Node.js on Windows / certain local ISPs where router DNS rejects SRV queries (querySrv ECONNREFUSED)
+if (typeof dns !== 'undefined' && typeof dns.setServers === 'function') {
+  try {
+    dns.setServers(['8.8.8.8', '1.1.1.1', '8.8.4.4']);
+  } catch {
+    // Ignore if not permitted in sandboxed environment
+  }
+}
+
+const DIRECT_FALLBACK_URI =
+  'mongodb://ttrcstoree_db_user:ZjFSWGqEKH4rQ6OY@ac-d2d3mt6-shard-00-00.imdmatw.mongodb.net:27017,ac-d2d3mt6-shard-00-01.imdmatw.mongodb.net:27017,ac-d2d3mt6-shard-00-02.imdmatw.mongodb.net:27017/ttrc_store?ssl=true&replicaSet=atlas-qqc46k-shard-0&authSource=admin&retryWrites=true&w=majority';
+
+const MONGODB_URI =
+  process.env.MONGODB_URI ||
+  'mongodb+srv://ttrcstoree_db_user:ZjFSWGqEKH4rQ6OY@ttrc-store.imdmatw.mongodb.net/ttrc_store?retryWrites=true&w=majority';
 
 interface MongooseCache {
   conn: typeof mongoose | null;
@@ -25,12 +40,30 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
+      serverSelectionTimeoutMS: 8000,
     };
 
-    cached.promise = mongoose.connect(MONGODB_URI, opts).then((m) => {
-      console.log('[MongoDB Atlas] Successfully connected to database: ttrc_store');
-      return m;
-    });
+    cached.promise = (async () => {
+      try {
+        const m = await mongoose.connect(MONGODB_URI, opts);
+        console.log('[MongoDB Atlas] Successfully connected to database: ttrc_store');
+        return m;
+      } catch (err: any) {
+        // If SRV lookup fails (querySrv ECONNREFUSED) or MONGODB_URI was the SRV string, fall back to direct replica set seedlist
+        if (
+          err?.syscall === 'querySrv' ||
+          err?.code === 'ECONNREFUSED' ||
+          err?.message?.includes('querySrv') ||
+          MONGODB_URI.startsWith('mongodb+srv://')
+        ) {
+          console.warn('[MongoDB Atlas] SRV resolution failed; retrying with direct replica set seedlist...');
+          const m = await mongoose.connect(DIRECT_FALLBACK_URI, opts);
+          console.log('[MongoDB Atlas] Successfully connected via direct replica set seedlist: ttrc_store');
+          return m;
+        }
+        throw err;
+      }
+    })();
   }
 
   try {
@@ -42,3 +75,4 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
 
   return cached.conn;
 }
+

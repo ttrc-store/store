@@ -68,18 +68,24 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-[#FDFDFD] border-b border-slate-200 shadow-xs text-[#050507]">
-      {/* Top Utility Bar (Hidden on Mobile per user request) */}
-      <div className="hidden md:flex bg-[#1E0D45] text-slate-200 text-[11px] py-1.5 px-4 sm:px-8 justify-between items-center border-b border-purple-950">
-        <div className="flex items-center gap-4">
-          <span className="flex items-center gap-1.5"><Truck size={13} className="text-[#AF87F8]" /> Free Dispatch on Orders Above ₹999 across India</span>
-          <span className="hidden md:inline text-purple-800">|</span>
-          <span className="hidden md:flex items-center gap-1"><ShieldCheck size={13} className="text-[#AF87F8]" /> Official Tamizh Tech Store</span>
+    <header className="sticky top-0 z-40 bg-[#FDFDFD] border-b border-slate-200 shadow-sm text-[#050507]">
+      {/* Utility Bar — desktop only */}
+      <div className="hidden md:flex bg-[#1E0D45] text-slate-300 text-[11px] py-1.5 px-4 sm:px-8 justify-between items-center">
+        <div className="flex items-center gap-5">
+          <span className="flex items-center gap-1.5 font-medium">
+            <Truck size={12} className="text-[#AF87F8]" />
+            Free delivery on orders above ₹999
+          </span>
+          <span className="text-purple-900">·</span>
+          <span className="flex items-center gap-1.5 font-medium">
+            <ShieldCheck size={12} className="text-[#AF87F8]" />
+            Official Tamizh Tech Store
+          </span>
         </div>
         <div className="flex items-center gap-5 font-medium">
-          <Link href="/bulk-enquiry" className="hover:text-white transition-colors">Bulk / Institutional Enquiry</Link>
+          <Link href="/bulk-enquiry" className="hover:text-white transition-colors">Institutional Orders</Link>
           <Link href="/contact" className="hover:text-white transition-colors">Support</Link>
-          <span className="font-bold text-white bg-[#844AFB] px-2 py-0.5 rounded text-[10px]">INR (₹)</span>
+          <span className="font-bold text-white bg-[#844AFB] px-2 py-0.5 rounded text-[10px] font-mono">INR ₹</span>
         </div>
       </div>
 
@@ -113,21 +119,22 @@ export default function Header() {
         </div>
 
         {/* Live Search Bar */}
-        <div className="flex-1 max-w-xl relative hidden sm:block">
+        <div className="flex-1 max-w-2xl relative hidden sm:block">
           <form onSubmit={handleSearchSubmit} className="relative flex items-center">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#6D6A6A] w-4 h-4" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#6D6A6A] w-4 h-4" />
             <Input
-              type="text"
-              placeholder="Search robotics kits, spare parts, electronics, motors..."
+              type="search"
+              placeholder="Search robotics, electronics, automation & more..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={() => setIsSearchFocused(true)}
               onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
-              className="pl-10 pr-24 h-11 bg-white border-slate-200 text-[#050507] placeholder:text-[#6D6A6A] rounded-xl focus:ring-2 focus:ring-[#844AFB] focus:border-[#844AFB] text-xs font-medium"
+              aria-label="Search products"
+              className="pl-11 pr-28 h-12 bg-white border-slate-300 text-[#050507] placeholder:text-[#6D6A6A] rounded-xl focus:ring-2 focus:ring-[#844AFB] focus:border-[#844AFB] text-sm font-medium shadow-inner"
             />
             <Button
               type="submit"
-              className="absolute right-1 top-1 bottom-1 px-4 bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold text-xs rounded-lg shadow-xs"
+              className="absolute right-1.5 top-1.5 bottom-1.5 px-5 bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold text-xs rounded-lg shadow-sm"
             >
               Search
             </Button>
@@ -219,19 +226,31 @@ export default function Header() {
         </form>
       </div>
 
-      {/* Marketplace Category Navigation Subbar */}
-      <div className="bg-[#EEE8FA]/50 border-t border-slate-200 hidden md:block">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center gap-6 h-10 text-xs font-semibold text-[#1E0D45]">
-          <Link href="/category/gamified-robots" className="hover:text-[#6721F2] transition-colors">Gamified Robots</Link>
-          <Link href="/category/stem-kits" className="hover:text-[#6721F2] transition-colors">STEM Kits</Link>
-          <Link href="/category/fasteners" className="hover:text-[#6721F2] transition-colors">Fasteners &amp; Screws</Link>
-          <Link href="/category/batteries" className="hover:text-[#6721F2] transition-colors">Batteries &amp; Power</Link>
-          <Link href="/category/motors" className="hover:text-[#6721F2] transition-colors">Motors &amp; Drivers</Link>
-          <Link href="/category/sensors" className="hover:text-[#6721F2] transition-colors">Sensors Array</Link>
-          <Link href="/category/drones" className="hover:text-[#6721F2] transition-colors">Drone Parts</Link>
-          <Link href="/category/wires-connectors" className="hover:text-[#6721F2] transition-colors">Wires &amp; Connectors</Link>
-          <Link href="/bulk-enquiry" className="ml-auto text-[#6721F2] hover:text-[#844AFB] font-bold flex items-center gap-1">
-            Institutional Quotes &rarr;
+      {/* Category Navigation Subbar */}
+      <div className="bg-white border-t border-slate-100 hidden md:block">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center h-9 text-xs font-semibold text-[#1E0D45] overflow-x-auto scrollbar-hide">
+          <nav className="flex items-center gap-1 flex-1" aria-label="Product categories">
+            {[
+              { href: '/category/gamified-robots', label: 'Gamified Robots' },
+              { href: '/category/stem-kits', label: 'STEM Kits' },
+              { href: '/category/fasteners', label: 'Fasteners' },
+              { href: '/category/batteries', label: 'Batteries & Power' },
+              { href: '/category/motors', label: 'Motors & Drivers' },
+              { href: '/category/sensors', label: 'Sensors' },
+              { href: '/category/drones', label: 'Drones' },
+              { href: '/category/wires-connectors', label: 'Wires & Connectors' },
+            ].map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="whitespace-nowrap px-3 py-2 hover:text-[#844AFB] hover:bg-[#EEE8FA]/60 rounded-lg transition-colors"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+          <Link href="/bulk-enquiry" className="ml-4 text-[#6721F2] hover:text-[#844AFB] font-bold flex items-center gap-1 whitespace-nowrap text-[11px] flex-shrink-0">
+            Bulk / Institutional Orders →
           </Link>
         </div>
       </div>

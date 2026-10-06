@@ -7,8 +7,10 @@ import { getAuthenticatedUser } from '@/lib/auth-helpers';
 import { computeOrderTotals, calculateGstFromInclusive } from '@ttrc/shared';
 import { getSiteSettingsAction } from './settings';
 
+import { checkRateLimit } from '@/lib/security/rate-limiter';
+
 const CheckoutItemSchema = z.object({
-  productId: z.string(),
+  productId: z.string().min(1),
   variantId: z.string().nullable().optional(),
   quantity: z.number().int().min(1).max(99),
 });
@@ -28,10 +30,10 @@ const ShippingAddressSchema = z.object({
 });
 
 const CreateOrderSchema = z.object({
-  items: z.array(CheckoutItemSchema).min(1, 'Cart cannot be empty'),
+  items: z.array(CheckoutItemSchema).min(1, 'Cart cannot be empty').max(50),
   paymentMethod: z.enum(['razorpay', 'cod']),
   shippingAddress: ShippingAddressSchema,
-  stateCode: z.string().default('33'),
+  stateCode: z.string().regex(/^\d{2}$/, 'Valid 2-digit state code required').default('33'),
   couponCode: z.string().max(50).optional(),
 });
 
@@ -49,6 +51,16 @@ export async function createOrderAction(raw: CreateOrderInput) {
     return { error: 'You must be logged in to place an order.' };
   }
   const user = auth.user;
+
+  // Rate limit: 5 order attempts per minute per user
+  const rateLimit = await checkRateLimit({
+    key: `create-order:${user.id}`,
+    limit: 5,
+    windowMs: 60 * 1000,
+  });
+  if (!rateLimit.success) {
+    return { error: 'Order creation rate limit exceeded. Please wait a minute before retrying.' };
+  }
 
   try {
     await connectToDatabase();
@@ -72,11 +84,6 @@ export async function createOrderAction(raw: CreateOrderInput) {
       if (!product) {
         return { error: 'One or more items in your cart are unavailable.' };
       }
-      if (product.stock_quantity < item.quantity) {
-        return {
-          error: `"${product.name}" only has ${product.stock_quantity} units in stock.`,
-        };
-      }
 
       // Authoritative server-side bulk tier price calculation
       let effectiveUnitPrice = product.price;
@@ -87,7 +94,6 @@ export async function createOrderAction(raw: CreateOrderInput) {
         Array.isArray(product.bulk_price_tiers) &&
         product.bulk_price_tiers.length > 0
       ) {
-        // Sort descending by minQuantity to find the highest qualifying quantity tier
         const sortedTiers = [...product.bulk_price_tiers].sort(
           (a, b) => b.minQuantity - a.minQuantity
         );
@@ -114,10 +120,18 @@ export async function createOrderAction(raw: CreateOrderInput) {
     const shippingPaise = isFreeShipping ? 0 : baseShipping;
 
     let couponDiscountPaise = 0;
+    let appliedCouponDoc: any = null;
     if (couponCode) {
+      const cleanCode = couponCode.toUpperCase().trim();
+      const now = new Date();
       const coupon = await CouponModel.findOne({
-        code: couponCode.toUpperCase().trim(),
+        code: cleanCode,
         is_active: true,
+        $or: [
+          { expires_at: { $exists: false } },
+          { expires_at: null },
+          { expires_at: { $gt: now } },
+        ],
       });
 
       if (coupon && subtotalPaise >= coupon.min_order_value_paise) {
@@ -126,7 +140,11 @@ export async function createOrderAction(raw: CreateOrderInput) {
         } else {
           couponDiscountPaise = coupon.discount_value;
         }
+        if (coupon.max_discount_paise && coupon.max_discount_paise > 0) {
+          couponDiscountPaise = Math.min(couponDiscountPaise, coupon.max_discount_paise);
+        }
         couponDiscountPaise = Math.min(couponDiscountPaise, subtotalPaise);
+        appliedCouponDoc = coupon;
       }
     }
 
@@ -157,6 +175,40 @@ export async function createOrderAction(raw: CreateOrderInput) {
       totalCgst += gst.cgstPaise;
       totalSgst += gst.sgstPaise;
       totalIgst += gst.igstPaise;
+    }
+
+    // Atomic stock deduction to prevent race condition / overselling
+    const decrementedItems: Array<{ productId: any; quantity: number }> = [];
+    for (const item of validatedItems) {
+      const updatedProduct = await ProductModel.findOneAndUpdate(
+        {
+          _id: item.product._id,
+          stock_quantity: { $gte: item.quantity },
+          is_active: true,
+        },
+        { $inc: { stock_quantity: -item.quantity } },
+        { new: true }
+      );
+
+      if (!updatedProduct) {
+        // Rollback any previously decremented items
+        for (const dec of decrementedItems) {
+          await ProductModel.findByIdAndUpdate(dec.productId, {
+            $inc: { stock_quantity: dec.quantity },
+          });
+        }
+        return {
+          error: `Insufficient stock for "${item.product.name}". Please adjust quantity.`,
+        };
+      }
+      decrementedItems.push({ productId: item.product._id, quantity: item.quantity });
+    }
+
+    // Atomically increment coupon usage if used
+    if (appliedCouponDoc) {
+      await CouponModel.findByIdAndUpdate(appliedCouponDoc._id, {
+        $inc: { usage_count: 1 },
+      });
     }
 
     const orderNumber = `TTRC/25-26/${Date.now().toString().slice(-6)}`;
@@ -192,13 +244,6 @@ export async function createOrderAction(raw: CreateOrderInput) {
       items: orderItems,
     });
 
-    // Decrement stock
-    for (const item of validatedItems) {
-      await ProductModel.findByIdAndUpdate(item.product._id, {
-        $inc: { stock_quantity: -item.quantity },
-      });
-    }
-
     return {
       success: true,
       orderNumber,
@@ -215,14 +260,29 @@ export async function createOrderAction(raw: CreateOrderInput) {
 export async function validateCouponAction(code: string, subtotalPaise: number) {
   if (!code?.trim()) return { error: 'Enter a coupon code.' };
 
+  const rateLimit = await checkRateLimit({
+    key: `coupon:${code.trim().toUpperCase()}`,
+    limit: 10,
+    windowMs: 60 * 1000,
+  });
+  if (!rateLimit.success) {
+    return { error: 'Too many coupon check attempts. Please wait.' };
+  }
+
   try {
     await connectToDatabase();
+    const now = new Date();
     const coupon = await CouponModel.findOne({
       code: code.toUpperCase().trim(),
       is_active: true,
+      $or: [
+        { expires_at: { $exists: false } },
+        { expires_at: null },
+        { expires_at: { $gt: now } },
+      ],
     });
 
-    if (!coupon) return { error: 'Coupon not found or inactive.' };
+    if (!coupon) return { error: 'Coupon not found, expired, or inactive.' };
     if (subtotalPaise < coupon.min_order_value_paise) {
       return {
         error: `Minimum order of ₹${Math.round(coupon.min_order_value_paise / 100)} required.`,
@@ -234,6 +294,10 @@ export async function validateCouponAction(code: string, subtotalPaise: number) 
       discountPaise = Math.round((subtotalPaise * coupon.discount_value) / 100);
     } else {
       discountPaise = coupon.discount_value;
+    }
+
+    if (coupon.max_discount_paise && coupon.max_discount_paise > 0) {
+      discountPaise = Math.min(discountPaise, coupon.max_discount_paise);
     }
 
     discountPaise = Math.min(discountPaise, subtotalPaise);
@@ -259,8 +323,22 @@ export async function cancelOrderAction(orderId: string) {
     const order = await OrderModel.findOne({ _id: orderId, user_id: auth.user.id });
     if (!order) return { error: 'Order not found.' };
 
+    // Customers can only cancel pending or processing orders (never shipped/delivered)
+    if (order.status !== 'pending' && order.status !== 'processing') {
+      return {
+        error: `Order in status "${order.status}" cannot be cancelled. Contact support for assistance.`,
+      };
+    }
+
     order.status = 'cancelled';
     await order.save();
+
+    // Restock items atomically
+    for (const item of order.items) {
+      await ProductModel.findByIdAndUpdate(item.product_id, {
+        $inc: { stock_quantity: item.quantity },
+      });
+    }
 
     return { success: true, orderNumber: order.order_number };
   } catch {

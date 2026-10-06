@@ -10,6 +10,8 @@
     "test": "turbo test:unit",
     "test:unit": "turbo test:unit",
     "test:e2e": "turbo test:e2e",
+    "security:audit": "node scripts/securityAudit.mjs",
+    "security:gate": "node scripts/securityReleaseGate.mjs",
     "clean": "turbo clean",
     "prepare": "husky || true"
   },

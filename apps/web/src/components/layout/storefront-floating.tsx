@@ -11,22 +11,15 @@ const CookieBanner = dynamic(
   () => import('@/components/layout/cookie-banner').then((m) => ({ default: m.CookieBanner })),
   { ssr: false }
 );
-const WhatsAppButton = dynamic(
-  () => import('@/components/layout/whatsapp-button').then((m) => ({ default: m.WhatsAppButton })),
-  { ssr: false }
-);
 const CartDrawer = dynamic(
   () => import('@/components/cart/cart-drawer').then((m) => ({ default: m.CartDrawer })),
   { ssr: false }
 );
-
-// Floating interactive elements that don't affect SSR output
 export function StorefrontFloating() {
   return (
     <>
       <MobileBottomNav />
       <CookieBanner />
-      <WhatsAppButton />
       <CartDrawer />
     </>
   );

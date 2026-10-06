@@ -58,7 +58,7 @@ export type ColorToken = keyof typeof colors;
 export const fonts = {
   display: 'Space Grotesk, system-ui, sans-serif',
   body: 'Plus Jakarta Sans, Inter, system-ui, sans-serif',
-  mono: 'Space Mono, ui-monospace, SFMono-Regular, Menlo, monospace',
+  mono: 'JetBrains Mono, ui-monospace, SFMono-Regular, Menlo, monospace',
 } as const;
 
 export const fontSizes = {
