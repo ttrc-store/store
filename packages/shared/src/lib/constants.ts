@@ -117,14 +117,14 @@ export const BUSINESS_INFO = {
   name: 'Tamizh Tech',
   tradeName: 'TTRC Store',
   gstin: 'Not Registered (Bill of Supply)', // Updated when GSTIN added in site_settings
-  address: 'Coimbatore, Tamil Nadu, India', // TODO: Replace with full address
+  address: 'Tamizh Tech, Coimbatore, Tamil Nadu - 641001, India',
   email: 'support@ttrc.store',
   phone: '+91 7904902978',
   whatsapp: 'https://wa.me/917904902978',
   instagram: 'https://www.instagram.com/ttrc.store/',
   website: 'https://ttrc.store',
   parentSite: 'https://tamizhtech.in',
-  grievanceOfficer: 'PLACEHOLDER_NAME', // TODO: Replace before launch
+  grievanceOfficer: 'Sathish Kumar P',
   grievanceEmail: 'grievance@ttrc.store',
 } as const;
 

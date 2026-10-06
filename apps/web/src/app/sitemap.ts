@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600; // Edge cached for 1 hour; revalidated in background
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ttrc.store';
 

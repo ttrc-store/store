@@ -10,7 +10,7 @@ interface TurnstileProps {
 
 export function TurnstileCaptcha({ onVerify, siteKey, className = '' }: TurnstileProps) {
   const containerRef = React.useRef<HTMLDivElement>(null);
-  const key = siteKey || process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'; // Turnstile test key
+  const key = siteKey || process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '';
 
   React.useEffect(() => {
     // If turnstile script is available, render widget, else auto-verify for dev testing
