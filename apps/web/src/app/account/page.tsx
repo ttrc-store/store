@@ -17,7 +17,15 @@ const STATUS_COLORS: Record<string, string> = {
   pending_payment: 'bg-yellow-50 text-yellow-700 border-yellow-200',
 };
 
+import { redirect } from 'next/navigation';
+import { requireAuth } from '@/lib/auth-helpers';
+
 export default async function AccountOverviewPage() {
+  const auth = await requireAuth();
+  if (!('error' in auth)) {
+    redirect(`/${auth.user.id}`);
+  }
+
   const overview = await getAccountOverviewAction();
 
   if ('error' in overview) {
@@ -51,8 +59,8 @@ export default async function AccountOverviewPage() {
 
       {/* Account Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Link href="/account/orders" className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm hover:border-red-300 hover:bg-red-50/30 transition-all flex items-center gap-4">
-          <div className="p-3 rounded-xl bg-red-50 text-red-600 border border-red-200">
+        <Link href="/account/orders" className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm hover:border-purple-300 hover:bg-purple-50/30 transition-all flex items-center gap-4">
+          <div className="p-3 rounded-xl bg-purple-50 text-[#844AFB] border border-purple-200">
             <Package size={24} />
           </div>
           <div>
@@ -61,7 +69,7 @@ export default async function AccountOverviewPage() {
           </div>
         </Link>
 
-        <Link href="/account/addresses" className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm hover:border-red-300 hover:bg-red-50/30 transition-all flex items-center gap-4">
+        <Link href="/account/addresses" className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm hover:border-purple-300 hover:bg-purple-50/30 transition-all flex items-center gap-4">
           <div className="p-3 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200">
             <MapPin size={24} />
           </div>
@@ -73,8 +81,8 @@ export default async function AccountOverviewPage() {
           </div>
         </Link>
 
-        <Link href="/account/wishlist" className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm hover:border-red-300 hover:bg-red-50/30 transition-all flex items-center gap-4">
-          <div className="p-3 rounded-xl bg-red-50 text-red-600 border border-red-200">
+        <Link href="/account/wishlist" className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm hover:border-purple-300 hover:bg-purple-50/30 transition-all flex items-center gap-4">
+          <div className="p-3 rounded-xl bg-purple-50 text-[#844AFB] border border-purple-200">
             <Heart size={24} />
           </div>
           <div>
@@ -88,10 +96,10 @@ export default async function AccountOverviewPage() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="font-heading text-lg font-bold text-slate-900 flex items-center gap-2">
-            <Clock size={18} className="text-red-600" />
+            <Clock size={18} className="text-[#844AFB]" />
             Recent Orders
           </h2>
-          <Link href="/account/orders" className="text-xs font-bold text-red-600 hover:underline flex items-center gap-1">
+          <Link href="/account/orders" className="text-xs font-bold text-[#844AFB] hover:underline flex items-center gap-1">
             <span>View All Orders</span>
             <ArrowRight size={14} />
           </Link>
@@ -102,11 +110,11 @@ export default async function AccountOverviewPage() {
             {recentOrders.map((order) => (
               <div
                 key={order.id}
-                className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:border-red-200 transition-colors"
+                className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:border-purple-200 transition-colors"
               >
                 <div className="space-y-1">
                   <div className="flex items-center gap-3">
-                    <span className="font-mono text-xs font-bold text-red-600">{order.orderNumber}</span>
+                    <span className="font-mono text-xs font-bold text-[#844AFB]">{order.orderNumber}</span>
                     <span
                       className={`text-[11px] px-2 py-0.5 rounded-full font-bold border ${
                         STATUS_COLORS[order.status] ?? 'bg-slate-100 text-slate-600 border-slate-200'
@@ -123,7 +131,7 @@ export default async function AccountOverviewPage() {
                   <PriceTag pricePaise={order.totalPaise} size="sm" />
                   <Link
                     href={`/account/orders`}
-                    className="text-xs font-bold text-red-600 hover:underline"
+                    className="text-xs font-bold text-[#844AFB] hover:underline"
                   >
                     Track Order
                   </Link>
@@ -133,7 +141,7 @@ export default async function AccountOverviewPage() {
           </div>
         ) : (
           <div className="p-8 text-center rounded-2xl bg-white border border-slate-200 space-y-3">
-            <div className="w-12 h-12 rounded-full bg-red-50 text-red-600 border border-red-200 flex items-center justify-center mx-auto">
+            <div className="w-12 h-12 rounded-full bg-purple-50 text-[#844AFB] border border-purple-200 flex items-center justify-center mx-auto">
               <ShoppingBag size={22} />
             </div>
             <p className="text-sm font-bold text-slate-900">No Recent Orders</p>
@@ -141,7 +149,7 @@ export default async function AccountOverviewPage() {
               You haven&apos;t placed any orders yet. Start exploring our robotics kits &amp; components!
             </p>
             <Link href="/categories">
-              <Button className="bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-full shadow-sm mt-1">
+              <Button className="bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold text-xs rounded-full shadow-sm mt-1">
                 Explore Catalog
               </Button>
             </Link>
@@ -153,10 +161,10 @@ export default async function AccountOverviewPage() {
       <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-3">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <h3 className="font-heading text-sm font-bold text-slate-900 flex items-center gap-2">
-            <MapPin size={16} className="text-red-600" />
+            <MapPin size={16} className="text-[#844AFB]" />
             Default Delivery Address
           </h3>
-          <Link href="/account/addresses" className="text-xs text-red-600 hover:underline font-bold">
+          <Link href="/account/addresses" className="text-xs text-[#844AFB] hover:underline font-bold">
             Manage Address Book
           </Link>
         </div>

@@ -76,7 +76,7 @@ export default function ForgotPasswordPage() {
                 type="email"
                 required
                 placeholder="name@example.com"
-                className="pl-10 bg-slate-50 border-slate-300 text-sm h-11 focus:border-red-600 focus:ring-red-600"
+                className="pl-10 bg-slate-50 border-slate-300 text-sm h-11 focus:border-[#844AFB] focus:ring-[#844AFB]"
               />
             </div>
           </div>
@@ -84,14 +84,14 @@ export default function ForgotPasswordPage() {
           <Button
             type="submit"
             disabled={loading}
-            className="w-full h-11 bg-red-600 hover:bg-red-700 text-white font-bold text-sm rounded-xl shadow-md shadow-red-900/20"
+            className="w-full h-11 bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold text-sm rounded-xl shadow-md shadow-purple-900/20 transition-colors"
           >
             {loading ? 'Sending Reset Link...' : 'Send Reset Link'}
           </Button>
         </form>
 
         <p className="text-center text-xs text-slate-500 pt-4 border-t border-slate-200">
-          <Link href="/login" className="text-red-600 font-bold hover:underline inline-flex items-center gap-1">
+          <Link href="/login" className="text-[#844AFB] font-bold hover:underline inline-flex items-center gap-1">
             <ArrowLeft size={14} /> Back to Sign In
           </Link>
         </p>

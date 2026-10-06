@@ -34,11 +34,11 @@ export function AccountNav() {
             className={cn(
               'flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all',
               isActive
-                ? 'bg-red-50 text-red-600 border border-red-200 shadow-xs'
-                : 'text-slate-700 hover:text-red-600 hover:bg-red-50/50'
+                ? 'bg-purple-50 text-[#844AFB] border border-purple-200 shadow-xs'
+                : 'text-slate-700 hover:text-[#844AFB] hover:bg-purple-50/50'
             )}
           >
-            <Icon size={16} className={cn(isActive ? 'text-red-600' : 'text-slate-500')} />
+            <Icon size={16} className={cn(isActive ? 'text-[#844AFB]' : 'text-slate-500')} />
             <span>{item.label}</span>
           </Link>
         );

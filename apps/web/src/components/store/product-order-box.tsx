@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { QuantitySelector } from '@/components/store/quantity-selector';
 import { PriceTag } from '@/components/store/price-tag';
 import { useCartStore } from '@/store/use-cart';
+import { AddToCompareButton } from '@/components/store/add-to-compare-button';
 
 export interface BulkPriceTier {
   minQuantity: number;
@@ -242,6 +243,24 @@ export function ProductOrderBox({
             <Zap size={18} className="mr-1 text-[#844AFB]" />
             Buy Now
           </Button>
+
+          <AddToCompareButton
+            variant="button"
+            className="h-12 px-4"
+            product={{
+              id,
+              slug,
+              name,
+              pricePaise: activeUnitPricePaise,
+              mrpPaise,
+              imageUrl,
+              sku,
+              stockQty,
+              unit,
+              productType,
+              bulkPriceTiers,
+            }}
+          />
         </div>
 
         {/* High Volume / B2B Quote Trigger (Requirement 31) */}

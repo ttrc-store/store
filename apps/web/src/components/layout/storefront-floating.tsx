@@ -15,12 +15,18 @@ const CartDrawer = dynamic(
   () => import('@/components/cart/cart-drawer').then((m) => ({ default: m.CartDrawer })),
   { ssr: false }
 );
+const StoreSupportChat = dynamic(
+  () => import('@/components/support/store-support-chat').then((m) => ({ default: m.StoreSupportChat })),
+  { ssr: false }
+);
+
 export function StorefrontFloating() {
   return (
     <>
       <MobileBottomNav />
       <CookieBanner />
       <CartDrawer />
+      <StoreSupportChat />
     </>
   );
 }

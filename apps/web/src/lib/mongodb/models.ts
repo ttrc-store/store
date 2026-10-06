@@ -3,13 +3,27 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 // ---------------------------------------------------------------------------
 // 1. USER SCHEMA & MODEL
 // ---------------------------------------------------------------------------
+export interface IUserAddress {
+  id: string;
+  fullName: string;
+  phone: string;
+  line1: string;
+  line2?: string;
+  city: string;
+  state: string;
+  pincode: string;
+  isDefault?: boolean;
+}
+
 export interface IUser extends Document {
   email: string;
   password_hash?: string;
   full_name: string;
   phone?: string;
+  customer_id?: string;
   role: 'customer' | 'admin' | 'staff';
   avatar_url?: string;
+  addresses?: IUserAddress[];
   created_at: Date;
   updated_at: Date;
 }
@@ -20,8 +34,10 @@ const UserSchema = new Schema<IUser>(
     password_hash: { type: String },
     full_name: { type: String, required: true },
     phone: { type: String },
+    customer_id: { type: String, unique: true, sparse: true },
     role: { type: String, enum: ['customer', 'admin', 'staff'], default: 'customer' },
     avatar_url: { type: String },
+    addresses: { type: Array, default: [] },
   },
   { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } }
 );

@@ -52,7 +52,7 @@ export default function AccountPrivacyPage() {
     <div className="space-y-8">
       <div className="border-b border-slate-200 pb-4">
         <h2 className="font-heading text-xl font-bold text-slate-900 flex items-center gap-2">
-          <ShieldCheck className="text-red-600" size={22} />
+          <ShieldCheck className="text-[#844AFB]" size={22} />
           Privacy &amp; Data Rights (DPDP Act 2023)
         </h2>
         <p className="text-xs text-slate-500 mt-1">
@@ -70,7 +70,7 @@ export default function AccountPrivacyPage() {
       {/* Export Data Box */}
       <div className="p-6 rounded-2xl bg-white border border-slate-200 space-y-4 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-red-50 text-red-600 border border-red-200">
+          <div className="p-2.5 rounded-xl bg-purple-50 text-[#844AFB] border border-purple-200">
             <Download size={20} />
           </div>
           <div>

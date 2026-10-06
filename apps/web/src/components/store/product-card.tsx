@@ -11,6 +11,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { PriceTag } from './price-tag';
 import { RatingStars } from './rating-stars';
+import { AddToCompareButton } from './add-to-compare-button';
 import { cn } from '@/lib/utils';
 
 export interface ProductCardProps {
@@ -79,6 +80,26 @@ export function ProductCard({
               BULK PRICING
             </Badge>
           )}
+        </div>
+
+        {/* Add to Compare Quick Action */}
+        <div className="absolute top-2.5 right-2.5 z-10">
+          <AddToCompareButton
+            product={{
+              id,
+              slug,
+              name,
+              pricePaise,
+              mrpPaise,
+              imageUrl,
+              brand,
+              sku: slug,
+              stockQty,
+              unit,
+              productType,
+              bulkPriceTiers,
+            }}
+          />
         </div>
 
         <Link

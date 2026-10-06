@@ -19,7 +19,7 @@ export function CartDrawer() {
         {/* Header */}
         <SheetHeader className="p-5 border-b border-slate-200 flex items-center justify-between">
           <SheetTitle className="font-heading text-lg font-bold text-slate-900 flex items-center gap-2">
-            <ShoppingBag className="text-red-600" size={20} />
+            <ShoppingBag className="text-[#844AFB]" size={20} />
             Your Shopping Cart ({items.reduce((acc, i) => acc + i.quantity, 0)})
           </SheetTitle>
           <SheetClose>
@@ -34,14 +34,14 @@ export function CartDrawer() {
           {items.length > 0 ? (
             items.map((item) => (
               <div key={item.id} className="py-4 flex gap-4 items-start">
-                <div className="relative w-16 h-16 rounded-xl bg-red-50/50 border border-red-100 flex-shrink-0 overflow-hidden">
+                <div className="relative w-16 h-16 rounded-xl bg-purple-50/50 border border-purple-100 flex-shrink-0 overflow-hidden">
                   <Image src={item.imageUrl} alt={item.name} fill className="object-contain p-2" />
                 </div>
                 <div className="flex-1 space-y-1">
                   <Link
                     href={`/product/${item.slug}`}
                     onClick={closeDrawer}
-                    className="text-xs font-bold text-slate-900 line-clamp-2 hover:text-red-600 transition-colors"
+                    className="text-xs font-bold text-slate-900 line-clamp-2 hover:text-[#844AFB] transition-colors"
                   >
                     {item.name}
                   </Link>
@@ -92,7 +92,7 @@ export function CartDrawer() {
             ))
           ) : (
             <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-4">
-              <div className="p-4 rounded-full bg-red-50 border border-red-200 text-red-600">
+              <div className="p-4 rounded-full bg-purple-50 border border-purple-200 text-[#844AFB]">
                 <ShoppingBag size={40} />
               </div>
               <h3 className="font-heading text-lg font-bold text-slate-900">Your Cart is Empty</h3>
@@ -102,7 +102,7 @@ export function CartDrawer() {
               <Link
                 href="/category/gamified-robots"
                 onClick={closeDrawer}
-                className="px-5 py-2.5 rounded-xl bg-red-600 text-white font-bold text-xs hover:bg-red-700 shadow-md shadow-red-900/20"
+                className="px-5 py-2.5 rounded-xl bg-[#844AFB] text-white font-bold text-xs hover:bg-[#6721F2] shadow-md shadow-purple-900/20"
               >
                 Browse Competition Kits
               </Link>
@@ -119,7 +119,7 @@ export function CartDrawer() {
                 <PriceTag pricePaise={totals.subtotalPaise} size="sm" />
               </div>
               {totals.discountPaise > 0 && (
-                <div className="flex justify-between text-red-600 font-semibold">
+                <div className="flex justify-between text-[#844AFB] font-semibold">
                   <span>Coupon Discount</span>
                   <span>- ₹{(totals.discountPaise / 100).toFixed(2)}</span>
                 </div>
@@ -138,7 +138,7 @@ export function CartDrawer() {
               <Link
                 href="/checkout"
                 onClick={closeDrawer}
-                className="w-full h-11 bg-red-600 hover:bg-red-700 text-white font-bold text-xs flex items-center justify-center gap-2 rounded-xl shadow-md shadow-red-900/20 transition-colors"
+                className="w-full h-11 bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold text-xs flex items-center justify-center gap-2 rounded-xl shadow-md shadow-purple-900/20 transition-colors"
               >
                 <span>Proceed to Checkout</span>
                 <ArrowRight size={16} />

@@ -53,7 +53,7 @@ export function PincodeChecker() {
   return (
     <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
       <div className="flex items-center gap-2 text-xs font-bold text-slate-800 uppercase tracking-wide">
-        <MapPin size={16} className="text-red-600" />
+        <MapPin size={16} className="text-[#844AFB]" />
         <span>Check Delivery &amp; Pincode Serviceability</span>
       </div>
 
@@ -64,13 +64,13 @@ export function PincodeChecker() {
           value={pincode}
           maxLength={6}
           onChange={(e) => setPincode(e.target.value.replace(/\D/g, ''))}
-          className="bg-white border-slate-200 text-sm h-10 text-slate-900 focus:border-red-600 focus:ring-red-600"
+          className="bg-white border-slate-200 text-sm h-10 text-slate-900 focus:border-[#844AFB] focus:ring-[#844AFB]"
         />
         <Button
           type="submit"
           disabled={loading || pincode.length !== 6}
           variant="outline"
-          className="h-10 px-4 text-xs font-bold whitespace-nowrap border-red-600 text-red-600 hover:bg-red-50"
+          className="h-10 px-4 text-xs font-bold whitespace-nowrap border-[#844AFB] text-[#844AFB] hover:bg-purple-50"
         >
           {loading ? 'Checking...' : 'Check'}
         </Button>
@@ -85,7 +85,7 @@ export function PincodeChecker() {
                 <span>Serviceable to {result.city} ({result.pincode})</span>
               </p>
               <div className="flex items-center gap-2 text-slate-600 pl-5">
-                <Truck size={14} className="text-red-600" />
+                <Truck size={14} className="text-[#844AFB]" />
                 <span>Estimated Delivery: <strong className="text-slate-900">{result.estimatedDays}</strong> via {result.courierName}</span>
               </div>
               {result.codAvailable && (

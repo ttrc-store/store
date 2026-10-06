@@ -51,7 +51,7 @@ export default function AccountWishlistPage() {
     <div className="space-y-6">
       <div className="border-b border-slate-200 pb-4">
         <h2 className="font-heading text-xl font-bold text-slate-900 flex items-center gap-2">
-          <Heart className="text-red-600" size={22} />
+          <Heart className="text-[#844AFB]" size={22} />
           My Saved Wishlist
         </h2>
         <p className="text-xs text-slate-500">Products you have saved for future competitions and projects</p>
@@ -64,7 +64,7 @@ export default function AccountWishlistPage() {
           {items.map((item) => (
             <div
               key={item.wishlistId}
-              className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between space-y-3 relative group hover:border-red-200 transition-all"
+              className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between space-y-3 relative group hover:border-purple-200 transition-all"
             >
               <div className="relative aspect-square w-full rounded-xl bg-slate-50 overflow-hidden border border-slate-100">
                 <Image
@@ -83,7 +83,7 @@ export default function AccountWishlistPage() {
               </div>
 
               <div className="space-y-1">
-                <Link href={`/product/${item.slug}`} className="font-bold text-xs text-slate-900 hover:text-red-600 line-clamp-2">
+                <Link href={`/product/${item.slug}`} className="font-bold text-xs text-slate-900 hover:text-[#844AFB] line-clamp-2">
                   {item.name}
                 </Link>
                 <div className="flex items-center gap-2">
@@ -98,7 +98,7 @@ export default function AccountWishlistPage() {
 
               <Button
                 onClick={() => handleAddToCart(item)}
-                className="w-full bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl h-9"
+                className="w-full bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold text-xs rounded-xl h-9"
               >
                 <ShoppingBag size={14} className="mr-1.5" />
                 Add to Cart
@@ -108,7 +108,7 @@ export default function AccountWishlistPage() {
         </div>
       ) : (
         <div className="p-12 text-center rounded-2xl bg-white border border-slate-200 space-y-3">
-          <div className="w-12 h-12 rounded-full bg-red-50 text-red-600 border border-red-200 flex items-center justify-center mx-auto">
+          <div className="w-12 h-12 rounded-full bg-purple-50 text-[#844AFB] border border-purple-200 flex items-center justify-center mx-auto">
             <Heart size={24} />
           </div>
           <h3 className="font-heading text-base font-bold text-slate-900">Your Wishlist is Empty</h3>
@@ -116,7 +116,7 @@ export default function AccountWishlistPage() {
             Explore our robotics kits, sensors, motors, and components and save items for your next build!
           </p>
           <Link href="/categories">
-            <Button className="bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-full shadow-sm mt-2">
+            <Button className="bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold text-xs rounded-full shadow-sm mt-2">
               Explore Products
             </Button>
           </Link>

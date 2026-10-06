@@ -91,14 +91,14 @@ export default function AccountAddressesPage() {
       <div className="flex items-center justify-between border-b border-slate-200 pb-4">
         <div>
           <h2 className="font-heading text-xl font-bold text-slate-900 flex items-center gap-2">
-            <MapPin className="text-red-600" size={22} />
+            <MapPin className="text-[#844AFB]" size={22} />
             Address Book
           </h2>
           <p className="text-xs text-slate-500">Save delivery addresses for quick 1-click checkout</p>
         </div>
         <Button
           onClick={() => setShowAddForm(!showAddForm)}
-          className="bg-red-600 text-white font-bold text-xs hover:bg-red-700 rounded-full shadow-sm"
+          className="bg-[#844AFB] text-white font-bold text-xs hover:bg-[#6721F2] rounded-full shadow-sm"
         >
           <Plus size={16} className="mr-1" />
           Add New Address
@@ -119,15 +119,15 @@ export default function AccountAddressesPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <div className="space-y-1">
               <label className="font-bold text-slate-700">Full Name</label>
-              <Input name="fullName" required placeholder="Recipient Name" className="bg-slate-50 border-slate-200 h-10 focus:border-red-600 focus:ring-red-600" />
+              <Input name="fullName" required placeholder="Recipient Name" className="bg-slate-50 border-slate-200 h-10 focus:border-[#844AFB] focus:ring-[#844AFB]" />
             </div>
             <div className="space-y-1">
               <label className="font-bold text-slate-700">Phone Number</label>
-              <Input name="phone" required placeholder="+91 98765 43210" className="bg-slate-50 border-slate-200 h-10 focus:border-red-600 focus:ring-red-600" />
+              <Input name="phone" required placeholder="+91 98765 43210" className="bg-slate-50 border-slate-200 h-10 focus:border-[#844AFB] focus:ring-[#844AFB]" />
             </div>
             <div className="sm:col-span-2 space-y-1">
               <label className="font-bold text-slate-700">Street Address &amp; Landmark</label>
-              <Input name="line1" required placeholder="House/Flat No., Building Name, Street" className="bg-slate-50 border-slate-200 h-10 focus:border-red-600 focus:ring-red-600" />
+              <Input name="line1" required placeholder="House/Flat No., Building Name, Street" className="bg-slate-50 border-slate-200 h-10 focus:border-[#844AFB] focus:ring-[#844AFB]" />
             </div>
             <div className="space-y-1">
               <label className="font-bold text-slate-700">Pincode</label>
@@ -138,7 +138,7 @@ export default function AccountAddressesPage() {
                 maxLength={6}
                 required
                 placeholder="6-digit Indian Pincode"
-                className="bg-slate-50 border-slate-200 h-10 font-mono focus:border-red-600 focus:ring-red-600"
+                className="bg-slate-50 border-slate-200 h-10 font-mono focus:border-[#844AFB] focus:ring-[#844AFB]"
               />
             </div>
             <div className="space-y-1">
@@ -147,7 +147,7 @@ export default function AccountAddressesPage() {
             </div>
           </div>
           <div className="flex items-center gap-2 pt-2">
-            <input type="checkbox" id="isDefault" name="isDefault" value="true" className="rounded text-red-600 focus:ring-red-600" />
+            <input type="checkbox" id="isDefault" name="isDefault" value="true" className="rounded text-[#844AFB] focus:ring-[#844AFB]" />
             <label htmlFor="isDefault" className="text-xs font-semibold text-slate-700">Set as Default Delivery Address</label>
           </div>
           <div className="flex justify-end gap-2 pt-2">
@@ -159,7 +159,7 @@ export default function AccountAddressesPage() {
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={submitting} className="bg-red-600 text-white font-bold text-xs hover:bg-red-700 rounded-full shadow-sm">
+            <Button type="submit" disabled={submitting} className="bg-[#844AFB] text-white font-bold text-xs hover:bg-[#6721F2] rounded-full shadow-sm">
               {submitting ? 'Saving...' : 'Save Address'}
             </Button>
           </div>

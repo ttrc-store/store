@@ -288,6 +288,15 @@ export function EnterpriseProductForm({
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
   const [success, setSuccess] = React.useState(false);
 
+  // AI & Slug Generation State
+  const [autoSlugLocked, setAutoSlugLocked] = React.useState(Boolean(initialData?.slug));
+  const [aiGenerating, setAiGenerating] = React.useState(false);
+  const [aiSuccessMsg, setAiSuccessMsg] = React.useState<string | null>(null);
+  const [hsnAiSuggestion, setHsnAiSuggestion] = React.useState<{
+    confidence: string;
+    reasoning: string;
+  } | null>(null);
+
   // Live Calculations
   const numericPrice = parseFloat(price || '0');
   const numericMrp = parseFloat(mrp || '0');
@@ -301,12 +310,71 @@ export function EnterpriseProductForm({
       ? Math.round(((numericPrice - numericCost) / numericPrice) * 100)
       : null;
 
-  // Auto-generate slug & SKU from name if empty
+  // Deterministic local slug generator
+  const slugify = (text: string) =>
+    text
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+
+  // Auto-generate slug & SEO Meta Title from name in real-time
   const handleNameChange = (val: string) => {
     setName(val);
-    if (!isEditMode || !slug) {
-      const generatedSlug = val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-      setSlug(generatedSlug);
+    if (!autoSlugLocked) {
+      setSlug(slugify(val));
+    }
+    if (!seoTitle || seoTitle.endsWith(' | TTRC Store')) {
+      setSeoTitle(val ? `${val} | TTRC Store` : '');
+    }
+  };
+
+  // AI Details & SEO Generation Handler
+  const handleGenerateWithAi = async () => {
+    if (!name.trim()) {
+      setErrorMsg('Please enter a Product Title first to generate AI details.');
+      return;
+    }
+    setAiGenerating(true);
+    setErrorMsg(null);
+    setAiSuccessMsg(null);
+
+    try {
+      const res = await fetch('/api/admin/ai/generate-product-details', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: name,
+          categoryId,
+          rawNotes: shortDescription || longDescription || internalNotes,
+        }),
+      });
+
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json.error || 'Failed to generate details');
+      }
+
+      const { data } = json;
+      if (data.seoTitle) setSeoTitle(data.seoTitle);
+      if (data.seoDescription) setSeoDescription(data.seoDescription);
+      if (data.shortDescription && !shortDescription) setShortDescription(data.shortDescription);
+      if (data.longDescription && !longDescription) setLongDescription(data.longDescription);
+      if (data.specs && data.specs.length > 0 && specs.length === 0) setSpecs(data.specs);
+      if (data.applications && data.applications.length > 0 && applications.length === 0) setApplications(data.applications);
+      if (data.suggestedHsn) {
+        setHsnCode(data.suggestedHsn.code);
+        setHsnAiSuggestion({
+          confidence: data.suggestedHsn.confidence,
+          reasoning: data.suggestedHsn.reasoning,
+        });
+      }
+
+      setAiSuccessMsg('✨ AI Product Details & SEO generated! Review and verify before saving.');
+    } catch (err: any) {
+      setErrorMsg(`AI Generation error: ${err.message}`);
+    } finally {
+      setAiGenerating(false);
     }
   };
 
@@ -623,18 +691,40 @@ export function EnterpriseProductForm({
         </div>
       )}
 
-      {success && (
-        <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center gap-3 text-xs text-emerald-700 font-semibold">
-          <CheckCircle2 size={18} className="flex-shrink-0" />
-          <span>Product saved and revalidated successfully! Redirecting...</span>
+      {aiSuccessMsg && (
+        <div className="p-4 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-between text-xs text-purple-900 font-semibold animate-in fade-in">
+          <div className="flex items-center gap-2">
+            <Sparkles size={16} className="text-[#844AFB] flex-shrink-0" />
+            <span>{aiSuccessMsg}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setAiSuccessMsg(null)}
+            className="text-purple-600 hover:text-purple-900 font-bold ml-2"
+          >
+            ×
+          </button>
         </div>
       )}
 
       {/* SECTION 1: Basic Information */}
       <div className="p-6 rounded-2xl bg-white border border-slate-200 space-y-4 shadow-xs">
-        <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
-          <Package size={16} className="text-[#844AFB]" /> 1. Product Identity &amp; Classification
-        </h2>
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+            <Package size={16} className="text-[#844AFB]" /> 1. Product Identity &amp; Classification
+          </h2>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleGenerateWithAi}
+            disabled={aiGenerating || !name.trim()}
+            className="text-xs font-bold text-[#844AFB] border-purple-200 bg-purple-50/50 hover:bg-[#844AFB] hover:text-white transition-all"
+          >
+            <Sparkles size={13} className={aiGenerating ? 'animate-spin' : ''} />
+            {aiGenerating ? 'Generating with AI...' : '✨ Auto-Fill SEO & Specs with AI'}
+          </Button>
+        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
           <div className="sm:col-span-2 space-y-1">
@@ -649,10 +739,23 @@ export function EnterpriseProductForm({
           </div>
 
           <div className="space-y-1">
-            <label className="font-bold text-slate-700">URL Slug (Normalized) *</label>
+            <div className="flex items-center justify-between">
+              <label className="font-bold text-slate-700">URL Slug (Normalized) *</label>
+              <button
+                type="button"
+                onClick={() => setAutoSlugLocked(!autoSlugLocked)}
+                className="text-[10px] text-slate-500 hover:text-[#844AFB] font-medium flex items-center gap-1"
+                title={autoSlugLocked ? 'Slug is locked against auto-updates' : 'Slug auto-updates with title'}
+              >
+                {autoSlugLocked ? '🔒 Manual' : '🔄 Auto-sync with Title'}
+              </button>
+            </div>
             <Input
               value={slug}
-              onChange={(e) => setSlug(e.target.value)}
+              onChange={(e) => {
+                setSlug(e.target.value);
+                setAutoSlugLocked(true);
+              }}
               placeholder="cnkalun-kl-f2-2-way-brass-solenoid-valve"
               required
               className="h-10 text-xs font-mono"
@@ -1294,6 +1397,13 @@ export function EnterpriseProductForm({
               required
               className="h-9 text-xs font-mono font-bold"
             />
+            {hsnAiSuggestion && (
+              <div className="p-2 mt-1 rounded-lg bg-amber-50 border border-amber-200 text-[10px] text-amber-900 leading-tight">
+                <span className="font-bold text-amber-800">⚠️ AI Suggestion ({hsnAiSuggestion.confidence.toUpperCase()} confidence):</span>{' '}
+                {hsnAiSuggestion.reasoning}.{' '}
+                <span className="font-semibold underline">Verify before publishing.</span>
+              </div>
+            )}
           </div>
 
           <div className="space-y-1">
@@ -1337,13 +1447,31 @@ export function EnterpriseProductForm({
 
       {/* SECTION 10: SEO Metadata */}
       <div className="p-6 rounded-2xl bg-white border border-slate-200 space-y-4 shadow-xs">
-        <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
-          <Tag size={16} className="text-[#844AFB]" /> 10. Search Engine Optimization (SEO)
-        </h2>
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+            <Tag size={16} className="text-[#844AFB]" /> 10. Search Engine Optimization (SEO)
+          </h2>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleGenerateWithAi}
+            disabled={aiGenerating || !name.trim()}
+            className="text-xs font-bold text-[#844AFB] border-purple-200 bg-purple-50/50 hover:bg-[#844AFB] hover:text-white transition-all"
+          >
+            <Sparkles size={13} className={aiGenerating ? 'animate-spin' : ''} />
+            {aiGenerating ? 'Generating...' : '✨ Generate SEO with AI'}
+          </Button>
+        </div>
 
         <div className="space-y-3 text-xs">
           <div className="space-y-1">
-            <label className="font-bold text-slate-700">SEO Meta Title</label>
+            <div className="flex items-center justify-between">
+              <label className="font-bold text-slate-700">SEO Meta Title</label>
+              <span className={`text-[10px] ${seoTitle.length > 60 ? 'text-amber-600 font-bold' : 'text-slate-400'}`}>
+                {seoTitle.length}/60 chars
+              </span>
+            </div>
             <Input
               value={seoTitle}
               onChange={(e) => setSeoTitle(e.target.value)}
@@ -1353,12 +1481,17 @@ export function EnterpriseProductForm({
           </div>
 
           <div className="space-y-1">
-            <label className="font-bold text-slate-700">SEO Meta Description</label>
+            <div className="flex items-center justify-between">
+              <label className="font-bold text-slate-700">SEO Meta Description</label>
+              <span className={`text-[10px] ${seoDescription.length > 160 ? 'text-amber-600 font-bold' : 'text-slate-400'}`}>
+                {seoDescription.length}/160 chars
+              </span>
+            </div>
             <textarea
               rows={2}
               value={seoDescription}
               onChange={(e) => setSeoDescription(e.target.value)}
-              placeholder="Natural search description without keyword stuffing..."
+              placeholder="e.g. Industrial-grade 2-way normally closed brass solenoid valve for fluid automation. Fast India-wide delivery and GST invoices."
               className="w-full p-2.5 rounded-md border border-slate-200 text-xs bg-white focus:border-purple-600 focus:outline-none"
             />
           </div>

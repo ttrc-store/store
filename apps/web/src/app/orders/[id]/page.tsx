@@ -33,7 +33,7 @@ export default async function OrderTrackingPage({ params }: OrderTrackingPagePro
     <div className="min-h-screen bg-white text-foreground pb-24 pt-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         {/* Back Link */}
-        <Link href="/account/orders" className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-red-600 transition-colors font-medium">
+        <Link href="/account/orders" className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-[#844AFB] transition-colors font-medium">
           <ArrowLeft size={14} /> Back to My Orders
         </Link>
 
@@ -41,7 +41,7 @@ export default async function OrderTrackingPage({ params }: OrderTrackingPagePro
         <div className="p-6 rounded-2xl bg-white border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-[11px] font-mono font-bold text-red-600 bg-red-50 px-2.5 py-0.5 rounded-full border border-red-200 uppercase">
+              <span className="text-[11px] font-mono font-bold text-[#844AFB] bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200 uppercase">
                 {statusLabel}
               </span>
               <span className="text-xs text-slate-500">
@@ -57,7 +57,7 @@ export default async function OrderTrackingPage({ params }: OrderTrackingPagePro
               href={`/api/invoice/${encodeURIComponent(order.order_number)}`}
               target="_blank"
               rel="noreferrer"
-              className="px-4 py-2 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200 text-xs font-bold text-red-600 flex items-center gap-2 transition-colors"
+              className="px-4 py-2 rounded-xl bg-purple-50 hover:bg-purple-100 border border-purple-200 text-xs font-bold text-[#844AFB] flex items-center gap-2 transition-colors"
             >
               <Download size={14} /> Tax Invoice
             </a>
@@ -68,7 +68,7 @@ export default async function OrderTrackingPage({ params }: OrderTrackingPagePro
         <div className="p-6 rounded-2xl bg-white border border-slate-200 space-y-4 shadow-sm">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <h2 className="font-heading font-bold text-base text-slate-900 flex items-center gap-2">
-              <Truck size={18} className="text-red-600" /> Order Tracking & Status
+              <Truck size={18} className="text-[#844AFB]" /> Order Tracking & Status
             </h2>
             {order.shipments?.[0]?.tracking_number ? (
               <span className="text-xs font-mono text-slate-500">
@@ -80,7 +80,7 @@ export default async function OrderTrackingPage({ params }: OrderTrackingPagePro
           </div>
 
           <div className="flex items-center gap-3 py-2">
-            <div className="w-8 h-8 rounded-full bg-red-50 text-red-600 flex items-center justify-center font-bold text-sm">
+            <div className="w-8 h-8 rounded-full bg-purple-50 text-[#844AFB] flex items-center justify-center font-bold text-sm">
               <CheckCircle size={18} />
             </div>
             <div>
@@ -97,7 +97,7 @@ export default async function OrderTrackingPage({ params }: OrderTrackingPagePro
           {/* Shipping Address */}
           <div className="p-6 rounded-2xl bg-white border border-slate-200 space-y-3 shadow-sm">
             <h3 className="font-heading font-bold text-sm text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
-              <MapPin size={16} className="text-red-600" /> Shipping Address
+              <MapPin size={16} className="text-[#844AFB]" /> Shipping Address
             </h3>
             <div className="text-xs text-slate-700 space-y-1">
               <p className="font-bold text-slate-900">{address.fullName || auth.user.fullName || 'Customer'}</p>
@@ -111,7 +111,7 @@ export default async function OrderTrackingPage({ params }: OrderTrackingPagePro
           {/* Items & Payment */}
           <div className="p-6 rounded-2xl bg-white border border-slate-200 space-y-3 shadow-sm">
             <h3 className="font-heading font-bold text-sm text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
-              <Package size={16} className="text-red-600" /> Ordered Items ({order.items.length})
+              <Package size={16} className="text-[#844AFB]" /> Ordered Items ({order.items.length})
             </h3>
             <div className="space-y-2 text-xs divide-y divide-slate-100">
               {order.items.map((item) => (

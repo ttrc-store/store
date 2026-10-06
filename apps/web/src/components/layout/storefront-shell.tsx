@@ -3,6 +3,7 @@ import { headers } from 'next/headers';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
 import { StorefrontFloating } from './storefront-floating';
+import { getAuthenticatedUser } from '@/lib/auth-helpers';
 
 // SERVER COMPONENT — no 'use client' here.
 // Only the interactive floating elements (WhatsApp btn, Cookie banner, Mobile nav)
@@ -16,6 +17,9 @@ export async function StorefrontShell({ children }: { children: React.ReactNode 
     return <>{children}</>;
   }
 
+  const auth = await getAuthenticatedUser();
+  const user = 'user' in auth ? auth.user : null;
+
   return (
     <div className="relative min-h-screen flex flex-col bg-[#FDFDFD]">
       {/* Centralized subtle ambient gradient */}
@@ -23,7 +27,7 @@ export async function StorefrontShell({ children }: { children: React.ReactNode 
         aria-hidden="true"
         className="fixed inset-0 pointer-events-none -z-10 bg-[#FDFDFD] [background:radial-gradient(120%_120%_at_50%_0%,#FDFDFD_50%,#EEE8FA_100%)] opacity-80"
       />
-      <Header />
+      <Header user={user} />
       <main className="flex-1 pb-16 md:pb-0">{children}</main>
       <Footer />
       <StorefrontFloating />

@@ -4,12 +4,15 @@ import * as React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Search, ShoppingBag, User, Menu, ChevronDown, Truck, ShieldCheck, Heart } from 'lucide-react';
+import { Search, ShoppingBag, User, Menu, ChevronDown, Truck, ShieldCheck, Heart, GitCompare, Phone, LogOut, Package, MapPin, Star, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { MegaMenu } from './mega-menu';
 import { PriceTag } from '@/components/store/price-tag';
 import { useCartStore } from '@/store/use-cart';
+import { useCompareStore } from '@/store/use-compare';
+import { signOutAction } from '@/actions/auth';
+import type { AuthenticatedUser } from '@/lib/auth-helpers';
 import { cn } from '@/lib/utils';
 
 interface SearchResultItem {
@@ -23,9 +26,14 @@ interface SearchResultItem {
   stockQty: number;
 }
 
-export default function Header() {
+interface HeaderProps {
+  user?: AuthenticatedUser | null;
+}
+
+export default function Header({ user }: HeaderProps) {
   const router = useRouter();
   const [isMegaMenuOpen, setIsMegaMenuOpen] = React.useState(false);
+  const [isAccountMenuOpen, setIsAccountMenuOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState('');
   const [isSearchFocused, setIsSearchFocused] = React.useState(false);
   const [suggestions, setSuggestions] = React.useState<SearchResultItem[]>([]);
@@ -33,6 +41,9 @@ export default function Header() {
 
   const { items, openDrawer } = useCartStore();
   const totalCartQty = items.reduce((acc, i) => acc + i.quantity, 0);
+
+  const { items: compareItems } = useCompareStore();
+  const compareCount = compareItems.length;
 
   React.useEffect(() => {
     const trimmed = searchQuery.trim();
@@ -81,10 +92,31 @@ export default function Header() {
             <ShieldCheck size={12} className="text-[#AF87F8]" />
             Official Tamizh Tech Store
           </span>
+          <span className="text-purple-900">·</span>
+          <a href="tel:+917904902978" className="flex items-center gap-1.5 font-medium hover:text-white transition-colors">
+            <Phone size={12} className="text-[#AF87F8]" />
+            <span>Support: +91 7904902978</span>
+          </a>
         </div>
         <div className="flex items-center gap-5 font-medium">
-          <Link href="/bulk-enquiry" className="hover:text-white transition-colors">Institutional Orders</Link>
-          <Link href="/contact" className="hover:text-white transition-colors">Support</Link>
+          <Link href={user ? '/account/orders' : '/login?redirect=/account/orders'} className="hover:text-white transition-colors">
+            Track Order
+          </Link>
+          <Link href="/bulk-enquiry" className="hover:text-white transition-colors">
+            Institutional Orders
+          </Link>
+          <Link href="/compare" className="flex items-center gap-1.5 hover:text-white transition-colors">
+            <GitCompare size={12} className="text-[#AF87F8]" />
+            <span>Compare</span>
+            {compareCount > 0 && (
+              <span className="bg-[#844AFB] text-white text-[9px] font-mono px-1.5 py-0.2 rounded-full font-bold">
+                {compareCount}
+              </span>
+            )}
+          </Link>
+          <Link href="/contact" className="hover:text-white transition-colors">
+            Support
+          </Link>
           <span className="font-bold text-white bg-[#844AFB] px-2 py-0.5 rounded text-[10px] font-mono">INR ₹</span>
         </div>
       </div>
@@ -177,18 +209,162 @@ export default function Header() {
 
         {/* Right Action Icons */}
         <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
+          {/* Compare Icon Button */}
+          <Link href="/compare" className="hidden sm:inline-block relative">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-[#1E0D45] hover:text-[#844AFB] hover:bg-[#EEE8FA] rounded-xl relative"
+              title="Product Comparison"
+              aria-label="Product Comparison"
+            >
+              <GitCompare size={18} />
+              {compareCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-[#844AFB] text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center">
+                  {compareCount}
+                </span>
+              )}
+            </Button>
+          </Link>
+
+          {/* Wishlist Icon */}
           <Link href="/account/wishlist" className="hidden sm:inline-block">
-            <Button variant="ghost" size="icon" className="text-[#1E0D45] hover:text-[#844AFB] hover:bg-[#EEE8FA] rounded-xl">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-[#1E0D45] hover:text-[#844AFB] hover:bg-[#EEE8FA] rounded-xl"
+              title="Wishlist"
+              aria-label="Wishlist"
+            >
               <Heart size={18} />
             </Button>
           </Link>
 
-          {/* Account Icon */}
-          <Link href="/account" className="hidden sm:inline-block">
-            <Button variant="ghost" size="icon" className="text-[#1E0D45] hover:text-[#844AFB] hover:bg-[#EEE8FA] rounded-xl">
-              <User size={18} />
-            </Button>
-          </Link>
+          {/* Account Dropdown */}
+          <div
+            className="relative hidden sm:inline-block"
+            onMouseEnter={() => setIsAccountMenuOpen(true)}
+            onMouseLeave={() => setIsAccountMenuOpen(false)}
+          >
+            <Link href={user ? (user.role === 'admin' ? '/admin' : `/${user.id}`) : '/login'}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-[#1E0D45] hover:text-[#844AFB] hover:bg-[#EEE8FA] rounded-xl relative"
+                aria-label="Account"
+              >
+                <User size={18} />
+                {user && (
+                  <span className="absolute bottom-1 right-1 w-2 h-2 rounded-full bg-[#844AFB] ring-2 ring-white" />
+                )}
+              </Button>
+            </Link>
+
+            {/* Elevated Dropdown Menu */}
+            {isAccountMenuOpen && (
+              <div className="absolute right-0 top-full pt-1 z-50 w-60">
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl p-2 text-xs space-y-1">
+                  {user ? (
+                    <>
+                      <div className="p-3 rounded-xl bg-purple-50/60 border border-purple-100 mb-1">
+                        <p className="font-bold text-slate-900 truncate">
+                          {user.fullName || 'Verified Customer'}
+                        </p>
+                        <p className="text-[11px] text-slate-500 truncate">{user.email}</p>
+                      </div>
+
+                      <Link
+                        href={user.role === 'admin' ? '/admin' : `/${user.id}`}
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:text-[#844AFB] hover:bg-purple-50 transition-colors font-medium"
+                      >
+                        <User size={15} /> My Account
+                      </Link>
+
+                      <Link
+                        href="/account/orders"
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:text-[#844AFB] hover:bg-purple-50 transition-colors font-medium"
+                      >
+                        <Package size={15} /> My Orders
+                      </Link>
+
+                      <Link
+                        href="/account/wishlist"
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:text-[#844AFB] hover:bg-purple-50 transition-colors font-medium"
+                      >
+                        <Heart size={15} /> My Wishlist
+                      </Link>
+
+                      <Link
+                        href="/account/addresses"
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:text-[#844AFB] hover:bg-purple-50 transition-colors font-medium"
+                      >
+                        <MapPin size={15} /> Saved Addresses
+                      </Link>
+
+                      <Link
+                        href="/account/reviews"
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:text-[#844AFB] hover:bg-purple-50 transition-colors font-medium"
+                      >
+                        <Star size={15} /> My Reviews
+                      </Link>
+
+                      <Link
+                        href="/account/privacy"
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:text-[#844AFB] hover:bg-purple-50 transition-colors font-medium"
+                      >
+                        <Shield size={15} /> Privacy &amp; DPDP
+                      </Link>
+
+                      <div className="pt-1 mt-1 border-t border-slate-100">
+                        <form action={signOutAction}>
+                          <button
+                            type="submit"
+                            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-red-600 hover:bg-red-50 transition-colors font-medium text-left"
+                          >
+                            <LogOut size={15} /> Sign Out
+                          </button>
+                        </form>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="p-3 space-y-3">
+                      <div className="text-center">
+                        <p className="font-bold text-slate-900 text-sm">Welcome, Customer</p>
+                        <p className="text-[11px] text-slate-500 mt-0.5">
+                          Sign in to manage orders, wishlist &amp; tracking.
+                        </p>
+                      </div>
+
+                      <div className="space-y-1.5 pt-1">
+                        <Link
+                          href="/login"
+                          className="block w-full py-2 text-center rounded-xl bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold text-xs shadow-sm transition-colors"
+                        >
+                          Sign In
+                        </Link>
+                        <Link
+                          href="/register"
+                          className="block w-full py-2 text-center rounded-xl bg-purple-50 hover:bg-purple-100 text-[#844AFB] border border-purple-200 font-bold text-xs transition-colors"
+                        >
+                          Create Account
+                        </Link>
+                      </div>
+
+                      <div className="pt-2 border-t border-slate-100">
+                        <Link
+                          href="/login?redirect=/account/orders"
+                          className="text-[11px] text-slate-500 hover:text-[#844AFB] flex items-center justify-center gap-1.5 font-medium transition-colors"
+                        >
+                          <Package size={13} />
+                          <span>Track existing order</span>
+                        </Link>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Cart Icon with Drawer Trigger */}
           <Button

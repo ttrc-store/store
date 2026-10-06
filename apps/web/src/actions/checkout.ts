@@ -8,6 +8,7 @@ import { computeOrderTotals, calculateGstFromInclusive } from '@ttrc/shared';
 import { getSiteSettingsAction } from './settings';
 
 import { checkRateLimit } from '@/lib/security/rate-limiter';
+import { getNextSequenceId } from '@/lib/id-generator';
 
 const CheckoutItemSchema = z.object({
   productId: z.string().min(1),
@@ -211,7 +212,7 @@ export async function createOrderAction(raw: CreateOrderInput) {
       });
     }
 
-    const orderNumber = `TTRC/25-26/${Date.now().toString().slice(-6)}`;
+    const orderNumber = await getNextSequenceId('ORD');
 
     const orderItems = validatedItems.map((item) => ({
       product_id: item.product._id.toString(),

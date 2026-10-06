@@ -17,7 +17,7 @@ export default async function AccountLayout({ children }: { children: React.Reac
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-red-50 border border-red-200 flex items-center justify-center text-red-600 font-bold shadow-xs">
+            <div className="w-12 h-12 rounded-2xl bg-purple-50 border border-purple-200 flex items-center justify-center text-[#844AFB] font-bold shadow-xs">
               <User size={22} />
             </div>
             <div>
@@ -34,7 +34,7 @@ export default async function AccountLayout({ children }: { children: React.Reac
               type="submit"
               variant="outline"
               size="sm"
-              className="border-slate-200 text-slate-700 hover:text-red-600 hover:bg-red-50 text-xs gap-2 rounded-xl"
+              className="border-slate-200 text-slate-700 hover:text-[#844AFB] hover:bg-purple-50 text-xs gap-2 rounded-xl"
             >
               <LogOut size={14} />
               Sign Out

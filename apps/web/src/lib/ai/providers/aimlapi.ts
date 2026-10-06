@@ -1,0 +1,98 @@
+import { MODEL_REGISTRY } from '../model-registry';
+import { getProviderApiKey, AIProviderError } from '../provider-registry';
+
+export async function callAimlApi(
+  messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
+  options: {
+    timeoutMs?: number;
+    maxTokens?: number;
+    responseFormatJson?: boolean;
+  } = {}
+): Promise<string> {
+  const apiKey = getProviderApiKey('aimlapi');
+  if (!apiKey) {
+    const err: AIProviderError = {
+      providerId: 'aimlapi',
+      type: 'AUTH_ERROR',
+      message: 'AIMLAPI_API_KEY is not configured',
+    };
+    throw err;
+  }
+
+  const model = MODEL_REGISTRY.aimlapi.getModel();
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), options.timeoutMs || 5000);
+
+  try {
+    const response = await fetch(MODEL_REGISTRY.aimlapi.endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model,
+        messages,
+        temperature: 0.2,
+        max_tokens: options.maxTokens || 1500,
+      }),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const errText = await response.text().catch(() => '');
+      let errorType: AIProviderError['type'] = 'SERVER_ERROR';
+
+      if (response.status === 429) {
+        errorType = 'RATE_LIMIT';
+      } else if (response.status === 401) {
+        errorType = 'AUTH_ERROR';
+      } else if (response.status === 402 || (response.status === 403 && /fund|credit|quota/i.test(errText))) {
+        errorType = 'QUOTA_EXCEEDED';
+      } else if (response.status === 403) {
+        errorType = 'AUTH_ERROR';
+      } else if (response.status === 400) {
+        errorType = 'BAD_REQUEST';
+      } else if (response.status === 404) {
+        errorType = 'SERVER_ERROR';
+      }
+
+      const retryAfterHeader = response.headers.get('retry-after');
+      const retryAfterSec = retryAfterHeader ? parseInt(retryAfterHeader, 10) : undefined;
+
+      const err: AIProviderError = {
+        providerId: 'aimlapi',
+        type: errorType,
+        status: response.status,
+        message: `AIMLAPI error (${response.status}): ${errText}`,
+        retryAfterMs: retryAfterSec ? retryAfterSec * 1000 : undefined,
+      };
+      throw err;
+    }
+
+    const data = await response.json();
+    const content = data?.choices?.[0]?.message?.content;
+    if (!content) {
+      throw {
+        providerId: 'aimlapi',
+        type: 'PARSE_ERROR',
+        message: 'Empty response content from AIMLAPI',
+      } as AIProviderError;
+    }
+
+    return content;
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+    if (error?.name === 'AbortError') {
+      const timeoutErr: AIProviderError = {
+        providerId: 'aimlapi',
+        type: 'TIMEOUT',
+        message: `AIMLAPI request timed out after ${options.timeoutMs || 5000}ms`,
+      };
+      throw timeoutErr;
+    }
+    throw error;
+  }
+}
