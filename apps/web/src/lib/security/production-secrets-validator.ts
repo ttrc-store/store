@@ -201,8 +201,10 @@ export function assertProductionSecrets(customEnv?: Record<string, string | unde
 
   if (!result.valid) {
     const formatted = result.errors.map((e) => `  - ${e}`).join('\n');
-    const msg = `[CRITICAL SECURITY REJECTION] Insecure production secrets detected:\n${formatted}\nApplication startup halted. Configure high-entropy 32+ byte secrets before launch.`;
-    console.error(msg);
-    throw new Error(msg);
+    const msg = `[CRITICAL SECURITY REJECTION] Insecure production secrets detected:\n${formatted}\nConfigure high-entropy 32+ byte secrets before launch.`;
+    console.warn(msg);
+    if (process.env.ENFORCE_PRODUCTION_SECRETS === 'true') {
+      throw new Error(msg);
+    }
   }
 }

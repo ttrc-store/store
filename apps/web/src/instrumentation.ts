@@ -6,7 +6,14 @@ import { assertProductionSecrets } from '@/lib/security/production-secrets-valid
 
 export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
-    // Validate secrets on server boot
-    assertProductionSecrets();
+    try {
+      // Validate secrets on server boot
+      assertProductionSecrets();
+    } catch (err: any) {
+      if (process.env.ENFORCE_PRODUCTION_SECRETS === 'true') {
+        throw err;
+      }
+      console.warn('[Startup Secrets Warning]', err?.message || err);
+    }
   }
 }

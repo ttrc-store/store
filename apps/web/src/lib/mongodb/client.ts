@@ -1,8 +1,14 @@
 import mongoose from 'mongoose';
 import dns from 'node:dns';
 
-// Fix for Node.js on Windows / certain local ISPs where router DNS rejects SRV queries (querySrv ECONNREFUSED)
-if (typeof dns !== 'undefined' && typeof dns.setServers === 'function') {
+// Fix for Node.js on local Windows machines / local broadband where router DNS rejects SRV queries (querySrv ECONNREFUSED)
+// On Vercel / Linux cloud serverless, the provider's internal DNS resolver is required and must NOT be overridden.
+if (
+  process.env.VERCEL !== '1' &&
+  process.platform === 'win32' &&
+  typeof dns !== 'undefined' &&
+  typeof dns.setServers === 'function'
+) {
   try {
     dns.setServers(['8.8.8.8', '1.1.1.1', '8.8.4.4']);
   } catch {
