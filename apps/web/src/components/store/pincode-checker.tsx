@@ -20,7 +20,7 @@ export function PincodeChecker() {
   const [loading, setLoading] = React.useState(false);
   const [result, setResult] = React.useState<PincodeResult | null>(null);
 
-  const handleCheck = (e: React.FormEvent) => {
+  const handleCheck = async (e: React.FormEvent) => {
     e.preventDefault();
     if (pincode.length !== 6 || !/^\d{6}$/.test(pincode)) {
       setResult({
@@ -32,22 +32,25 @@ export function PincodeChecker() {
 
     setLoading(true);
 
-    setTimeout(() => {
-      const prefix = pincode.substring(0, 2);
-      const isTN = prefix === '60' || prefix === '61' || prefix === '62' || prefix === '63' || prefix === '64';
-      const isBlr = prefix === '56';
-
+    try {
+      const res = await fetch(`/api/pincode/check?pincode=${encodeURIComponent(pincode)}`);
+      const data = await res.json();
+      if (res.ok && data.isServiceable) {
+        setResult(data);
+      } else {
+        setResult({
+          pincode,
+          isServiceable: false,
+        });
+      }
+    } catch {
       setResult({
         pincode,
-        isServiceable: true,
-        city: isTN ? 'Tamil Nadu Region' : isBlr ? 'Bengaluru' : 'Major Indian City',
-        state: isTN ? 'Tamil Nadu' : isBlr ? 'Karnataka' : 'India',
-        estimatedDays: isTN ? '1 – 2 Business Days (Express)' : '3 – 5 Business Days',
-        courierName: isTN ? 'BlueDart / Delhivery' : 'Shiprocket Air',
-        codAvailable: true,
+        isServiceable: false,
       });
+    } finally {
       setLoading(false);
-    }, 400);
+    }
   };
 
   return (

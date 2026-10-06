@@ -25,6 +25,7 @@ import {
   getStoreProducts,
   toStoreProductCardProps,
 } from '@/lib/mongodb/catalog';
+import { ReviewModel } from '@/lib/mongodb/models';
 import { PriceTag } from '@/components/store/price-tag';
 import { RatingStars } from '@/components/store/rating-stars';
 import { ProductCard } from '@/components/store/product-card';
@@ -83,6 +84,11 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
   if (!product) {
     notFound();
   }
+
+  // Fetch real verified buyer reviews from MongoDB
+  const reviews = await ReviewModel.find({ product_id: product.id, status: 'approved' })
+    .sort({ created_at: -1 })
+    .lean();
 
   // Find real compatible spare parts & kits from MongoDB
   const { compatibleSpares, compatibleKits } = await getCompatibleProducts(product.id, product.type);
@@ -569,14 +575,54 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
                 </div>
               </div>
 
-              {/* Zero-Fake Reviews Empty State */}
-              <div className="p-8 text-center text-xs text-slate-500 space-y-2 bg-slate-50/60 rounded-xl border border-slate-200">
-                <Award size={36} className="mx-auto text-purple-400" />
-                <p className="font-bold text-slate-700 text-sm">No reviews yet for this product</p>
-                <p className="max-w-md mx-auto text-slate-500">
-                  Only customers who have purchased this component through TTRC Store can submit verified buyer reviews.
-                </p>
-              </div>
+              {/* Real Reviews or Authentic Empty State */}
+              {reviews.length > 0 ? (
+                <div className="space-y-4">
+                  {reviews.map((r: any) => (
+                    <div
+                      key={r._id.toString()}
+                      className="p-4 rounded-xl border border-slate-100 bg-slate-50/50 space-y-2"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-xs text-slate-900">{r.user_name}</span>
+                          {r.is_verified_purchase && (
+                            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                              Verified Buyer
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[11px] text-slate-400">
+                          {new Date(r.created_at).toLocaleDateString('en-IN', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                          })}
+                        </span>
+                      </div>
+                      <RatingStars rating={r.rating} size="sm" />
+                      {r.title && <p className="text-xs font-bold text-slate-800">{r.title}</p>}
+                      <p className="text-xs text-slate-600 leading-relaxed">{r.comment}</p>
+                      {r.admin_reply && (
+                        <div className="p-3 bg-purple-50 rounded-lg border border-purple-100 text-xs text-purple-950 mt-2">
+                          <span className="font-bold text-purple-900">
+                            Tamizh Tech Support:
+                          </span>{' '}
+                          {r.admin_reply}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-8 text-center text-xs text-slate-500 space-y-2 bg-slate-50/60 rounded-xl border border-slate-200">
+                  <Award size={36} className="mx-auto text-purple-400" />
+                  <p className="font-bold text-slate-700 text-sm">No reviews yet for this product</p>
+                  <p className="max-w-md mx-auto text-slate-500">
+                    Only customers who have purchased this component through TTRC Store can submit verified buyer reviews.
+                  </p>
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         </div>

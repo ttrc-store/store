@@ -14,6 +14,7 @@ import {
   ArrowLeft,
   ExternalLink,
   ShieldCheck,
+  Ticket,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -22,6 +23,7 @@ const NAV_ITEMS = [
   { name: 'Categories', href: '/admin/categories', icon: FolderTree },
   { name: 'Orders', href: '/admin/orders', icon: ShoppingBag },
   { name: 'Customers', href: '/admin/customers', icon: Users },
+  { name: 'Coupons', href: '/admin/coupons', icon: Ticket },
   { name: 'Store Settings', href: '/admin/settings', icon: Settings },
 ];
 

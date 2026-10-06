@@ -24,6 +24,7 @@ export interface IUser extends Document {
   role: 'customer' | 'admin' | 'staff';
   avatar_url?: string;
   addresses?: IUserAddress[];
+  wishlist?: string[];
   created_at: Date;
   updated_at: Date;
 }
@@ -38,6 +39,7 @@ const UserSchema = new Schema<IUser>(
     role: { type: String, enum: ['customer', 'admin', 'staff'], default: 'customer' },
     avatar_url: { type: String },
     addresses: { type: Array, default: [] },
+    wishlist: { type: [String], default: [] },
   },
   { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } }
 );
@@ -383,21 +385,30 @@ export interface ICoupon extends Document {
   discount_value: number;
   min_order_value_paise: number;
   max_discount_paise?: number;
+  usage_limit?: number;
+  per_user_limit?: number;
   expires_at?: Date;
   is_active: boolean;
   usage_count: number;
+  created_at: Date;
+  updated_at: Date;
 }
 
-const CouponSchema = new Schema<ICoupon>({
-  code: { type: String, required: true, unique: true, uppercase: true },
-  discount_type: { type: String, enum: ['percentage', 'fixed'], required: true },
-  discount_value: { type: Number, required: true },
-  min_order_value_paise: { type: Number, default: 0 },
-  max_discount_paise: { type: Number },
-  expires_at: { type: Date },
-  is_active: { type: Boolean, default: true },
-  usage_count: { type: Number, default: 0 },
-});
+const CouponSchema = new Schema<ICoupon>(
+  {
+    code: { type: String, required: true, unique: true, uppercase: true },
+    discount_type: { type: String, enum: ['percentage', 'fixed'], required: true },
+    discount_value: { type: Number, required: true },
+    min_order_value_paise: { type: Number, default: 0 },
+    max_discount_paise: { type: Number },
+    usage_limit: { type: Number },
+    per_user_limit: { type: Number, default: 1 },
+    expires_at: { type: Date },
+    is_active: { type: Boolean, default: true },
+    usage_count: { type: Number, default: 0 },
+  },
+  { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } }
+);
 
 // ---------------------------------------------------------------------------
 // 9. MANUFACTURER SCHEMA & MODEL
