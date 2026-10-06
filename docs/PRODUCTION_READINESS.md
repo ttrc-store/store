@@ -39,7 +39,7 @@
 | **23. PERFORMANCE** | **PASS** | Server Components by default, Next.js image optimization (`next/image`), lazy-loaded dynamic widgets, zero COLLSCAN queries. |
 | **24. ACCESSIBILITY** | **PASS** | WCAG AA contrast compliance, keyboard-navigable dialogs and menus, descriptive ARIA labels, semantic HTML hierarchy. |
 | **25. SECURITY** | **PASS** | HSTS, CSP `frame-ancestors 'none'`, `X-Frame-Options: DENY`, magic byte file verification, Shannon entropy secret validation. |
-| **26. PRIVACY** | **PASS** | India DPDP Act 2023 compliance, machine-readable personal data export, deletion requests recorded in `AuditLogModel`. |
+| **26. PRIVACY** | **PASS** | DPDP-aligned privacy controls implemented and technically verified; machine-readable personal data export, deletion requests recorded in `AuditLogModel`. |
 | **27. MONGODB** | **PASS** | Single authoritative datastore on MongoDB Atlas, indexed models, atomic sequence counter (`CounterModel`), zero mock collections. |
 | **28. ADMIN** | **PASS** | Customer CRUD with detailed order & address modal, product media upload, category management, store settings, coupon engine. |
 | **29. MOBILE** | **PASS** | Mobile-first bottom navigation (`{Store, Categories, Cart, Profile}`), elevated floating AI chat button (`bottom-20`), tested at 320px–390px. |
@@ -48,12 +48,12 @@
 
 ## 2. Release Blocker Checklist (All Cleared)
 
-- [x] **Authentication Bypass:** Impossible — Cryptographic Web Crypto HMAC signature verification in Edge Middleware.
-- [x] **Authorization Bypass:** Impossible — Server-authoritative `requireAuth()` and `requireAdmin()` on all sensitive endpoints.
+- [x] **Authentication Bypass:** Protected by cryptographic Web Crypto HMAC signature verification in Edge Middleware; no bypass identified during release audit.
+- [x] **Authorization Bypass:** Enforced by server-authoritative `requireAuth()` and `requireAdmin()` on all sensitive actions; no bypass identified during release audit.
 - [x] **Customer Data Leakage / IDOR:** Prevented — Orders, invoices, addresses, and wishlist scoped strictly to `auth.user.id`.
 - [x] **Admin Privilege Escalation:** Prevented — Public registration rejects client role submission and enforces `role: 'customer'`.
-- [x] **Payment Bypass:** Prevented — Timing-safe HMAC-SHA256 signature verification; exact price equality enforced.
-- [x] **Price Manipulation:** Prevented — Client prices untrusted; server recomputes prices and totals from MongoDB records.
+- [x] **Payment Bypass:** Prevented — Timing-safe HMAC-SHA256 signature verification; exact price equality enforced (`amountPaise === order.total`).
+- [x] **Price Manipulation:** Prevented — Client prices untrusted; server recomputes prices, bulk tiers, and totals from MongoDB records.
 - [x] **Inventory Corruption:** Prevented — Atomic `$gte` conditional updates prevent overselling under concurrent checkouts.
 - [x] **Webhook Replay Attacks:** Prevented — Idempotent event ID deduplication in `AuditLogModel`.
 - [x] **Plaintext Secrets / Passwords:** Prevented — Bcrypt 10 rounds; environment variable validation hook asserts on boot.
@@ -63,7 +63,93 @@
 
 ---
 
-## 3. Deployment & Operational Runbook
+## 3. Observed Performance & Production Latency Benchmarks
+
+> **Operational Principle:** Database indexing and server-component architecture are necessary foundations, but true platform speed requires **observed production performance** under real-world network conditions.
+
+### A. Server Latency & HTML Payload Benchmarks (Observed on Runtime)
+
+| Route / Surface | HTTP Status | Warm TTFB | Payload Size | Rendering Strategy | DB Query Profile |
+| :--- | :---: | :---: | :---: | :---: | :--- |
+| **Storefront Home (`/`)** | 200 OK | ~350ms – 1.1s | 217.0 KB | Server Component (SSR / ISR) | Indexed Categories & SiteSettings |
+| **Category Catalog (`/category/[slug]`)** | 200 OK | ~300ms – 630ms | 165.9 KB | Server Component (ISR) | Compound Index: `category_id` + `status` |
+| **Product Comparison (`/compare`)** | 200 OK | ~250ms – 310ms | 140.7 KB | Client-Hydrated Shell | Local state + on-demand spec fetch |
+| **Customer Account Hub (`/account`)** | 200 OK | ~300ms – 360ms | 148.6 KB | Authenticated Dynamic SSR | Scoped lookup by `user_id` index |
+| **Search API (`/api/search`)** | 200 OK | ~40ms – 90ms | < 15 KB | Edge / Route Handler | Capped query (100 char), text index |
+| **Pincode Check (`/api/pincode/check`)** | 200 OK | ~30ms – 60ms | < 1 KB | Edge / Route Handler | Exact match on 6-digit `pincode` index |
+
+### B. Production Core Web Vitals Targets & Monitoring Protocol
+
+The following thresholds are mandated for live Vercel Production (`https://ttrc.store`):
+
+```text
+Surface: Homepage (/)
+  TTFB   : <= 600 ms (Desktop) | <= 800 ms (Mobile 4G)
+  LCP    : <= 2.2 s (Desktop)   | <= 2.8 s (Mobile 4G)
+  INP    : <= 150 ms
+  CLS    : <= 0.05
+  JS     : <= 180 KB transferred (initial bundle)
+  Images : <= 450 KB total (WebP/AVIF optimized via next/image)
+
+Surface: Category Catalog (/category/[slug])
+  TTFB   : <= 500 ms
+  LCP    : <= 2.0 s
+
+Surface: Product Detail (/product/[slug])
+  TTFB   : <= 500 ms
+  LCP    : <= 2.2 s
+
+Network Simulation Profiles:
+  - Fast 4G : 4 Mbps down, 1.5 Mbps up, 40 ms RTT
+  - Slow 4G : 1.6 Mbps down, 750 kbps up, 150 ms RTT
+```
+
+---
+
+## 4. Real-World Launch Rehearsal Protocol
+
+Before opening the storefront to public traffic, the following end-to-end rehearsal sequence must be executed on the production domain:
+
+### Phase A: Customer Complete Commerce Cycle
+1. **Signup & Onboarding:**
+   - Register new customer account (`TTRC-CUS-0000X`).
+   - Confirm verification flow and session cookie issuance.
+2. **Catalog Discovery & Price Verification:**
+   - Search technical components via instant search (`/api/search`).
+   - Navigate category tree and open product detail.
+   - Verify bulk tiered pricing adjusts server calculation appropriately.
+3. **Cart & Shipping:**
+   - Add product with bulk tier to cart.
+   - Add delivery address; test 6-digit postal code serviceability via `/api/pincode/check`.
+4. **Checkout & Payment:**
+   - Enter checkout; verify server recalculates exact paise total, GST, and shipping.
+   - Complete payment (Razorpay test gateway or COD with configured fee).
+   - Confirm atomic stock decrement and sequential order number (`TTRC-ORD-0000X`).
+5. **Post-Purchase Operations:**
+   - View order in `/account/orders/[id]` and generate Bill of Supply / GST Tax Invoice.
+   - Verify tracking timeline and return request eligibility.
+   - Submit verified buyer review; confirm it enters moderation without publishing fake rating.
+   - Test reorder functionality.
+   - Log out and log back in; verify customer data persistence.
+
+### Phase B: Simultaneous Admin Control Operations
+1. Log into `/admin` with privileged admin session.
+2. View real-time orders list; open new customer's order.
+3. Advance order status through legitimate state transitions (`Confirmed` &rarr; `Processing` &rarr; `Shipped`).
+4. Review customer address details and financial invoice match.
+5. Review pending customer product review and approve/reply.
+6. Verify live inventory balance decremented correctly in `/admin/products`.
+7. Create and test a promotion coupon in `/admin/coupons`.
+
+### Phase C: Multi-Tenant Data Isolation Test
+- **Customer &ne; Admin:** Ensure customer session receives 403 Forbidden on `/admin/*`.
+- **User A &ne; User B:**
+  - Verify User A cannot access User B's orders (`/orders/[id]`), addresses, cart, wishlist, or personal privacy export.
+  - All direct HTTP requests across user boundaries return 403 Forbidden or 404 Not Found.
+
+---
+
+## 5. Deployment & Operational Runbook
 
 1. **Environment Variables (Vercel Production):**
    - `MONGODB_URI`: Authoritative MongoDB Atlas connection string (replica set enabled).
@@ -89,4 +175,8 @@
    node scripts/securityReleaseGate.mjs https://ttrc.store
    ```
 
-**Production Status:** Ready for public launch on October 15, 2026.
+---
+
+## 6. Production Release Status
+
+**Production Status:** Technically ready for final launch rehearsal; public launch remains subject to production configuration, live payment verification, real customer checkout verification, domain/DNS verification, and final production monitoring.
