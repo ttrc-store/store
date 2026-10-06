@@ -92,26 +92,29 @@ export function StoreSupportChat() {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 font-sans">
-      {/* Floating Trigger Button (Matching Platform Purple Theme) */}
+    <div className="fixed bottom-20 right-3 sm:bottom-20 sm:right-6 md:bottom-6 md:right-6 z-40 font-sans">
+      {/* Floating Trigger Button (Positioned above bottom nav on mobile, standard corner on desktop) */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="flex items-center gap-2.5 px-4 py-3 bg-[#844AFB] hover:bg-[#6721F2] text-white rounded-full shadow-xl shadow-purple-900/30 transition-all transform hover:scale-105 active:scale-95 group focus:outline-none focus:ring-2 focus:ring-purple-400 cursor-pointer"
+          className="flex items-center gap-2 px-3 py-2.5 sm:px-4 sm:py-3 bg-[#844AFB] hover:bg-[#6721F2] text-white rounded-full shadow-xl shadow-purple-900/30 transition-all transform hover:scale-105 active:scale-95 group focus:outline-none focus:ring-2 focus:ring-purple-400 cursor-pointer"
           aria-label="Open AI Technical Assistant"
         >
-          <div className="relative">
-            <Bot size={20} className="text-white" />
+          <div className="relative flex items-center justify-center">
+            <Bot size={19} className="text-white" />
             <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-[#844AFB] animate-pulse" />
           </div>
-          <span className="text-xs font-bold tracking-wide">TTRC Support AI</span>
-          <Sparkles size={14} className="text-purple-200 group-hover:rotate-12 transition-transform" />
+          <span className="text-xs font-bold tracking-wide">
+            <span className="hidden sm:inline">TTRC Support AI</span>
+            <span className="sm:hidden">AI Help</span>
+          </span>
+          <Sparkles size={14} className="hidden sm:inline text-purple-200 group-hover:rotate-12 transition-transform" />
         </button>
       )}
 
       {/* Expanded Chat Window */}
       {isOpen && (
-        <div className="w-[360px] sm:w-[420px] h-[540px] bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-200">
+        <div className="w-[calc(100vw-24px)] max-w-[360px] sm:w-[400px] h-[min(520px,calc(100vh-100px))] max-h-[85vh] bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-200">
           {/* Header (Rich Dark Purple Header Matching Platform) */}
           <div className="p-3.5 bg-gradient-to-r from-[#1E0D45] via-[#2F146B] to-[#1E0D45] text-white flex items-center justify-between shadow-xs">
             <div className="flex items-center gap-2.5">

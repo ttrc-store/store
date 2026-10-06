@@ -22,7 +22,7 @@ export function CookieBanner() {
   if (!show) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:max-w-md z-50 p-4 rounded-2xl bg-white border border-slate-200 shadow-2xl text-xs space-y-3">
+    <div className="fixed bottom-20 left-3 right-3 md:left-auto md:bottom-6 md:right-6 md:max-w-md z-40 p-4 rounded-2xl bg-white border border-slate-200 shadow-2xl text-xs space-y-3">
       <p className="text-slate-600 leading-relaxed">
         We use essential cookies for session auth &amp; cart tracking, and optional analytics cookies to improve your shopping experience per the <Link href="/privacy-policy" className="text-[#844AFB] underline font-semibold">DPDP Act 2023 Policy</Link>.
       </p>
