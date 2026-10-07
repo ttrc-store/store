@@ -57,6 +57,7 @@ export interface StoreProductItem {
   dimensions?: string;
   warranty?: string;
   showManufacturerPublicly: boolean;
+  attributes?: Record<string, any>;
   manufacturer?: {
     id: string;
     name: string;
@@ -129,6 +130,7 @@ function mapProductDoc(p: any, manufacturerDoc?: any): StoreProductItem {
     dimensions: p.dimensions,
     warranty: p.warranty,
     showManufacturerPublicly: showManufacturer,
+    attributes: p.attributes || {},
     manufacturer:
       showManufacturer && manufacturerDoc
         ? {

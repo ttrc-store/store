@@ -16,6 +16,15 @@ export interface BulkPriceTier {
   unitPricePaise: number;
 }
 
+export interface ProductConfiguration {
+  name: string;
+  price_paise?: number | null;
+  mrp_paise?: number | null;
+  is_default?: boolean;
+  is_available?: boolean;
+  description?: string;
+}
+
 interface ProductOrderBoxProps {
   id: string;
   slug: string;
@@ -29,6 +38,7 @@ interface ProductOrderBoxProps {
   productType: 'kit' | 'spare_part' | 'standard';
   unit?: string;
   bulkPriceTiers?: BulkPriceTier[];
+  configurations?: ProductConfiguration[];
 }
 
 export function ProductOrderBox({
@@ -44,15 +54,30 @@ export function ProductOrderBox({
   productType,
   unit = 'Piece',
   bulkPriceTiers = [],
+  configurations = [],
 }: ProductOrderBoxProps) {
   const router = useRouter();
   const { addItem, openDrawer } = useCartStore();
   const [quantity, setQuantity] = React.useState(1);
   const [added, setAdded] = React.useState(false);
 
+  // Configuration variant selection
+  const [selectedConfigIdx, setSelectedConfigIdx] = React.useState(() => {
+    if (!configurations || configurations.length === 0) return 0;
+    const defaultIdx = configurations.findIndex((c) => c.is_default);
+    return defaultIdx >= 0 ? defaultIdx : 0;
+  });
+
+  const activeConfig = configurations && configurations.length > 0 ? configurations[selectedConfigIdx] : null;
+  const isConfigPriceConfigured = activeConfig ? activeConfig.price_paise != null : true;
+  const currentBasePricePaise =
+    activeConfig && activeConfig.price_paise != null ? activeConfig.price_paise : basePricePaise;
+  const currentMrpPaise =
+    activeConfig && activeConfig.mrp_paise != null ? activeConfig.mrp_paise : mrpPaise;
+
   // Compute active unit price based on selected quantity and bulk tiers
   const activeUnitPricePaise = React.useMemo(() => {
-    if (!bulkPriceTiers || bulkPriceTiers.length === 0) return basePricePaise;
+    if (!bulkPriceTiers || bulkPriceTiers.length === 0) return currentBasePricePaise;
     const sortedTiers = [...bulkPriceTiers].sort((a, b) => b.minQuantity - a.minQuantity);
     for (const tier of sortedTiers) {
       if (quantity >= tier.minQuantity) {
@@ -61,26 +86,29 @@ export function ProductOrderBox({
         }
       }
     }
-    return basePricePaise;
-  }, [quantity, basePricePaise, bulkPriceTiers]);
+    return currentBasePricePaise;
+  }, [quantity, currentBasePricePaise, bulkPriceTiers]);
 
   const activeTotalPricePaise = activeUnitPricePaise * quantity;
-  const isBulkDiscountActive = activeUnitPricePaise < basePricePaise;
+  const isBulkDiscountActive = activeUnitPricePaise < currentBasePricePaise;
   const savingsPct = isBulkDiscountActive
-    ? Math.round(((basePricePaise - activeUnitPricePaise) / basePricePaise) * 100)
+    ? Math.round(((currentBasePricePaise - activeUnitPricePaise) / currentBasePricePaise) * 100)
     : 0;
 
+  const canAddToCart = stockQty > 0 && isConfigPriceConfigured;
+  const itemName = activeConfig ? `${name} (${activeConfig.name})` : name;
+
   const handleAddToCart = () => {
-    if (stockQty <= 0) return;
+    if (!canAddToCart) return;
     addItem({
       id,
       slug,
-      name,
+      name: itemName,
       pricePaise: activeUnitPricePaise,
-      basePricePaise,
+      basePricePaise: currentBasePricePaise,
       bulkPriceTiers,
       unit,
-      mrpPaise,
+      mrpPaise: currentMrpPaise,
       imageUrl,
       quantity,
       gstPercent,
@@ -92,16 +120,16 @@ export function ProductOrderBox({
   };
 
   const handleBuyNow = () => {
-    if (stockQty <= 0) return;
+    if (!canAddToCart) return;
     addItem({
       id,
       slug,
-      name,
+      name: itemName,
       pricePaise: activeUnitPricePaise,
-      basePricePaise,
+      basePricePaise: currentBasePricePaise,
       bulkPriceTiers,
       unit,
-      mrpPaise,
+      mrpPaise: currentMrpPaise,
       imageUrl,
       quantity,
       gstPercent,
@@ -119,26 +147,35 @@ export function ProductOrderBox({
           <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">
             Applicable Price
           </span>
-          <div className="flex items-baseline gap-2.5 mt-1">
-            <PriceTag pricePaise={activeUnitPricePaise} size="lg" />
-            <span className="text-sm font-semibold text-slate-600">/ {unit.toLowerCase()}</span>
-            {mrpPaise > activeUnitPricePaise && (
-              <span className="text-sm text-slate-400 line-through ml-1">
-                MRP: ₹{(mrpPaise / 100).toLocaleString('en-IN')}
+          {isConfigPriceConfigured ? (
+            <div className="flex items-baseline gap-2.5 mt-1">
+              <PriceTag pricePaise={activeUnitPricePaise} size="lg" />
+              <span className="text-sm font-semibold text-slate-600">/ {unit.toLowerCase()}</span>
+              {currentMrpPaise > activeUnitPricePaise && (
+                <span className="text-sm text-slate-400 line-through ml-1">
+                  MRP: ₹{(currentMrpPaise / 100).toLocaleString('en-IN')}
+                </span>
+              )}
+              {savingsPct > 0 && (
+                <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                  Bulk Saving: {savingsPct}% Off
+                </span>
+              )}
+            </div>
+          ) : (
+            <div className="mt-1 flex items-center gap-2">
+              <span className="text-sm font-bold text-amber-800 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
+                Pricing Pending Configuration
               </span>
-            )}
-            {savingsPct > 0 && (
-              <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                Bulk Saving: {savingsPct}% Off
-              </span>
-            )}
-          </div>
+              <span className="text-xs text-slate-500">Configurable in Admin</span>
+            </div>
+          )}
           <span className="text-[11px] text-slate-500 mt-1 block">
             Inclusive of {gstPercent}% GST • Delivery calculated at checkout
           </span>
         </div>
 
-        {quantity > 1 && (
+        {quantity > 1 && isConfigPriceConfigured && (
           <div className="text-right">
             <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">
               Subtotal ({quantity} items)
@@ -149,6 +186,59 @@ export function ProductOrderBox({
           </div>
         )}
       </div>
+
+      {/* Configuration / Variant Selector (e.g. Battery Option) */}
+      {configurations && configurations.length > 0 && (
+        <div className="space-y-2 p-3.5 rounded-xl border border-purple-100 bg-purple-50/30">
+          <label className="text-xs font-bold text-slate-800 flex items-center justify-between">
+            <span>Select Configuration:</span>
+            {activeConfig && (
+              <span className="text-[11px] font-semibold text-purple-700">
+                {activeConfig.name}
+              </span>
+            )}
+          </label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {configurations.map((config, idx) => {
+              const isSelected = selectedConfigIdx === idx;
+              const hasPrice = config.price_paise != null;
+              return (
+                <button
+                  key={config.name}
+                  type="button"
+                  onClick={() => setSelectedConfigIdx(idx)}
+                  className={`p-2.5 rounded-lg text-left border transition-all text-xs flex flex-col justify-between ${
+                    isSelected
+                      ? 'border-[#844AFB] bg-white ring-2 ring-[#844AFB]/20 font-bold shadow-xs'
+                      : 'border-slate-200 bg-white hover:border-purple-200 text-slate-700'
+                  }`}
+                >
+                  <div className="flex items-center justify-between w-full">
+                    <span className="font-semibold">{config.name}</span>
+                    {isSelected && <CheckCircle2 size={14} className="text-[#844AFB]" />}
+                  </div>
+                  <div className="mt-1 flex items-baseline gap-1.5">
+                    {hasPrice ? (
+                      <span className="font-mono font-bold text-slate-900">
+                        ₹{(config.price_paise! / 100).toLocaleString('en-IN')}
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-medium text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
+                        Admin pricing pending
+                      </span>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+          {activeConfig && !isConfigPriceConfigured && (
+            <p className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-2 leading-relaxed">
+              <strong>Configuration Notice:</strong> Pricing for &quot;{activeConfig.name}&quot; is not yet published. The Admin can set its price in the Admin Panel before online purchases are enabled.
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Bulk Pricing Tiers Table (Requirement 19) */}
       {bulkPriceTiers.length > 0 && (
@@ -226,19 +316,23 @@ export function ProductOrderBox({
           <Button
             size="lg"
             onClick={handleAddToCart}
-            disabled={stockQty <= 0}
-            className="flex-1 bg-[#844AFB] hover:bg-[#6721F2] text-white font-extrabold text-sm h-12 shadow-md shadow-purple-900/20 rounded-xl glow-purple-sm transition-all"
+            disabled={!canAddToCart}
+            className="flex-1 bg-[#844AFB] hover:bg-[#6721F2] text-white font-extrabold text-sm h-12 shadow-md shadow-purple-900/20 rounded-xl glow-purple-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <ShoppingBag size={18} className="mr-2" />
-            {added ? 'Added to Cart ✓' : 'Add to Cart'}
+            {!isConfigPriceConfigured
+              ? 'Price Pending Admin Setup'
+              : added
+              ? 'Added to Cart ✓'
+              : 'Add to Cart'}
           </Button>
 
           <Button
             size="lg"
             onClick={handleBuyNow}
-            disabled={stockQty <= 0}
+            disabled={!canAddToCart}
             variant="outline"
-            className="h-12 px-6 border-purple-300 text-purple-950 font-bold text-sm hover:bg-purple-50 rounded-xl"
+            className="h-12 px-6 border-purple-300 text-purple-950 font-bold text-sm hover:bg-purple-50 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Zap size={18} className="mr-1 text-[#844AFB]" />
             Buy Now

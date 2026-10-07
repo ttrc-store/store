@@ -260,6 +260,7 @@ export async function getAdminProductByIdAction(id: string) {
         material: doc.material,
         dimensions: doc.dimensions,
         warranty: doc.warranty,
+        attributes: doc.attributes || {},
       },
     };
   } catch (err: any) {

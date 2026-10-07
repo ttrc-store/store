@@ -252,6 +252,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
               productType={product.type}
               unit={product.unit}
               bulkPriceTiers={product.bulkPriceTiers}
+              configurations={product.attributes?.configurations}
             />
 
             {/* B2B Wholesale / Larger Quantity CTA (Requirement 78, 158) */}
