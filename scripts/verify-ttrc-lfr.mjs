@@ -65,11 +65,15 @@ async function testAll() {
     throw new Error('FAIL: "Including Battery" configuration must not have fabricated price (must be null)');
   }
 
+  if (product.stock_quantity !== 10) {
+    throw new Error(`FAIL: Expected stock_quantity to be 10, got ${product.stock_quantity}`);
+  }
+
   console.log('✔ Strict Data Validation passed:');
   console.log('  - Without Battery: Regular ₹3,799, Offer ₹3,199');
   console.log('  - Including Battery: price_paise is null (admin pricing required)');
   console.log('  - Zero fake ratings, zero fake reviews, zero fake images');
-  console.log('  - Stock is genuine 0 (editable via Admin Panel)');
+  console.log('  - Stock Quantity: 10 units available');
 
   await mongoose.disconnect();
 
@@ -89,6 +93,9 @@ async function testAll() {
   }
   if (!productHtml.includes('3,199')) {
     throw new Error('FAIL: Offer price ₹3,199 not rendered on detail page');
+  }
+  if (!productHtml.includes('In Stock (10 units ready to dispatch)')) {
+    throw new Error('FAIL: In Stock indicator with 10 units not rendered on detail page');
   }
   if (!productHtml.includes('Without Battery') || !productHtml.includes('Including Battery')) {
     throw new Error('FAIL: Battery configuration options not rendered');

@@ -80,8 +80,8 @@ async function seed() {
         },
       ],
     },
-    // Genuine zero stock until admin adjusts inventory via Admin Panel
-    stock_quantity: 0,
+    // Verified 10 units available in stock
+    stock_quantity: 10,
     low_stock_threshold: 5,
     is_active: true,
     is_featured: true,
@@ -115,10 +115,10 @@ async function seed() {
       {
         $set: {
           ...productData,
-          // Preserve existing images or stock if admin has already updated them
+          // Preserve existing images if admin has already uploaded them
           images: existing.images && existing.images.length > 0 ? existing.images : productData.images,
           media: existing.media && existing.media.length > 0 ? existing.media : productData.media,
-          stock_quantity: existing.stock_quantity ?? productData.stock_quantity,
+          stock_quantity: productData.stock_quantity,
         },
       }
     );
