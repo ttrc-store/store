@@ -297,7 +297,7 @@ export function ProductOrderBox({
           }`}
         />
         <span className="text-xs font-semibold text-slate-700">
-          {stockQty > 0 ? `In Stock (${stockQty} units ready to dispatch)` : 'Currently Out of Stock'}
+          {stockQty > 0 ? 'In Stock' : 'Currently Out of Stock'}
         </span>
       </div>
 

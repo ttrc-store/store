@@ -94,8 +94,11 @@ async function testAll() {
   if (!productHtml.includes('3,199')) {
     throw new Error('FAIL: Offer price ₹3,199 not rendered on detail page');
   }
-  if (!productHtml.includes('In Stock (10 units ready to dispatch)')) {
-    throw new Error('FAIL: In Stock indicator with 10 units not rendered on detail page');
+  if (!productHtml.includes('In Stock')) {
+    throw new Error('FAIL: In Stock indicator not rendered on detail page');
+  }
+  if (productHtml.includes('units ready to dispatch')) {
+    throw new Error('FAIL: Numeric stock count must not be mentioned in customer stock indicator');
   }
   if (!productHtml.includes('Without Battery') || !productHtml.includes('Including Battery')) {
     throw new Error('FAIL: Battery configuration options not rendered');
