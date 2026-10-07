@@ -186,6 +186,7 @@ export async function getStoreCategories(): Promise<StoreCategoryItem[]> {
 
 export async function getStoreProducts(opts?: {
   categorySlug?: string;
+  subcategorySlug?: string;
   productType?: string;
   isFeatured?: boolean;
   isBestseller?: boolean;
@@ -200,13 +201,37 @@ export async function getStoreProducts(opts?: {
 
     const query: Record<string, any> = { is_active: true };
 
-    if (opts?.categorySlug && opts.categorySlug !== 'all') {
-      // Find category by slug
+    if (opts?.subcategorySlug) {
+      const subcat = await CategoryModel.findOne({ slug: opts.subcategorySlug }).lean();
+      const subCatIds = subcat ? [subcat.slug, subcat._id.toString()] : [opts.subcategorySlug];
+      const isLfr = opts.subcategorySlug === 'line-follower';
+
+      query.$or = [
+        { category_id: { $in: subCatIds } },
+        { sub_category_id: { $in: subCatIds } },
+        { 'attributes.subcategory': opts.subcategorySlug },
+        ...(isLfr
+          ? [
+              { slug: { $regex: 'lfr|line-follower', $options: 'i' } },
+              { name: { $regex: 'line follower|lfr', $options: 'i' } },
+            ]
+          : []),
+      ];
+    } else if (opts?.categorySlug && opts.categorySlug !== 'all') {
       const cat = await CategoryModel.findOne({ slug: opts.categorySlug }).lean();
       if (cat) {
+        const subCats = await CategoryModel.find({
+          $or: [{ parent_id: cat._id.toString() }, { parent_id: cat.slug }],
+        }).lean();
+        const allCatIds = [
+          cat.slug,
+          cat._id.toString(),
+          ...subCats.map((s) => s.slug),
+          ...subCats.map((s) => s._id.toString()),
+        ];
         query.$or = [
-          { category_id: cat.slug },
-          { category_id: cat._id.toString() },
+          { category_id: { $in: allCatIds } },
+          { sub_category_id: { $in: allCatIds } },
         ];
       } else {
         query.category_id = opts.categorySlug;
