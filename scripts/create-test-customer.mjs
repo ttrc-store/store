@@ -48,10 +48,12 @@ for (const envFile of envFiles) {
   }
 }
 
-const FALLBACK_DIRECT_URI =
-  'mongodb://ttrcstoree_db_user:ZjFSWGqEKH4rQ6OY@ac-d2d3mt6-shard-00-00.imdmatw.mongodb.net:27017,ac-d2d3mt6-shard-00-01.imdmatw.mongodb.net:27017,ac-d2d3mt6-shard-00-02.imdmatw.mongodb.net:27017/ttrc_store?ssl=true&replicaSet=atlas-qqc46k-shard-0&authSource=admin&retryWrites=true&w=majority';
-
 async function main() {
+  if (!mongoUri) {
+    console.error('[SECURITY ERROR] MONGODB_URI environment variable is not set.');
+    process.exit(1);
+  }
+
   if (!testPassword) {
     console.error('[SECURITY ERROR] TEST_CUSTOMER_PASSWORD environment variable is not set.');
     console.error('Please set TEST_CUSTOMER_PASSWORD=<owner-password> in your environment or apps/web/.env.local.');
@@ -62,7 +64,7 @@ async function main() {
   const targetPhone = '+919629463964';
   const targetName = 'Sathish Kumar P';
 
-  const connectionUri = mongoUri || FALLBACK_DIRECT_URI;
+  const connectionUri = mongoUri;
   console.log('[MongoDB Atlas] Connecting to database...');
 
   try {

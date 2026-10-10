@@ -16,12 +16,8 @@ if (
   }
 }
 
-const DIRECT_FALLBACK_URI =
-  'mongodb://ttrcstoree_db_user:ZjFSWGqEKH4rQ6OY@ac-d2d3mt6-shard-00-00.imdmatw.mongodb.net:27017,ac-d2d3mt6-shard-00-01.imdmatw.mongodb.net:27017,ac-d2d3mt6-shard-00-02.imdmatw.mongodb.net:27017/ttrc_store?ssl=true&replicaSet=atlas-qqc46k-shard-0&authSource=admin&retryWrites=true&w=majority';
-
-const MONGODB_URI =
-  process.env.MONGODB_URI ||
-  'mongodb+srv://ttrcstoree_db_user:ZjFSWGqEKH4rQ6OY@ttrc-store.imdmatw.mongodb.net/ttrc_store?retryWrites=true&w=majority';
+const DIRECT_FALLBACK_URI = process.env.MONGODB_DIRECT_URI || '';
+const MONGODB_URI = process.env.MONGODB_URI || '';
 
 interface MongooseCache {
   conn: typeof mongoose | null;

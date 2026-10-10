@@ -47,9 +47,11 @@ export function SearchBar({
   React.useEffect(() => {
     const trimmed = query.trim();
     if (trimmed.length < 2) {
-      setResults([]);
-      setIsLoading(false);
-      return;
+      const timer = setTimeout(() => {
+        setResults([]);
+        setIsLoading(false);
+      }, 0);
+      return () => clearTimeout(timer);
     }
 
     const timer = setTimeout(async () => {
@@ -162,7 +164,7 @@ export function SearchBar({
           {results.length > 0 ? (
             <div className="py-2 divide-y divide-slate-100 max-h-[70vh] overflow-y-auto">
               <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
-                <span>Products Matching "{query}"</span>
+                <span>Products Matching &quot;{query}&quot;</span>
                 <span>{results.length} results</span>
               </div>
               {results.map((item, idx) => (
@@ -205,13 +207,13 @@ export function SearchBar({
                   onClick={handleSubmit}
                   className="w-full py-2 text-center text-xs font-bold text-[#844AFB] hover:text-[#6721F2] hover:underline"
                 >
-                  See all results for "{query}" <ArrowRight size={12} className="inline ml-1" />
+                  See all results for &quot;{query}&quot; <ArrowRight size={12} className="inline ml-1" />
                 </button>
               </div>
             </div>
           ) : !isLoading ? (
             <div className="p-6 text-center text-xs text-slate-500">
-              No matching products found for <span className="font-semibold text-slate-800">"{query}"</span>.
+              No matching products found for <span className="font-semibold text-slate-800">&quot;{query}&quot;</span>.
             </div>
           ) : null}
         </div>

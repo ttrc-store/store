@@ -21,7 +21,11 @@ export async function middleware(request: NextRequest) {
       const parts = sessionToken.split('.');
       if (parts.length === 3) {
         const [headerB64, payloadB64, signatureB64] = parts;
-        const secret = process.env.JWT_SECRET || 'ttrc_store_jwt_secret_2026_key_secure_auth';
+        const secret = process.env.JWT_SECRET || (isProd ? '' : 'ttrc_store_jwt_secret_2026_key_secure_auth');
+        if (!secret) {
+          userPayload = null;
+          throw new Error('JWT_SECRET is required in production');
+        }
         const enc = new TextEncoder();
         const key = await crypto.subtle.importKey(
           'raw',

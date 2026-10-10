@@ -17,7 +17,10 @@ export function AddToCompareButton({ product, className, variant = 'icon' }: Add
   const [feedback, setFeedback] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    setMounted(true);
+    const timer = setTimeout(() => {
+      setMounted(true);
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   const active = mounted && isInCompare(product.id);

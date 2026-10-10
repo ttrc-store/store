@@ -41,9 +41,6 @@ for (const envFile of envFiles) {
   }
 }
 
-const FALLBACK_DIRECT_URI =
-  'mongodb://ttrcstoree_db_user:ZjFSWGqEKH4rQ6OY@ac-d2d3mt6-shard-00-00.imdmatw.mongodb.net:27017,ac-d2d3mt6-shard-00-01.imdmatw.mongodb.net:27017,ac-d2d3mt6-shard-00-02.imdmatw.mongodb.net:27017/ttrc_store?ssl=true&replicaSet=atlas-qqc46k-shard-0&authSource=admin&retryWrites=true&w=majority';
-
 async function runVerification() {
   const targetEmail = 'ryfioai@gmail.com'.toLowerCase().trim();
   const results = [];
@@ -54,7 +51,11 @@ async function runVerification() {
     console.log(`[${status}] ${feature} -> ${actual}`);
   }
 
-  const connectionUri = mongoUri || FALLBACK_DIRECT_URI;
+  const connectionUri = mongoUri;
+  if (!connectionUri) {
+    console.error('MONGODB_URI not found');
+    process.exit(1);
+  }
   try {
     await mongoose.connect(connectionUri, { serverSelectionTimeoutMS: 8000, bufferCommands: false });
   } catch {

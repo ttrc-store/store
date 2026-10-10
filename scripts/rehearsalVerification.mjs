@@ -35,16 +35,17 @@ for (const envFile of envFiles) {
   }
 }
 
-const FALLBACK_DIRECT_URI =
-  'mongodb://ttrcstoree_db_user:ZjFSWGqEKH4rQ6OY@ac-d2d3mt6-shard-00-00.imdmatw.mongodb.net:27017,ac-d2d3mt6-shard-00-01.imdmatw.mongodb.net:27017,ac-d2d3mt6-shard-00-02.imdmatw.mongodb.net:27017/ttrc_store?ssl=true&replicaSet=atlas-qqc46k-shard-0&authSource=admin&retryWrites=true&w=majority';
-
 async function main() {
   console.log('===========================================================================');
   console.log('  TTRC STORE — PRE-LAUNCH REHEARSAL VERIFICATION SUITE');
   console.log('  Timestamp : ' + new Date().toISOString());
   console.log('===========================================================================\n');
 
-  const connectionUri = mongoUri || FALLBACK_DIRECT_URI;
+  const connectionUri = mongoUri;
+  if (!connectionUri) {
+    console.error('MONGODB_URI not found in environment or .env.local');
+    process.exit(1);
+  }
   await mongoose.connect(connectionUri, { serverSelectionTimeoutMS: 8000, bufferCommands: false });
 
   const db = mongoose.connection.db;

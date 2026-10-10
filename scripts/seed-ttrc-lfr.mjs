@@ -11,8 +11,9 @@ if (process.platform === 'win32' && typeof dns.setServers === 'function') {
   } catch {}
 }
 
-const uri =
-  'mongodb://ttrcstoree_db_user:ZjFSWGqEKH4rQ6OY@ac-d2d3mt6-shard-00-00.imdmatw.mongodb.net:27017,ac-d2d3mt6-shard-00-01.imdmatw.mongodb.net:27017,ac-d2d3mt6-shard-00-02.imdmatw.mongodb.net:27017/ttrc_store?ssl=true&replicaSet=atlas-qqc46k-shard-0&authSource=admin&retryWrites=true&w=majority';
+import { getMongoUri } from './get-db-uri.mjs';
+
+const uri = getMongoUri();
 
 async function seed() {
   console.log('[Seed] Connecting to MongoDB Atlas...');

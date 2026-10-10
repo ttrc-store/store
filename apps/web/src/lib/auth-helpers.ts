@@ -10,7 +10,16 @@ import { connectToDatabase } from './mongodb/client';
 import { UserModel, IUser } from './mongodb/models';
 import { ensureDatabaseSeeded } from './mongodb/seed';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'ttrc_store_jwt_secret_2026_key_secure_auth';
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('JWT_SECRET environment variable is missing in production');
+    }
+    return 'ttrc_store_jwt_secret_2026_key_secure_auth';
+  }
+  return secret;
+}
 
 export type UserRole = 'customer' | 'admin' | 'staff';
 
@@ -44,7 +53,7 @@ export async function createSessionCookie(user: IUser) {
     role: user.role,
   };
 
-  const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
+  const token = jwt.sign(payload, getJwtSecret(), { expiresIn: '7d' });
   const cookieStore = await cookies();
   cookieStore.set('ttrc_session', token, {
     httpOnly: true,
@@ -83,7 +92,7 @@ export async function getAuthenticatedUser(): Promise<
       return { error: 'Unauthenticated', status: 401 };
     }
 
-    const decoded = jwt.verify(token, JWT_SECRET) as JWTPayload;
+    const decoded = jwt.verify(token, getJwtSecret()) as JWTPayload;
 
     await connectToDatabase();
     await ensureDatabaseSeeded();
