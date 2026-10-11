@@ -1,6 +1,13 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
 export async function middleware(request: NextRequest) {
+  // 0. Canonical domain enforcement: Redirect secondary domain (ttrc.shop) to primary store (www.ttrc.store)
+  const host = request.headers.get('host') || '';
+  if (host.includes('ttrc.shop')) {
+    const canonicalUrl = new URL(request.nextUrl.pathname + request.nextUrl.search, 'https://www.ttrc.store');
+    return NextResponse.redirect(canonicalUrl, 301);
+  }
+
   const pathname = request.nextUrl.pathname;
   // Forward pathname so StorefrontShell (server component) can detect /admin without usePathname
   const requestHeaders = new Headers(request.headers);

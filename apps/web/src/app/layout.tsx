@@ -36,7 +36,14 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ttrc.store'),
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL && !process.env.NEXT_PUBLIC_SITE_URL.includes('vercel.app')
+      ? process.env.NEXT_PUBLIC_SITE_URL
+      : 'https://www.ttrc.store'
+  ),
+  alternates: {
+    canonical: '/',
+  },
   title: {
     default: 'TTRC Store – Robotics, STEM Kits & Electronics | Tamizh Tech',
     template: '%s | TTRC Store',
@@ -92,6 +99,9 @@ export const metadata: Metadata = {
       'max-image-preview': 'large',
       'max-snippet': -1,
     },
+  },
+  verification: {
+    google: 'google0e4da828fafd7a93',
   },
 };
 

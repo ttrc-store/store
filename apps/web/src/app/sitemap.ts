@@ -2,7 +2,10 @@ import type { MetadataRoute } from 'next';
 
 export const revalidate = 3600; // Edge cached for 1 hour; revalidated in background
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ttrc.store';
+const BASE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL && !process.env.NEXT_PUBLIC_SITE_URL.includes('vercel.app')
+    ? process.env.NEXT_PUBLIC_SITE_URL
+    : 'https://www.ttrc.store';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages: MetadataRoute.Sitemap = [
