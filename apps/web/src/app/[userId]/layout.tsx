@@ -1,5 +1,4 @@
-import * as React from 'react';
-import { redirect } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { LogOut, User, Shield } from 'lucide-react';
 import { signOutAction } from '@/actions/auth';
 import { requireAuth } from '@/lib/auth-helpers';
@@ -14,6 +13,14 @@ export default async function UserDashboardLayout({
   params: Promise<{ userId: string }>;
 }) {
   const { userId } = await params;
+
+  // Validate that userId is a valid MongoDB ObjectId or TTRC-CUS- format
+  const isMongoId = /^[0-9a-fA-F]{24}$/.test(userId);
+  const isCusId = /^TTRC-CUS-\d+$/i.test(userId);
+  if (!isMongoId && !isCusId) {
+    notFound();
+  }
+
   const auth = await requireAuth();
 
   if ('error' in auth) {
