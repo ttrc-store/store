@@ -606,6 +606,12 @@ export interface IMedia extends Document {
   mime_type: string;
   size: number;
   data: Buffer;
+  width?: number;
+  height?: number;
+  original_format?: string;
+  original_size?: number;
+  is_lossless?: boolean;
+  migrated_from?: string;
   created_at: Date;
 }
 
@@ -616,6 +622,12 @@ const MediaSchema = new Schema<IMedia>(
     mime_type: { type: String, required: true },
     size: { type: Number, required: true },
     data: { type: Buffer, required: true },
+    width: { type: Number },
+    height: { type: Number },
+    original_format: { type: String },
+    original_size: { type: Number },
+    is_lossless: { type: Boolean, default: true },
+    migrated_from: { type: String, index: true },
   },
   { timestamps: { createdAt: 'created_at', updatedAt: false } }
 );

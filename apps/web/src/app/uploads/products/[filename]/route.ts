@@ -22,10 +22,12 @@ export async function GET(
       return new NextResponse('Image not found', { status: 404 });
     }
 
+    const contentType = media.mime_type || (filename.endsWith('.webp') ? 'image/webp' : 'image/jpeg');
+
     return new NextResponse(media.data as unknown as BodyInit, {
       status: 200,
       headers: {
-        'Content-Type': media.mime_type || 'image/jpeg',
+        'Content-Type': contentType,
         'Content-Length': media.size ? media.size.toString() : media.data.length.toString(),
         'Cache-Control': 'public, max-age=31536000, immutable',
       },

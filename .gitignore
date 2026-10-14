@@ -45,3 +45,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# local uploads & migration rollbacks
+public/uploads
+apps/web/public/uploads
+scripts/migration-rollback-*.json
+
+

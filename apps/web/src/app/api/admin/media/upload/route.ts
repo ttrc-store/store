@@ -2,11 +2,24 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth-helpers';
 import { connectToDatabase } from '@/lib/mongodb/client';
 import { MediaModel } from '@/lib/mongodb/models';
+import { convertToLosslessWebP } from '@/lib/media/webp-converter';
 import path from 'path';
 import fs from 'fs/promises';
-import crypto from 'crypto';
 
 export const dynamic = 'force-dynamic';
+
+const ALLOWED_MIME_TYPES = new Set([
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/webp',
+  'image/avif',
+  'image/tiff',
+  'image/gif',
+  'image/svg+xml',
+]);
+
+const MAX_UPLOAD_BYTES = 15 * 1024 * 1024; // 15 MB
 
 export async function POST(req: NextRequest) {
   const auth = await requireAdmin();
@@ -22,69 +35,83 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No file provided in form data' }, { status: 400 });
     }
 
-    const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-    if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+    if (file.size > MAX_UPLOAD_BYTES) {
       return NextResponse.json(
-        { error: 'Invalid file format. Only JPEG, PNG, and WebP images are allowed.' },
+        { error: `File size (${(file.size / (1024 * 1024)).toFixed(2)}MB) exceeds maximum allowed limit of 15MB.` },
         { status: 400 }
       );
     }
 
-    const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
-    if (file.size > MAX_SIZE_BYTES) {
+    const declaredType = (file.type || '').toLowerCase();
+    if (declaredType && !ALLOWED_MIME_TYPES.has(declaredType) && !declaredType.startsWith('image/')) {
       return NextResponse.json(
-        { error: 'File size exceeds maximum allowed limit of 5MB.' },
+        { error: `Unsupported MIME type: "${declaredType}". Supported: JPEG, PNG, WebP, AVIF, TIFF, GIF, SVG.` },
         { status: 400 }
       );
     }
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    const bytes = typeof file.arrayBuffer === 'function'
+      ? await file.arrayBuffer()
+      : (file as any).buffer || Buffer.from(await (file as any).text());
+    const buffer = Buffer.isBuffer(bytes) ? bytes : Buffer.from(bytes);
 
-    // Validate Magic Bytes (File Signature)
-    const isJpeg = buffer.length > 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
-    const isPng = buffer.length > 8 && buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47;
-    const isWebp = buffer.length > 12 && buffer.subarray(0, 4).toString('ascii') === 'RIFF' && buffer.subarray(8, 12).toString('ascii') === 'WEBP';
+    if (buffer.length === 0) {
+      return NextResponse.json({ error: 'Uploaded file is empty.' }, { status: 400 });
+    }
 
-    if (!isJpeg && !isPng && !isWebp) {
+    // Convert automatically to Lossless WebP using Sharp pipeline
+    let converted;
+    try {
+      converted = await convertToLosslessWebP(buffer, {
+        originalFilename: file.name,
+        maxSizeBytes: MAX_UPLOAD_BYTES,
+      });
+    } catch (conversionErr: any) {
       return NextResponse.json(
-        { error: 'File signature verification failed. Only genuine JPEG, PNG, or WebP images are allowed.' },
+        { error: conversionErr?.message || 'Image processing failed during lossless WebP conversion.' },
         { status: 400 }
       );
     }
 
-    const extension = file.type === 'image/jpeg' ? 'jpg' : file.type.split('/')[1] || 'png';
-    const safeHash = crypto.randomBytes(8).toString('hex');
-    const filename = `ttrc-prd-${Date.now()}-${safeHash}.${extension}`;
-
-    // 1. Persist directly to MongoDB Atlas MediaModel (Works seamlessly on Vercel Serverless / Read-Only Filesystem)
+    // 1. Persist directly to MongoDB Atlas MediaModel
     await connectToDatabase();
     await MediaModel.create({
-      filename,
+      filename: converted.filename,
       original_name: file.name,
-      mime_type: file.type,
-      size: file.size,
-      data: buffer,
+      mime_type: 'image/webp',
+      size: converted.size,
+      data: converted.buffer,
+      width: converted.width,
+      height: converted.height,
+      original_format: converted.originalFormat,
+      original_size: converted.originalSize,
+      is_lossless: true,
     });
 
-    // 2. Best-effort local filesystem cache (Only writes in environments where filesystem is writable)
+    // 2. Best-effort local filesystem cache (Writable on local/Docker, gracefully ignored on Vercel Read-Only)
     try {
       const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'products');
       await fs.mkdir(uploadDir, { recursive: true });
-      await fs.writeFile(path.join(uploadDir, filename), buffer);
+      await fs.writeFile(path.join(uploadDir, converted.filename), converted.buffer);
     } catch {
-      // Intentionally caught: on Vercel serverless /var/task is read-only.
-      // Image is safely and authoritatively persisted in MongoDB Atlas and served via /api/media/${filename}.
+      // Ignored: On Vercel serverless /var/task is read-only. Media is safely served from MongoDB Atlas via /api/media.
     }
 
-    const publicUrl = `/api/media/${filename}`;
+    const publicUrl = `/api/media/${converted.filename}`;
 
     return NextResponse.json({
       success: true,
       url: publicUrl,
-      filename,
-      size: file.size,
-      mimeType: file.type,
+      filename: converted.filename,
+      size: converted.size,
+      mimeType: 'image/webp',
+      width: converted.width,
+      height: converted.height,
+      originalFormat: converted.originalFormat,
+      originalSize: converted.originalSize,
+      isLossless: true,
+      isAnimated: converted.isAnimated,
+      hasAlpha: converted.hasAlpha,
     });
   } catch (err: any) {
     console.error('[Media Upload] error:', err);

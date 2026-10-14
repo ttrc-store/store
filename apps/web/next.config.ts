@@ -3,7 +3,7 @@ import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
   transpilePackages: ['@ttrc/shared', '@ttrc/ui-tokens'],
   images: {
-    formats: ['image/avif', 'image/webp'],
+    formats: ['image/webp'],
     remotePatterns: [],
   },
   experimental: {

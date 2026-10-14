@@ -25,6 +25,7 @@ import {
   DollarSign,
   Tag,
   Factory,
+  RefreshCw,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -225,6 +226,13 @@ export function EnterpriseProductForm({
   );
   const [primaryImageIdx, setPrimaryImageIdx] = React.useState(0);
   const [uploadingImage, setUploadingImage] = React.useState(false);
+  const [uploadProgressText, setUploadProgressText] = React.useState('');
+  const [replacingIdx, setReplacingIdx] = React.useState<number | null>(null);
+  const [imageMeta, setImageMeta] = React.useState<
+    Record<string, { width?: number; height?: number; size?: number; originalFormat?: string; isLossless?: boolean }>
+  >({});
+  const replaceInputRef = React.useRef<HTMLInputElement | null>(null);
+  const activeReplaceIndexRef = React.useRef<number | null>(null);
   const [manualImageUrl, setManualImageUrl] = React.useState('');
   const [videoUrl, setVideoUrl] = React.useState(initialData?.videoUrl || '');
 
@@ -409,7 +417,7 @@ export function EnterpriseProductForm({
     setSeoDescription(p.shortDescription);
   };
 
-  // Direct File Upload handler
+  // Direct File Upload handler (Auto-converts all formats to Lossless WebP)
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -424,8 +432,11 @@ export function EnterpriseProductForm({
 
     try {
       const uploaded: string[] = [];
+      const newMeta: Record<string, any> = {};
+
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
+        setUploadProgressText(`Converting ${file.name} to lossless WebP (${i + 1}/${files.length})...`);
         const formData = new FormData();
         formData.append('file', file);
 
@@ -436,17 +447,84 @@ export function EnterpriseProductForm({
 
         const data = await res.json();
         if (!res.ok || data.error) {
-          throw new Error(data.error || 'Failed to upload image file');
+          throw new Error(data.error || `Failed to convert ${file.name} to lossless WebP`);
         }
         uploaded.push(data.url);
+        if (data.url) {
+          newMeta[data.url] = {
+            width: data.width,
+            height: data.height,
+            size: data.size,
+            originalFormat: data.originalFormat,
+            isLossless: data.isLossless,
+          };
+        }
       }
 
       setImageUrls([...imageUrls, ...uploaded]);
+      setImageMeta((prev) => ({ ...prev, ...newMeta }));
     } catch (err: any) {
-      setErrorMsg(err.message || 'Image upload failed. Please verify format (JPEG/PNG/WebP) and size (< 5MB).');
+      setErrorMsg(err.message || 'Image upload/conversion failed. Supported formats: JPG, PNG, WebP, AVIF, TIFF, GIF, SVG (< 15MB).');
     } finally {
       setUploadingImage(false);
+      setUploadProgressText('');
       e.target.value = '';
+    }
+  };
+
+  const handleTriggerReplace = (idx: number) => {
+    activeReplaceIndexRef.current = idx;
+    if (replaceInputRef.current) {
+      replaceInputRef.current.value = '';
+      replaceInputRef.current.click();
+    }
+  };
+
+  const handleExecuteReplace = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    const targetIdx = activeReplaceIndexRef.current;
+    if (!file || targetIdx === null || targetIdx === undefined || targetIdx >= imageUrls.length) return;
+
+    setReplacingIdx(targetIdx);
+    setErrorMsg(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/api/admin/media/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || 'Failed to convert replacement image to lossless WebP');
+      }
+
+      // Preserves existing valid image until replacement succeeds
+      const updated = [...imageUrls];
+      updated[targetIdx] = data.url;
+      setImageUrls(updated);
+
+      if (data.url) {
+        setImageMeta((prev) => ({
+          ...prev,
+          [data.url]: {
+            width: data.width,
+            height: data.height,
+            size: data.size,
+            originalFormat: data.originalFormat,
+            isLossless: data.isLossless,
+          },
+        }));
+      }
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Replacement failed. Previous image was preserved.');
+    } finally {
+      setReplacingIdx(null);
+      activeReplaceIndexRef.current = null;
+      if (replaceInputRef.current) replaceInputRef.current.value = '';
     }
   };
 
@@ -987,16 +1065,18 @@ export function EnterpriseProductForm({
         <div className="p-5 border-2 border-dashed border-purple-200 rounded-2xl bg-purple-50/30 flex flex-col items-center justify-center text-center space-y-3">
           <Upload size={28} className="text-purple-600" />
           <div className="space-y-1">
-            <p className="text-xs font-bold text-slate-900">Upload Real Product Images Directly</p>
-            <p className="text-[11px] text-slate-500">Supports PNG, JPEG, and WebP (Max 5MB per file)</p>
+            <p className="text-xs font-bold text-slate-900">Upload Product Images (Automatic Lossless WebP)</p>
+            <p className="text-[11px] text-slate-500">
+              Supports JPG, PNG, WebP, AVIF, TIFF, GIF, and SVG (Preserves original dimensions &amp; alpha, max 15MB)
+            </p>
           </div>
           <label className="cursor-pointer">
             <span className="px-4 py-2 rounded-xl bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold text-xs shadow-xs inline-block transition-colors">
-              {uploadingImage ? 'Uploading to Server...' : 'Select Image Files from Device'}
+              {uploadingImage ? (uploadProgressText || 'Converting to Lossless WebP...') : 'Select Image Files from Device'}
             </span>
             <input
               type="file"
-              accept="image/png,image/jpeg,image/webp,image/jpg"
+              accept="image/jpeg,image/png,image/webp,image/avif,image/tiff,image/gif,image/svg+xml,.jpg,.jpeg,.png,.webp,.avif,.tiff,.tif,.gif,.svg"
               multiple
               disabled={uploadingImage || imageUrls.length >= 5}
               onChange={handleFileUpload}
@@ -1004,6 +1084,15 @@ export function EnterpriseProductForm({
             />
           </label>
         </div>
+
+        {/* Hidden File Input for in-place Image Replacement */}
+        <input
+          ref={replaceInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/avif,image/tiff,image/gif,image/svg+xml,.jpg,.jpeg,.png,.webp,.avif,.tiff,.tif,.gif,.svg"
+          onChange={handleExecuteReplace}
+          className="hidden"
+        />
 
         {/* Manual URL input fallback */}
         <div className="flex gap-2">
@@ -1029,6 +1118,9 @@ export function EnterpriseProductForm({
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-2">
             {imageUrls.map((url, idx) => {
               const isPrimary = idx === primaryImageIdx;
+              const meta = imageMeta[url];
+              const isBeingReplaced = replacingIdx === idx;
+
               return (
                 <div
                   key={idx}
@@ -1037,30 +1129,54 @@ export function EnterpriseProductForm({
                   }`}
                 >
                   <Image src={url} alt={`Product ${idx + 1}`} fill className="object-contain p-2" />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2">
-                    <button
-                      type="button"
-                      onClick={() => setPrimaryImageIdx(idx)}
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded w-fit ${
-                        isPrimary ? 'bg-purple-600 text-white' : 'bg-white text-slate-900 hover:bg-purple-100'
-                      }`}
-                    >
-                      {isPrimary ? '★ Primary' : 'Set Primary'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveImage(idx)}
-                      className="self-end p-1.5 rounded-full bg-red-600 text-white hover:bg-red-700 shadow-xs"
-                      title="Remove image"
-                    >
-                      <Trash2 size={12} />
-                    </button>
-                  </div>
-                  {isPrimary && (
-                    <span className="absolute top-1 left-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-[#844AFB] text-white">
-                      PRIMARY
+
+                  {/* Lossless WebP & Dimensions Badge */}
+                  <div className="absolute top-1.5 left-1.5 z-10 flex flex-col gap-1 pointer-events-none">
+                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-700/90 text-white backdrop-blur-xs shadow-xs">
+                      Lossless WebP
                     </span>
-                  )}
+                    {meta && meta.width && (
+                      <span className="text-[8px] font-mono px-1 py-0.5 rounded bg-slate-900/80 text-white backdrop-blur-xs">
+                        {meta.width}×{meta.height} • {((meta.size || 0) / 1024).toFixed(0)}KB
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Hover Overlay with Primary, Replace & Remove */}
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2 z-20">
+                    <div className="flex items-center justify-between w-full">
+                      <button
+                        type="button"
+                        onClick={() => setPrimaryImageIdx(idx)}
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                          isPrimary ? 'bg-purple-600 text-white' : 'bg-white text-slate-900 hover:bg-purple-100'
+                        }`}
+                      >
+                        {isPrimary ? '★ Primary' : 'Set Primary'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveImage(idx)}
+                        className="p-1 rounded-full bg-red-600 text-white hover:bg-red-700 shadow-xs"
+                        title="Remove image"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+
+                    <div className="flex justify-end">
+                      <button
+                        type="button"
+                        disabled={isBeingReplaced}
+                        onClick={() => handleTriggerReplace(idx)}
+                        className="text-[10px] font-bold px-2 py-1 rounded bg-slate-800 text-white hover:bg-slate-700 flex items-center gap-1 shadow-xs"
+                        title="Replace this image with a new file"
+                      >
+                        <RefreshCw size={10} className={isBeingReplaced ? 'animate-spin' : ''} />
+                        {isBeingReplaced ? 'Converting...' : 'Replace'}
+                      </button>
+                    </div>
+                  </div>
                 </div>
               );
             })}
