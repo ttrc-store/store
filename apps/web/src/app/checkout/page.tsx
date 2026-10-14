@@ -88,6 +88,7 @@ export default function CheckoutPage() {
 
   // Payment gateway settings
   const [isRazorpayEnabled, setIsRazorpayEnabled] = React.useState<boolean>(false);
+  const [razorpayKey, setRazorpayKey] = React.useState<string>('');
   const paymentMethod = 'razorpay' as const;
   const [termsAccepted, setTermsAccepted] = React.useState(true);
   const [loading, setLoading] = React.useState(false);
@@ -201,7 +202,9 @@ export default function CheckoutPage() {
         setFreeShippingThresholdPaise(settings.free_shipping_threshold_paise || 99900);
         setBaseShippingPaise(settings.base_shipping_paise || 5900);
 
-        const hasKeys = Boolean(process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID);
+        const keyId = settings.razorpay_key_id || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '';
+        setRazorpayKey(keyId);
+        const hasKeys = Boolean(keyId);
         const active = Boolean(settings.razorpay_enabled && hasKeys);
         setIsRazorpayEnabled(active);
 
@@ -432,6 +435,7 @@ export default function CheckoutPage() {
         }
 
         await launchRazorpayModal({
+          key: razorpayKey || undefined,
           order_id: orderData.order_id,
           amount: orderData.amount,
           currency: orderData.currency,

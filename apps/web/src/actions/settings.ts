@@ -7,6 +7,7 @@ import { ensureDatabaseSeeded } from '@/lib/mongodb/seed';
 export interface SiteSettings {
   gst_enabled: boolean;
   razorpay_enabled: boolean;
+  razorpay_key_id?: string;
   gstin: string;
   company_name: string;
   free_shipping_threshold_paise: number;
@@ -18,6 +19,7 @@ export async function getSiteSettingsAction(): Promise<SiteSettings> {
   const defaultSettings: SiteSettings = {
     gst_enabled: false,
     razorpay_enabled: false,
+    razorpay_key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID || '',
     gstin: 'Not yet registered — add GSTIN here when available',
     company_name: 'Tamizh Tech',
     free_shipping_threshold_paise: 99900,
@@ -42,6 +44,7 @@ export async function getSiteSettingsAction(): Promise<SiteSettings> {
       if (item.key === 'gstin') settings.gstin = String(item.value);
       if (item.key === 'company_name') settings.company_name = String(item.value);
     }
+    settings.razorpay_key_id = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID || '';
 
     return settings;
   } catch {
