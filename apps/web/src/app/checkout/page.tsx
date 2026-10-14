@@ -32,7 +32,7 @@ import { PriceTag } from '@/components/store/price-tag';
 import { createOrderAction, validateCouponAction } from '@/actions/checkout';
 import { getSiteSettingsAction } from '@/actions/settings';
 import { getAccountOverviewAction, getAddressesAction } from '@/actions/account';
-import { launchRazorpayModal } from '@/lib/razorpay-client';
+import { launchRazorpayModal, loadRazorpayScript } from '@/lib/razorpay-client';
 import { IUserAddress } from '@/lib/mongodb/models';
 
 // Map Indian states to 2-digit GST state codes
@@ -242,6 +242,13 @@ export default function CheckoutPage() {
     };
   }, [selectAddress]);
 
+  // Preload Razorpay Checkout Script when reaching Payment step
+  React.useEffect(() => {
+    if (step === 3 && isRazorpayEnabled) {
+      loadRazorpayScript().catch(() => {});
+    }
+  }, [step, isRazorpayEnabled]);
+
   // GST validation
   const validateGst = (val: string) => {
     if (!val) return true;
@@ -419,15 +426,29 @@ export default function CheckoutPage() {
     // Online Razorpay Flow
     if (res.paymentMethod === 'razorpay' && isRazorpayEnabled) {
       try {
-        const orderRes = await fetch('/api/create-order', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            orderNumber: orderNum,
-            orderId: res.orderId,
-            guestEmail: !isAuthenticated ? email.toLowerCase().trim() : undefined,
-          }),
-        });
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+        let orderRes: Response;
+        try {
+          orderRes = await fetch('/api/create-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            signal: controller.signal,
+            body: JSON.stringify({
+              orderNumber: orderNum,
+              orderId: res.orderId,
+              guestEmail: !isAuthenticated ? email.toLowerCase().trim() : undefined,
+            }),
+          });
+        } catch (fetchErr: any) {
+          if (fetchErr.name === 'AbortError') {
+            throw new Error('Payment gateway took too long to respond. Please verify your Razorpay API keys or network connection.');
+          }
+          throw fetchErr;
+        } finally {
+          clearTimeout(timeoutId);
+        }
 
         const orderData = await orderRes.json();
         if (!orderRes.ok || !orderData.order_id) {
@@ -1516,6 +1537,17 @@ export default function CheckoutPage() {
                         </span>
                       </label>
                     </div>
+
+                    {/* Inline Error Display */}
+                    {error && (
+                      <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-start gap-2.5 animate-in fade-in">
+                        <AlertCircle size={16} className="flex-shrink-0 text-red-600 mt-0.5" />
+                        <div className="flex-1">
+                          <p className="font-bold text-red-800">Payment Notice</p>
+                          <p className="text-red-700 mt-0.5">{error}</p>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Place Order CTA Button */}
                     <div className="pt-4 flex flex-col sm:flex-row items-center gap-4">

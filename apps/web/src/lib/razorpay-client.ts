@@ -16,18 +16,37 @@ export function loadRazorpayScript(): Promise<boolean> {
       return;
     }
 
+    const timer = setTimeout(() => {
+      resolve(Boolean((window as any).Razorpay));
+    }, 6000);
+
     const existingScript = document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
     if (existingScript) {
-      existingScript.addEventListener('load', () => resolve(true));
-      existingScript.addEventListener('error', () => resolve(false));
+      if ((window as any).Razorpay) {
+        clearTimeout(timer);
+        resolve(true);
+        return;
+      }
+      existingScript.addEventListener('load', () => {
+        clearTimeout(timer);
+        resolve(true);
+      });
+      existingScript.addEventListener('error', () => {
+        clearTimeout(timer);
+        resolve(false);
+      });
       return;
     }
 
     const script = document.createElement('script');
     script.src = 'https://checkout.razorpay.com/v1/checkout.js';
     script.async = true;
-    script.onload = () => resolve(true);
+    script.onload = () => {
+      clearTimeout(timer);
+      resolve(true);
+    };
     script.onerror = () => {
+      clearTimeout(timer);
       console.error('[Razorpay] Failed to load checkout.js script');
       resolve(false);
     };
