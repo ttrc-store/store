@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { connectToDatabase } from './client';
 import {
   CategoryModel,
@@ -136,18 +137,55 @@ function mapProductDoc(p: any, manufacturerDoc?: any): StoreProductItem {
     metaTitle: p.meta_title,
     metaDescription: p.meta_description,
     manufacturer:
-      showManufacturer && manufacturerDoc
+      showManufacturer && (manufacturerDoc || p.manufacturer_id)
         ? {
-            id: manufacturerDoc._id.toString(),
-            name: manufacturerDoc.name,
-            slug: manufacturerDoc.slug,
-            logo: manufacturerDoc.logo,
-            country: manufacturerDoc.country,
+            id: manufacturerDoc?._id?.toString() || p.manufacturer_id,
+            name: manufacturerDoc?.name || p.manufacturer_id,
+            slug: manufacturerDoc?.slug || String(p.manufacturer_id).toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+            logo: manufacturerDoc?.logo,
+            country: manufacturerDoc?.country || 'India',
           }
         : undefined,
     createdAt: p.created_at?.toISOString() || new Date().toISOString(),
     updatedAt: p.updated_at?.toISOString() || new Date().toISOString(),
   };
+}
+
+async function findManufacturerSafely(manufacturerId?: string): Promise<any> {
+  if (!manufacturerId || typeof manufacturerId !== 'string') return null;
+  const trimmed = manufacturerId.trim();
+  if (!trimmed) return null;
+
+  try {
+    if (mongoose.Types.ObjectId.isValid(trimmed) && trimmed.length === 24) {
+      const doc = await ManufacturerModel.findById(trimmed).lean();
+      if (doc) return doc;
+    }
+
+    const bySlugOrName = await ManufacturerModel.findOne({
+      $or: [
+        { slug: trimmed.toLowerCase() },
+        { name: { $regex: new RegExp(`^${trimmed.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } },
+      ],
+    }).lean();
+
+    if (bySlugOrName) return bySlugOrName;
+
+    return {
+      _id: trimmed,
+      name: trimmed,
+      slug: trimmed.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      country: 'India',
+    };
+  } catch (err) {
+    console.warn(`[MongoDB Catalog] Could not resolve manufacturer '${manufacturerId}':`, err);
+    return {
+      _id: trimmed,
+      name: trimmed,
+      slug: trimmed.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      country: 'India',
+    };
+  }
 }
 
 export async function getStoreCategories(): Promise<StoreCategoryItem[]> {
@@ -295,12 +333,28 @@ export async function getProductBySlug(slug: string): Promise<StoreProductItem |
     await connectToDatabase();
     await ensureDatabaseSeeded();
 
-    const productDoc = await ProductModel.findOne({ slug, is_active: true }).lean();
+    const query: Record<string, any> = {
+      is_active: true,
+      $or: [
+        { slug },
+        { slug: slug.toLowerCase() },
+      ],
+    };
+
+    if (mongoose.Types.ObjectId.isValid(slug) && slug.length === 24) {
+      query.$or.push({ _id: slug });
+    }
+
+    const productDoc = await ProductModel.findOne(query).lean();
     if (!productDoc) return null;
 
     let manufacturerDoc = null;
     if (productDoc.manufacturer_id) {
-      manufacturerDoc = await ManufacturerModel.findById(productDoc.manufacturer_id).lean();
+      try {
+        manufacturerDoc = await findManufacturerSafely(productDoc.manufacturer_id);
+      } catch (err) {
+        console.warn(`[MongoDB Catalog] Error finding manufacturer for ${slug}:`, err);
+      }
     }
 
     return mapProductDoc(productDoc, manufacturerDoc);
@@ -313,12 +367,24 @@ export async function getProductBySlug(slug: string): Promise<StoreProductItem |
 export async function getProductById(id: string): Promise<StoreProductItem | null> {
   try {
     await connectToDatabase();
-    const productDoc = await ProductModel.findById(id).lean();
+    let productDoc = null;
+    if (mongoose.Types.ObjectId.isValid(id) && id.length === 24) {
+      productDoc = await ProductModel.findById(id).lean();
+    }
+    if (!productDoc) {
+      productDoc = await ProductModel.findOne({
+        $or: [{ _id: id }, { slug: id }, { sku: id }],
+      }).lean();
+    }
     if (!productDoc) return null;
 
     let manufacturerDoc = null;
     if (productDoc.manufacturer_id) {
-      manufacturerDoc = await ManufacturerModel.findById(productDoc.manufacturer_id).lean();
+      try {
+        manufacturerDoc = await findManufacturerSafely(productDoc.manufacturer_id);
+      } catch (err) {
+        console.warn(`[MongoDB Catalog] Error finding manufacturer by id ${id}:`, err);
+      }
     }
 
     return mapProductDoc(productDoc, manufacturerDoc);
