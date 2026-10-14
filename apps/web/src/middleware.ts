@@ -60,8 +60,13 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // 1. Protect Customer Account & Checkout Routes
-  if (!userPayload && !isTestBypass && (pathname.startsWith('/account') || pathname.startsWith('/checkout'))) {
+  // Security: Block /payment-test in production
+  if (isProd && pathname.startsWith('/payment-test')) {
+    return new NextResponse('Not Found', { status: 404 });
+  }
+
+  // 1. Protect Customer Account Routes (Checkout handles both guest & signed-in users)
+  if (!userPayload && !isTestBypass && pathname.startsWith('/account')) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     url.searchParams.set('redirectTo', pathname);
@@ -89,6 +94,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|html|txt|ico)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|html|txt|ico|xml|json)$).*)',
   ],
 };

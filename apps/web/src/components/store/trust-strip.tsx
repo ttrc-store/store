@@ -15,8 +15,8 @@ const TRUST_FEATURES = [
   },
   {
     icon: Truck,
-    title: 'Fast Pan-India Dispatch',
-    desc: 'Dispatched within 24h from Tamil Nadu warehouse.',
+    title: 'Dispatch Within 10 Days',
+    desc: 'Carefully tested and dispatched within 10 days across India.',
   },
   {
     icon: Receipt,

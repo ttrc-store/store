@@ -21,13 +21,13 @@ export default function TermsPage() {
         </section>
 
         <section className="space-y-2 text-xs text-slate-600">
-          <h2 className="font-heading text-base font-bold text-slate-900">2. Pricing & Payments</h2>
-          <p>All prices listed on the storefront are in Indian Rupees (INR) and inclusive of taxes (or Bill of Supply pricing prior to GST registration). Payment may be completed via Cash on Delivery (COD) or Razorpay Online Payment.</p>
+          <h2 className="font-heading text-base font-bold text-slate-900">2. Pricing &amp; Payments (Online Payment Only)</h2>
+          <p>All prices listed on the storefront are in Indian Rupees (INR) and inclusive of applicable taxes. Payment is completed securely online via Razorpay Standard Checkout (UPI, Google Pay, PhonePe, Cards, NetBanking, EMI). Cash on Delivery (COD) is not accepted.</p>
         </section>
 
         <section className="space-y-2 text-xs text-slate-600">
-          <h2 className="font-heading text-base font-bold text-slate-900">3. Shipping within India</h2>
-          <p>We deliver within serviceable pincodes in India only. Delivery timeline estimates range from 3-7 business days depending on location.</p>
+          <h2 className="font-heading text-base font-bold text-slate-900">3. Shipping &amp; Dispatch within India</h2>
+          <p>We deliver within serviceable pincodes in India only. All orders are bench-tested and <strong>dispatched within 10 days</strong> of verified payment confirmation from our Tamil Nadu central warehouse. Post-dispatch delivery transit timelines range from 2–5 business days depending on delivery location.</p>
         </section>
       </div>
     </div>

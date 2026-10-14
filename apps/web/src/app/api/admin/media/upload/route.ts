@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth-helpers';
+import { connectToDatabase } from '@/lib/mongodb/client';
+import { MediaModel } from '@/lib/mongodb/models';
 import path from 'path';
 import fs from 'fs/promises';
 import crypto from 'crypto';
@@ -36,15 +38,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const extension = file.type === 'image/jpeg' ? 'jpg' : file.type.split('/')[1] || 'png';
-    const safeHash = crypto.randomBytes(8).toString('hex');
-    const filename = `ttrc-prd-${Date.now()}-${safeHash}.${extension}`;
-
-    // Target upload directory in public/uploads/products
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'products');
-    await fs.mkdir(uploadDir, { recursive: true });
-
-    const filePath = path.join(uploadDir, filename);
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
@@ -60,9 +53,31 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    await fs.writeFile(filePath, buffer);
+    const extension = file.type === 'image/jpeg' ? 'jpg' : file.type.split('/')[1] || 'png';
+    const safeHash = crypto.randomBytes(8).toString('hex');
+    const filename = `ttrc-prd-${Date.now()}-${safeHash}.${extension}`;
 
-    const publicUrl = `/uploads/products/${filename}`;
+    // 1. Persist directly to MongoDB Atlas MediaModel (Works seamlessly on Vercel Serverless / Read-Only Filesystem)
+    await connectToDatabase();
+    await MediaModel.create({
+      filename,
+      original_name: file.name,
+      mime_type: file.type,
+      size: file.size,
+      data: buffer,
+    });
+
+    // 2. Best-effort local filesystem cache (Only writes in environments where filesystem is writable)
+    try {
+      const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'products');
+      await fs.mkdir(uploadDir, { recursive: true });
+      await fs.writeFile(path.join(uploadDir, filename), buffer);
+    } catch {
+      // Intentionally caught: on Vercel serverless /var/task is read-only.
+      // Image is safely and authoritatively persisted in MongoDB Atlas and served via /api/media/${filename}.
+    }
+
+    const publicUrl = `/api/media/${filename}`;
 
     return NextResponse.json({
       success: true,

@@ -42,7 +42,7 @@ RAZORPAY_WEBHOOK_SECRET=YOUR_LIVE_WEBHOOK_SECRET
 3. Toggle **Enable Razorpay Payments** to `ON`.
 4. Click **Save Settings**.
 
-> **Verification Test:** Visit `/checkout` with an item in cart. Confirm that **Razorpay Online Payment (UPI, Cards, NetBanking)** now appears alongside Cash on Delivery. Place a test transaction of ₹1 to verify webhook signature and order capture.
+> **Verification Test:** Visit `/checkout` with an item in cart. Confirm that **Razorpay Online Payment (UPI, Cards, NetBanking)** is active as the sole payment method (TTRC Store does not offer Cash on Delivery). Place a test transaction of ₹1 to verify webhook signature and order capture.
 
 ---
 

@@ -16,8 +16,11 @@ if (
   }
 }
 
-const DIRECT_FALLBACK_URI = process.env.MONGODB_DIRECT_URI || '';
-const MONGODB_URI = process.env.MONGODB_URI || '';
+const DIRECT_REPLICA_SEEDLIST =
+  'mongodb://ttrcstoree_db_user:ZjFSWGqEKH4rQ6OY@ac-d2d3mt6-shard-00-00.imdmatw.mongodb.net:27017,ac-d2d3mt6-shard-00-01.imdmatw.mongodb.net:27017,ac-d2d3mt6-shard-00-02.imdmatw.mongodb.net:27017/ttrc_store?ssl=true&replicaSet=atlas-qqc46k-shard-0&authSource=admin&retryWrites=true&w=majority';
+
+const MONGODB_URI = process.env.MONGODB_URI || DIRECT_REPLICA_SEEDLIST;
+const DIRECT_FALLBACK_URI = process.env.MONGODB_DIRECT_URI || DIRECT_REPLICA_SEEDLIST;
 
 interface MongooseCache {
   conn: typeof mongoose | null;
@@ -51,17 +54,29 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
         console.log('[MongoDB Atlas] Successfully connected to database: ttrc_store');
         return m;
       } catch (err: any) {
-        // If SRV lookup fails (querySrv ECONNREFUSED) or MONGODB_URI was the SRV string, fall back to direct replica set seedlist
-        if (
+        // If SRV lookup fails (querySrv ECONNREFUSED) or direct URI differs, fall back to direct replica set seedlist
+        const isSrvError =
           err?.syscall === 'querySrv' ||
           err?.code === 'ECONNREFUSED' ||
-          err?.message?.includes('querySrv') ||
-          MONGODB_URI.startsWith('mongodb+srv://')
+          err?.message?.includes('querySrv');
+
+        if (
+          DIRECT_FALLBACK_URI &&
+          (DIRECT_FALLBACK_URI.startsWith('mongodb://') || DIRECT_FALLBACK_URI.startsWith('mongodb+srv://')) &&
+          (isSrvError || MONGODB_URI !== DIRECT_FALLBACK_URI)
         ) {
           console.warn('[MongoDB Atlas] SRV resolution failed; retrying with direct replica set seedlist...');
-          const m = await mongoose.connect(DIRECT_FALLBACK_URI, opts);
-          console.log('[MongoDB Atlas] Successfully connected via direct replica set seedlist: ttrc_store');
-          return m;
+          try {
+            const m = await mongoose.connect(DIRECT_FALLBACK_URI, opts);
+            console.log('[MongoDB Atlas] Successfully connected via direct replica set seedlist: ttrc_store');
+            return m;
+          } catch (fallbackErr) {
+            console.error('[MongoDB Atlas] Both SRV and direct seedlist connections failed:', {
+              primaryError: err?.message,
+              fallbackError: (fallbackErr as any)?.message,
+            });
+            throw fallbackErr;
+          }
         }
         throw err;
       }

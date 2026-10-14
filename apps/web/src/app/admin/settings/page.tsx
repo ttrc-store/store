@@ -132,7 +132,7 @@ export default function AdminSettingsPage() {
               <div>
                 <p className="text-xs font-bold text-slate-900">Enable Razorpay Online Payments</p>
                 <p className="text-[11px] text-slate-500">
-                  When disabled (or missing API keys), checkout operates strictly in Cash on Delivery (COD) mode.
+                  Razorpay is the sole payment gateway for TTRC Store. When disabled or keys are missing, customer checkout shows a clear temporary offline notice. Cash on Delivery is disabled across the platform.
                 </p>
               </div>
               <input
@@ -143,15 +143,11 @@ export default function AdminSettingsPage() {
               />
             </div>
 
-            <div className="space-y-1">
-              <label className="font-bold text-slate-700">COD Max Order Value Limit (₹)</label>
-              <Input
-                type="number"
-                value={codLimit}
-                onChange={(e) => setCodLimit(e.target.value)}
-                className="bg-slate-50 border-slate-300 h-10 font-mono w-full sm:w-1/2 focus:border-purple-600 focus:ring-purple-600"
-              />
-              <p className="text-[10px] text-slate-500">Orders above this threshold require online payment.</p>
+            <div className="p-3.5 rounded-xl bg-purple-50/50 border border-purple-200 text-purple-900">
+              <p className="font-bold text-[11px]">Online Payment Policy Enforcement</p>
+              <p className="text-[10px] text-purple-700 mt-0.5">
+                Cash on Delivery (COD) is permanently disabled across the storefront. All checkouts require verified online payment via UPI, Cards, NetBanking, or EMI.
+              </p>
             </div>
           </div>
         </div>

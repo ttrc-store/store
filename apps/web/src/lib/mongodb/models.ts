@@ -287,6 +287,7 @@ export interface IOrder extends Document {
   billing_address: Record<string, any>;
   razorpay_order_id?: string;
   razorpay_payment_id?: string;
+  razorpay_signature?: string;
   tracking_number?: string;
   tracking_url?: string;
   notes?: string;
@@ -336,6 +337,7 @@ const OrderSchema = new Schema<IOrder>(
     billing_address: { type: Schema.Types.Mixed, required: true },
     razorpay_order_id: { type: String },
     razorpay_payment_id: { type: String },
+    razorpay_signature: { type: String },
     tracking_number: { type: String },
     tracking_url: { type: String },
     notes: { type: String },
@@ -594,4 +596,30 @@ const RateLimitSchema = new Schema<IRateLimitRecord>(
 
 export const RateLimitModel: Model<IRateLimitRecord> =
   mongoose.models.RateLimit || mongoose.model<IRateLimitRecord>('RateLimit', RateLimitSchema);
+
+// ---------------------------------------------------------------------------
+// 14. MEDIA SCHEMA & MODEL (Persistent file storage in MongoDB Atlas)
+// ---------------------------------------------------------------------------
+export interface IMedia extends Document {
+  filename: string;
+  original_name: string;
+  mime_type: string;
+  size: number;
+  data: Buffer;
+  created_at: Date;
+}
+
+const MediaSchema = new Schema<IMedia>(
+  {
+    filename: { type: String, required: true, unique: true, index: true },
+    original_name: { type: String, required: true },
+    mime_type: { type: String, required: true },
+    size: { type: Number, required: true },
+    data: { type: Buffer, required: true },
+  },
+  { timestamps: { createdAt: 'created_at', updatedAt: false } }
+);
+
+export const MediaModel: Model<IMedia> =
+  mongoose.models.Media || mongoose.model<IMedia>('Media', MediaSchema);
 

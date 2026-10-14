@@ -7,7 +7,7 @@ import { SlidersHorizontal, Package, Cpu } from 'lucide-react';
 import { getStoreProducts, toStoreProductCardProps } from '@/lib/mongodb/catalog';
 import { ProductCard } from '@/components/store/product-card';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator, BreadcrumbList } from '@/components/ui/breadcrumb';
-import { BreadcrumbJsonLd } from '@/components/seo/json-ld';
+import { BreadcrumbJsonLd, ItemListJsonLd } from '@/components/seo/json-ld';
 import { CATEGORY_TREE } from '@ttrc/shared';
 import { CategoryModel } from '@/lib/mongodb/models';
 import { connectToDatabase } from '@/lib/mongodb/client';
@@ -27,11 +27,21 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
     return { title: 'Category Not Found | TTRC Store' };
   }
 
+  const title = `${category.name} — Robotics & STEM Components | TTRC Store`;
+  const description = `Buy high quality ${category.name} components, kits, and spare parts online at Tamizh Tech Store. 100% genuine components with GST invoice & fast shipping across India.`;
+  const canonicalUrl = `https://www.ttrc.store/category/${slug}`;
+
   return {
-    title: `${category.name} — Robotics & STEM Components | TTRC Store`,
-    description: `Buy high quality ${category.name} components, kits, and spare parts online at Tamizh Tech Store. 100% genuine components with GST invoice & fast shipping across India.`,
+    title,
+    description,
     alternates: {
-      canonical: `https://ttrc.store/category/${slug}`,
+      canonical: canonicalUrl,
+    },
+    openGraph: {
+      title,
+      description,
+      url: canonicalUrl,
+      images: [{ url: 'https://www.ttrc.store/brand/ttrc-logo.png', width: 1200, height: 630 }],
     },
   };
 }
@@ -60,14 +70,23 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   });
 
   const breadcrumbItems = [
-    { name: 'Home', url: 'https://ttrc.store' },
-    { name: 'Categories', url: 'https://ttrc.store/category/gamified-robots' },
-    { name: category.name, url: `https://ttrc.store/category/${slug}` },
+    { name: 'Home', url: 'https://www.ttrc.store' },
+    { name: 'Categories', url: 'https://www.ttrc.store/category/gamified-robots' },
+    { name: category.name, url: `https://www.ttrc.store/category/${slug}` },
   ];
 
   return (
     <div className="min-h-screen bg-white text-slate-900 pb-20 pt-6">
       <BreadcrumbJsonLd items={breadcrumbItems} />
+      <ItemListJsonLd
+        name={`${category.name} Components`}
+        description={'description' in category ? (category as any).description : undefined}
+        items={products.map((p, idx) => ({
+          name: p.name,
+          url: `https://www.ttrc.store/product/${p.slug}`,
+          position: idx + 1,
+        }))}
+      />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Breadcrumb Header */}

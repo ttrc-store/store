@@ -10,14 +10,18 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: '*',
-        allow: '/',
+        allow: ['/', '/feeds/', '/api/feeds/'],
         disallow: [
           '/admin/',
           '/account/',
           '/cart',
           '/checkout/',
-          '/api/',
-          '/design-system',
+          '/api/admin/',
+          '/api/auth/',
+          '/api/upload/',
+          '/api/invoice/',
+          '/api/webhooks/',
+          '/design-system/',
           '/_next/',
         ],
       },

@@ -14,7 +14,7 @@ import {
   BreadcrumbSeparator,
   BreadcrumbList,
 } from '@/components/ui/breadcrumb';
-import { BreadcrumbJsonLd } from '@/components/seo/json-ld';
+import { BreadcrumbJsonLd, ItemListJsonLd } from '@/components/seo/json-ld';
 import { CategoryModel } from '@/lib/mongodb/models';
 import { connectToDatabase } from '@/lib/mongodb/client';
 import { CATEGORIES } from '@/components/layout/mega-menu';
@@ -33,12 +33,19 @@ export async function generateMetadata({ params }: SubcategoryPageProps): Promis
 
   const subName = subCat?.name || (subslug === 'line-follower' ? 'Line Follower Robot (LFR)' : subslug);
   const parentName = parentCat?.name || (slug === 'gamified-robots' ? 'Gamified Robots' : slug);
+  const canonicalUrl = `https://www.ttrc.store/category/${slug}/${subslug}`;
 
   return {
     title: `${subName} — ${parentName} Kits & Spares | TTRC Store`,
     description: `Shop official ${subName} competition platforms, carrier boards, Arduino Nano controllers, sensor arrays, and replacement spares at Tamizh Tech Store. 100% genuine with pan-India delivery.`,
     alternates: {
-      canonical: `https://ttrc.store/category/${slug}/${subslug}`,
+      canonical: canonicalUrl,
+    },
+    openGraph: {
+      title: `${subName} — ${parentName} Kits & Spares | TTRC Store`,
+      description: `Shop official ${subName} competition platforms, carrier boards, Arduino Nano controllers, sensor arrays, and replacement spares at Tamizh Tech Store. 100% genuine with pan-India delivery.`,
+      url: canonicalUrl,
+      images: [{ url: 'https://www.ttrc.store/brand/ttrc-logo.png', width: 1200, height: 630 }],
     },
   };
 }
@@ -84,14 +91,23 @@ export default async function SubcategoryPage({ params, searchParams }: Subcateg
   const isLfr = subslug === 'line-follower';
 
   const breadcrumbItems = [
-    { name: 'Home', url: 'https://ttrc.store' },
-    { name: parentName, url: `https://ttrc.store/category/${slug}` },
-    { name: subName, url: `https://ttrc.store/category/${slug}/${subslug}` },
+    { name: 'Home', url: 'https://www.ttrc.store' },
+    { name: parentName, url: `https://www.ttrc.store/category/${slug}` },
+    { name: subName, url: `https://www.ttrc.store/category/${slug}/${subslug}` },
   ];
 
   return (
     <div className="min-h-screen bg-white text-slate-900 pb-20 pt-6">
       <BreadcrumbJsonLd items={breadcrumbItems} />
+      <ItemListJsonLd
+        name={`${subName} (${parentName})`}
+        description={subDescription}
+        items={products.map((p, idx) => ({
+          name: p.name,
+          url: `https://www.ttrc.store/product/${p.slug}`,
+          position: idx + 1,
+        }))}
+      />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Breadcrumb Header */}

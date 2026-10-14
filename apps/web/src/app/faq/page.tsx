@@ -14,11 +14,11 @@ export default function FAQPage() {
     },
     {
       q: 'Do you offer Cash on Delivery (COD)?',
-      a: 'Yes, Cash on Delivery is available for serviceable pincodes across India for orders up to ₹5,000.',
+      a: 'No, TTRC Store operates exclusively with 100% secure online payments through Razorpay (UPI, Google Pay, PhonePe, Paytm, all major Credit/Debit Cards, NetBanking, and EMI). Cash on Delivery is not offered.',
     },
     {
-      q: 'How long does delivery take?',
-      a: 'South India orders typically deliver in 2–4 business days; rest of India in 4–7 business days via courier tracking.',
+      q: 'What is the dispatch and delivery timeline?',
+      a: 'All orders undergo rigorous quality bench-testing and are dispatched within 10 days of payment confirmation from our Tamil Nadu central warehouse. Courier transit takes an additional 2–4 business days across India.',
     },
     {
       q: 'How can institutional buyers / STEM labs order in bulk?',

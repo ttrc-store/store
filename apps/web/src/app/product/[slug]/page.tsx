@@ -18,6 +18,7 @@ import {
   Globe,
   Info,
   CheckCircle2,
+  HelpCircle,
 } from 'lucide-react';
 import {
   getProductBySlug,
@@ -42,7 +43,7 @@ import {
   BreadcrumbSeparator,
   BreadcrumbList,
 } from '@/components/ui/breadcrumb';
-import { ProductJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
+import { ProductJsonLd, BreadcrumbJsonLd, FAQJsonLd } from '@/components/seo/json-ld';
 
 interface ProductPageProps {
   params: Promise<{ slug: string }>;
@@ -56,18 +57,25 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
     return { title: 'Product Not Found | TTRC Store' };
   }
 
+  const title = product.metaTitle || `${product.name} | TTRC Store`;
+  const description = product.metaDescription || product.shortDescription;
+  const canonicalUrl = `https://www.ttrc.store/product/${slug}`;
+
   return {
-    title: `${product.name} | TTRC Store`,
-    description: product.shortDescription,
+    title,
+    description,
     alternates: {
-      canonical: `https://ttrc.store/product/${slug}`,
+      canonical: canonicalUrl,
     },
     openGraph: {
-      title: product.name,
-      description: product.shortDescription,
+      title,
+      description,
+      url: canonicalUrl,
       images: [
         {
-          url: product.imageUrls?.[0] || '/brand/ttrc-logo.png',
+          url: product.imageUrls?.[0]?.startsWith('http')
+            ? product.imageUrls[0]
+            : `https://www.ttrc.store${product.imageUrls?.[0] || '/brand/ttrc-logo.png'}`,
           width: 1200,
           height: 630,
           alt: product.name,
@@ -106,9 +114,38 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
     product.pricePaise + bundleSpares.reduce((acc, s) => acc + s.pricePaise, 0);
 
   const breadcrumbItems = [
-    { name: 'Home', url: 'https://ttrc.store' },
-    { name: 'Catalog', url: 'https://ttrc.store/category/gamified-robots' },
-    { name: product.name, url: `https://ttrc.store/product/${slug}` },
+    { name: 'Home', url: 'https://www.ttrc.store' },
+    { name: 'Catalog', url: `https://www.ttrc.store/category/${product.categoryId || 'gamified-robots'}` },
+    { name: product.name, url: `https://www.ttrc.store/product/${slug}` },
+  ];
+
+  const productFaqs = [
+    {
+      question: `What is included in the ${product.name} package?`,
+      answer: product.type === 'kit'
+        ? `The ${product.name} package includes the core platform components: ${product.technicalSpecs && product.technicalSpecs.length > 0 ? product.technicalSpecs.map((s) => s.value).join(', ') : 'competition-ready mechanical and electronic modules'}. Assembly hardware and connectivity are supplied.`
+        : `The package includes 1x ${product.name} (${product.unit || 'Piece'}) with verified technical specifications.`,
+    },
+    {
+      question: `Is a battery included with ${product.name}?`,
+      answer: product.attributes?.configurations?.some((c: any) => c.name?.toLowerCase().includes('battery') && c.is_default)
+        ? `Yes, the default package includes the matching battery pack.`
+        : `By default, this platform is supplied in the standard competition package without a battery so builders can use their preferred LiPo battery packs (7.4V 2S / 11.1V 3S compatible).`,
+    },
+    {
+      question: `Who is this ${product.name} designed for?`,
+      answer: product.applications && product.applications.length > 0
+        ? `This platform is engineered for: ${product.applications.join(', ')}.`
+        : `Designed for engineering students, competition robotics teams, STEM laboratories, and embedded systems developers.`,
+    },
+    {
+      question: `What warranty and quality guarantee does TTRC provide?`,
+      answer: `TTRC Store guarantees 100% genuine Tamizh Tech components. Every unit undergoes functional bench testing prior to dispatch, backed by a 7-day replacement window for verified transit or manufacturing defects.`,
+    },
+    {
+      question: `What are shipping timelines and delivery coverage across India?`,
+      answer: `Orders dispatch within 10 days from Coimbatore, Tamil Nadu with India-wide tracked express shipping (typically 2-5 days delivery transit across all serviceable Indian pincodes). TTRC Store operates exclusively with secure online payments via Razorpay. GST tax invoices are provided.`,
+    },
   ];
 
   return (
@@ -121,10 +158,12 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
         brand={product.brand || 'Tamizh Tech'}
         pricePaise={product.pricePaise}
         inStock={product.stockQty > 0}
+        url={`https://www.ttrc.store/product/${slug}`}
         rating={product.rating}
         reviewCount={product.reviewCount}
       />
       <BreadcrumbJsonLd items={breadcrumbItems} />
+      <FAQJsonLd faqs={productFaqs} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Breadcrumbs */}
@@ -283,8 +322,8 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
               </div>
               <div className="flex flex-col items-center gap-1">
                 <Truck size={20} className="text-[#844AFB]" />
-                <span className="font-semibold text-slate-800">Pan-India Courier</span>
-                <span className="text-[10px] text-slate-400">Insured Delivery</span>
+                <span className="font-semibold text-slate-800">Dispatch in 10 Days</span>
+                <span className="text-[10px] text-slate-400">Pan-India Tracked</span>
               </div>
               <div className="flex flex-col items-center gap-1">
                 <RefreshCw size={20} className="text-[#844AFB]" />
@@ -402,6 +441,9 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
               </TabsTrigger>
               <TabsTrigger value="manufacturer" className="text-xs font-bold px-6">
                 Manufacturer &amp; Provenance
+              </TabsTrigger>
+              <TabsTrigger value="faqs" className="text-xs font-bold px-6">
+                Buyer Q&amp;A / FAQs
               </TabsTrigger>
               <TabsTrigger value="reviews" className="text-xs font-bold px-6">
                 Reviews ({product.reviewCount})
@@ -555,7 +597,39 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
               </div>
               <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600 space-y-1">
                 <p><strong>Merchant of Record:</strong> TTRC Store (Tamizh Tech Robotics Company, Tamil Nadu, India)</p>
-                <p>All items undergo quality verification and functional bench testing prior to dispatch.</p>
+                <p>All items undergo rigorous quality verification and functional bench-testing, and are dispatched within 10 days.</p>
+              </div>
+            </TabsContent>
+
+            {/* Buyer Q&A / FAQs Tab (AEO / GEO Knowledge Base) */}
+            <TabsContent
+              value="faqs"
+              className="p-6 sm:p-8 rounded-2xl bg-white border border-slate-200 space-y-6"
+            >
+              <div>
+                <h3 className="font-heading text-lg font-bold text-slate-900 flex items-center gap-2">
+                  <HelpCircle className="text-[#844AFB]" size={20} /> Verified Technical Q&amp;A &amp; FAQs
+                </h3>
+                <p className="text-xs text-slate-500 mt-1">
+                  Accurate, engineering-verified answers to common buyer, competition, and integration questions.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                {productFaqs.map((faq, idx) => (
+                  <div
+                    key={idx}
+                    className="p-4 rounded-xl border border-slate-100 bg-slate-50/60 space-y-2"
+                  >
+                    <h4 className="text-xs sm:text-sm font-bold text-slate-900 flex items-start gap-2">
+                      <span className="text-purple-600 font-mono">Q{idx + 1}.</span>
+                      <span>{faq.question}</span>
+                    </h4>
+                    <p className="text-xs text-slate-600 leading-relaxed pl-5">
+                      {faq.answer}
+                    </p>
+                  </div>
+                ))}
               </div>
             </TabsContent>
 

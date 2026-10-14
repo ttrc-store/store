@@ -25,6 +25,7 @@ import {
   getStoreProducts,
   toStoreProductCardProps,
 } from '@/lib/mongodb/catalog';
+import { OrganizationJsonLd, WebSiteJsonLd } from '@/components/seo/json-ld';
 
 // ─── Skeleton loaders ─────────────────────────────────────────────────────────
 
@@ -117,7 +118,7 @@ function HeroSection() {
               </div>
               <div className="flex items-center gap-1.5">
                 <Zap size={14} className="text-[#844AFB]" />
-                <span>Same-Day Dispatch</span>
+                <span>Dispatch within 10 days</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <Truck size={14} className="text-[#844AFB]" />
@@ -165,8 +166,8 @@ function TrustStrip() {
   const items = [
     {
       icon: <Truck size={22} />,
-      title: 'Fast Courier Dispatch',
-      sub: 'Same-day across India via Shiprocket',
+      title: 'Dispatch Within 10 Days',
+      sub: 'All orders dispatched within 10 days across India',
     },
     {
       icon: <ShieldCheck size={22} />,
@@ -567,6 +568,8 @@ function NewsletterSection() {
 export default function HomePage() {
   return (
     <div className="space-y-12 sm:space-y-16 pb-20 bg-transparent text-[#050507]">
+        <OrganizationJsonLd />
+        <WebSiteJsonLd />
         {/* 1. Hero — static, renders immediately */}
         <HeroSection />
 

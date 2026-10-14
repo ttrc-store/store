@@ -25,9 +25,9 @@ export async function GET(req: NextRequest) {
         isServiceable: dbPincode.is_serviceable,
         city: dbPincode.city,
         state: dbPincode.state,
-        estimatedDays: dbPincode.state === 'Tamil Nadu' ? '1 – 2 Business Days' : '3 – 5 Business Days',
+        estimatedDays: 'Dispatch within 10 days (2–4 Days Transit)',
         courierName: 'Delhivery / BlueDart',
-        codAvailable: dbPincode.is_cod_available,
+        codAvailable: false,
       });
     }
 
@@ -37,34 +37,34 @@ export async function GET(req: NextRequest) {
 
     let state = 'India';
     let city = 'Major Hub';
-    let estimatedDays = '3 – 5 Business Days';
+    let estimatedDays = 'Dispatch within 10 days (3–5 Days Transit)';
     let courierName = 'Shiprocket / Delhivery';
 
     if (prefixNum >= 60 && prefixNum <= 64) {
       state = 'Tamil Nadu';
       city = prefixNum === 64 ? 'Coimbatore Region' : prefixNum === 60 ? 'Chennai Metro' : 'Tamil Nadu';
-      estimatedDays = '1 – 2 Business Days (Express Dispatch)';
+      estimatedDays = 'Dispatch within 10 days (1–2 Days Express Transit)';
       courierName = 'BlueDart Air / ST Courier';
     } else if (prefixNum >= 56 && prefixNum <= 59) {
       state = 'Karnataka';
       city = prefixNum === 56 ? 'Bengaluru Metro' : 'Karnataka';
-      estimatedDays = '2 – 3 Business Days';
+      estimatedDays = 'Dispatch within 10 days (2–3 Days Transit)';
     } else if (prefixNum >= 67 && prefixNum <= 69) {
       state = 'Kerala';
       city = 'Kerala Region';
-      estimatedDays = '2 – 3 Business Days';
+      estimatedDays = 'Dispatch within 10 days (2–3 Days Transit)';
     } else if (prefixNum >= 50 && prefixNum <= 53) {
       state = prefixNum <= 50 ? 'Telangana' : 'Andhra Pradesh';
       city = prefixNum === 50 ? 'Hyderabad Metro' : 'Andhra Pradesh';
-      estimatedDays = '2 – 4 Business Days';
+      estimatedDays = 'Dispatch within 10 days (2–4 Days Transit)';
     } else if (prefixNum >= 40 && prefixNum <= 44) {
       state = 'Maharashtra';
       city = prefixNum === 40 ? 'Mumbai Metro' : 'Maharashtra';
-      estimatedDays = '3 – 4 Business Days';
+      estimatedDays = 'Dispatch within 10 days (3–4 Days Transit)';
     } else if (prefixNum >= 11 && prefixNum <= 13) {
       state = prefixNum === 11 ? 'Delhi NCR' : 'Haryana';
       city = 'Delhi NCR';
-      estimatedDays = '3 – 4 Business Days';
+      estimatedDays = 'Dispatch within 10 days (3–4 Days Transit)';
     }
 
     return NextResponse.json({
@@ -74,7 +74,7 @@ export async function GET(req: NextRequest) {
       state,
       estimatedDays,
       courierName,
-      codAvailable: true,
+      codAvailable: false,
     });
   } catch (err: any) {
     console.error('[Pincode Check API Error]', err);

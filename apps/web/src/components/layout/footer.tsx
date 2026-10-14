@@ -26,7 +26,7 @@ export default function Footer() {
             </div>
             <div>
               <h4 className="font-heading text-sm font-bold text-slate-900">India-Wide Delivery</h4>
-              <p className="text-xs text-slate-500">Fast via Shiprocket courier</p>
+              <p className="text-xs text-slate-500">Dispatch within 10 days</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -52,8 +52,8 @@ export default function Footer() {
               <CreditCard size={22} />
             </div>
             <div>
-              <h4 className="font-heading text-sm font-bold text-slate-900">Secure Checkout</h4>
-              <p className="text-xs text-slate-500">UPI, Cards, NetBanking, COD</p>
+              <h4 className="font-heading text-sm font-bold text-slate-900">Secure Online Checkout</h4>
+              <p className="text-xs text-slate-500">UPI, Cards, NetBanking, EMI</p>
             </div>
           </div>
         </div>
@@ -215,9 +215,9 @@ export default function Footer() {
                 <NetBankingIcon className="h-3.5 w-3.5 text-slate-700" />
                 <span>NetBanking</span>
               </div>
-              <div className="h-7 px-2.5 rounded-md bg-[#EEE8FA] border border-[#AF87F8]/40 flex items-center gap-1 text-[10px] font-bold text-[#6721F2] shadow-xs" title="Cash on Delivery">
-                <CodBadgeIcon className="h-3.5 w-3.5" />
-                <span>COD</span>
+              <div className="h-7 px-2.5 rounded-md bg-[#EEE8FA] border border-[#AF87F8]/40 flex items-center gap-1 text-[10px] font-bold text-[#6721F2] shadow-xs" title="Razorpay Standard Checkout">
+                <CreditCard className="h-3.5 w-3.5" />
+                <span>Razorpay</span>
               </div>
             </div>
           </div>

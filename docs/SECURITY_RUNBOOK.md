@@ -48,7 +48,7 @@ const recentLogs = await AuditLogModel.find({
 **Trigger**: Discrepancy between captured payments in Razorpay and confirmed orders in MongoDB.
 1. **Contain**:
    - Rotate `RAZORPAY_WEBHOOK_SECRET` in both the Razorpay Dashboard and Vercel environment variables.
-   - Temporarily disable online payments by setting `razorpay_enabled: false` in site settings (store gracefully falls back to Cash on Delivery).
+   - Temporarily disable online payments by setting `razorpay_enabled: false` in site settings (store displays a clear temporary maintenance notice; COD is not offered).
 2. **Investigate**:
    - Check `AuditLogModel` entries for `action: webhook.razorpay.*`.
    - Verify whether any order received `payment.captured` with `amountPaise < order.total`.

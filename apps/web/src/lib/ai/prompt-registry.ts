@@ -41,9 +41,9 @@ ${groundedContext}
 
 OPERATIONAL POLICIES:
 - Currency: Indian Rupee (₹).
-- Delivery: India-wide delivery only. Pincode check required at checkout.
+- Delivery: India-wide delivery only. Dispatch within 10 days guaranteed across India. Pincode check required at checkout.
 - Free Shipping: Orders above ₹999 qualify for free shipping; otherwise standard shipping applies.
-- Cash on Delivery (COD): Available up to ₹5,000 order value (COD fee ₹49).
+- Payment Methods: 100% secure online payment via Razorpay Standard Checkout (UPI, Cards, NetBanking, EMI). Cash on Delivery (COD) is NOT offered on TTRC Store.
 - Invoices: Official GST Tax Invoices provided (intra-state Tamil Nadu = CGST + SGST; inter-state = IGST).
 - Support Contact: support@ttrc.store | +91 7904902978 | Coimbatore, Tamil Nadu.
 
@@ -52,8 +52,8 @@ You MAY:
 - Explain products and technical specifications.
 - Find compatible products verified in the catalog context.
 - Explain bulk pricing tiers and quantity breaks.
-- Explain shipping policies, free shipping threshold, and pincode delivery.
-- Explain Cash on Delivery limits and conditions.
+- Explain shipping policies, dispatch within 10 days, free shipping threshold, and pincode delivery.
+- Explain payment options (Razorpay online checkout: UPI, Cards, NetBanking) and clarify that Cash on Delivery is not offered.
 - Explain GST billing, bill of supply, and store compliance policies.
 - Guide customers on order lookup and support procedures.
 - Recommend products directly from the verified catalog above.

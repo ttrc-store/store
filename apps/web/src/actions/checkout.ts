@@ -32,10 +32,18 @@ const ShippingAddressSchema = z.object({
 
 const CreateOrderSchema = z.object({
   items: z.array(CheckoutItemSchema).min(1, 'Cart cannot be empty').max(50),
-  paymentMethod: z.enum(['razorpay', 'cod']),
+  paymentMethod: z.string().default('razorpay'),
   shippingAddress: ShippingAddressSchema,
+  billingAddress: ShippingAddressSchema.optional(),
   stateCode: z.string().regex(/^\d{2}$/, 'Valid 2-digit state code required').default('33'),
   couponCode: z.string().max(50).optional(),
+  guestEmail: z.string().email('Please enter a valid email address').optional(),
+  companyGst: z
+    .object({
+      companyName: z.string().min(2, 'Company name is required').max(100),
+      gstin: z.string().regex(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/, 'Invalid 15-character GSTIN format'),
+    })
+    .optional(),
 });
 
 type CreateOrderInput = z.infer<typeof CreateOrderSchema>;
@@ -45,17 +53,30 @@ export async function createOrderAction(raw: CreateOrderInput) {
   if (!validation.success) {
     return { error: validation.error.errors[0].message };
   }
-  const { items, paymentMethod, shippingAddress, stateCode, couponCode } = validation.data;
+  const { items, paymentMethod, shippingAddress, billingAddress, stateCode, couponCode, guestEmail, companyGst } = validation.data;
+
+  // Strict enforcement: Cash on Delivery is not supported on TTRC Store
+  if (paymentMethod !== 'razorpay') {
+    return {
+      error: 'Cash on Delivery is not offered on TTRC Store. Please pay securely online using Razorpay (UPI, Google Pay, Cards, NetBanking).',
+    };
+  }
 
   const auth = await getAuthenticatedUser();
-  if ('error' in auth) {
-    return { error: 'You must be logged in to place an order.' };
-  }
-  const user = auth.user;
+  const isAuthenticated = !('error' in auth);
+  const user = isAuthenticated ? auth.user : null;
 
-  // Rate limit: 5 order attempts per minute per user
+  if (!isAuthenticated && !guestEmail) {
+    return { error: 'Please provide an email address for guest checkout or sign in to your account.' };
+  }
+
+  // Rate limit: 5 order attempts per minute per user / guest phone
+  const rateLimitKey = user
+    ? `create-order:${user.id}`
+    : `create-order:guest:${shippingAddress.phone.replace(/\D/g, '') || guestEmail}`;
+
   const rateLimit = await checkRateLimit({
-    key: `create-order:${user.id}`,
+    key: rateLimitKey,
     limit: 5,
     windowMs: 60 * 1000,
   });
@@ -156,12 +177,6 @@ export async function createOrderAction(raw: CreateOrderInput) {
       couponDiscountPaise,
     });
 
-    if (paymentMethod === 'cod' && totals.totalPaise > codMaxLimit) {
-      return {
-        error: `Cash on Delivery is limited to orders up to ₹${Math.round(codMaxLimit / 100)}.`,
-      };
-    }
-
     const isIntraState = stateCode === '33';
     let totalCgst = 0;
     let totalSgst = 0;
@@ -231,18 +246,19 @@ export async function createOrderAction(raw: CreateOrderInput) {
 
     const order = await OrderModel.create({
       order_number: orderNumber,
-      user_id: user.id,
-      status: paymentMethod === 'cod' ? 'processing' : 'pending',
-      payment_status: paymentMethod === 'cod' ? 'pending' : 'pending',
-      payment_method: paymentMethod,
+      user_id: user ? user.id : undefined,
+      guest_email: !user && guestEmail ? guestEmail.toLowerCase().trim() : undefined,
+      status: 'pending',
+      payment_status: 'pending',
+      payment_method: 'razorpay',
       subtotal: subtotalPaise,
       discount_total: couponDiscountPaise,
       tax_total: totalCgst + totalSgst + totalIgst,
       shipping_total: shippingPaise,
       total: totals.totalPaise,
       shipping_address: shippingAddress,
-      billing_address: shippingAddress,
-      items: orderItems,
+      billing_address: billingAddress || shippingAddress,
+      notes: companyGst ? `GST Invoice Request: ${companyGst.companyName} (GSTIN: ${companyGst.gstin})` : undefined,
     });
 
     return {

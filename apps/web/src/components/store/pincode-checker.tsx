@@ -89,11 +89,9 @@ export function PincodeChecker() {
               </p>
               <div className="flex items-center gap-2 text-slate-600 pl-5">
                 <Truck size={14} className="text-[#844AFB]" />
-                <span>Estimated Delivery: <strong className="text-slate-900">{result.estimatedDays}</strong> via {result.courierName}</span>
+                <span>Dispatch within 10 days ({result.estimatedDays}) via {result.courierName}</span>
               </div>
-              {result.codAvailable && (
-                <p className="pl-5 text-[11px] text-slate-500">⚡ Cash on Delivery Available</p>
-              )}
+              <p className="pl-5 text-[11px] text-emerald-600 font-medium">⚡ 100% Secure Online Payment via Razorpay (UPI, Cards, NetBanking)</p>
             </div>
           ) : (
             <p className="flex items-center gap-1.5 font-semibold text-rose-600">

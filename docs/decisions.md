@@ -92,13 +92,13 @@
 **Date:** 2026-09-20  
 **Status:** Accepted (Razorpay API keys are a launch blocker — placeholder in .env.example)
 
-**Decision:** Razorpay handles all online payments. COD (Cash on Delivery) supported for orders ≤ ₹5,000.
+**Decision:** Razorpay handles all payments. Online-payment-only architecture (Cash on Delivery is not supported on TTRC Store to eliminate return-to-origin fraud, bogus orders, and logistics overhead).
 
 **Rationale:**
 - Razorpay is the standard for Indian e-commerce.
-- Native INR support, UPI, cards, netbanking, EMI.
-- Webhook-based payment confirmation (server-side verification).
-- COD limit (₹5,000) reduces fraud exposure.
+- Native INR support, UPI (Google Pay, PhonePe, Paytm, BHIM), cards, netbanking, EMI.
+- Server-authoritative webhook and cryptographic signature verification.
+- Eliminating COD eliminates RTO losses, courier return fees, and unverified customer address failure rates.
 
 ---
 

@@ -16,15 +16,21 @@ export default function ShippingPolicyPage() {
         </div>
 
         <div className="space-y-4 text-xs text-slate-600">
-          <p>Orders are dispatched within 24–48 hours of confirmation from our dispatch warehouse in Coimbatore, Tamil Nadu.</p>
+          <div className="p-4 rounded-xl bg-purple-50/50 border border-purple-200">
+            <h2 className="font-bold text-slate-900 text-sm mb-1">Dispatch Within 10 Days Guarantee</h2>
+            <p>Every robotics kit, motor, and electronic module undergoes strict engineering inspection and functional bench-testing prior to shipment. All orders are carefully packed with anti-static protection and <strong>dispatched within 10 days</strong> of verified order placement from our central warehouse in Coimbatore, Tamil Nadu.</p>
+          </div>
 
-          <h2 className="font-bold text-slate-900 text-sm">Delivery Timelines</h2>
+          <h2 className="font-bold text-slate-900 text-sm">Payment Methods Policy (Online Payment Only)</h2>
+          <p>TTRC Store operates exclusively with 100% secure online payments processed through Razorpay Standard Checkout (UPI, Google Pay, PhonePe, Paytm, all Credit/Debit Cards, NetBanking, and EMI). Cash on Delivery (COD) is not offered or supported on any order.</p>
+
+          <h2 className="font-bold text-slate-900 text-sm">Pan-India Delivery Timelines Post-Dispatch</h2>
           <ul className="list-disc pl-5 space-y-1">
-            <li><strong>Tamil Nadu & South India:</strong> 2–4 Business Days</li>
-            <li><strong>Rest of India:</strong> 4–7 Business Days</li>
+            <li><strong>Tamil Nadu &amp; South India:</strong> 2–4 Business Days delivery transit post-dispatch</li>
+            <li><strong>Rest of India:</strong> 4–7 Business Days delivery transit post-dispatch</li>
           </ul>
 
-          <h2 className="font-bold text-slate-900 text-sm">Restricted Goods (Lithium Batteries & Drone Frames)</h2>
+          <h2 className="font-bold text-slate-900 text-sm">Restricted Goods (Lithium Batteries &amp; Drone Frames)</h2>
           <p>LiPo and Li-ion batteries are classified as surface-only transport goods per Indian courier regulations. Orders containing high-capacity batteries will be routed exclusively via surface shipping.</p>
         </div>
       </div>

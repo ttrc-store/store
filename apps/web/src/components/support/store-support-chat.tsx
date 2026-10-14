@@ -18,7 +18,7 @@ interface Message {
 const SUGGESTION_CHIPS = [
   'Which motor driver fits N20 motors?',
   'What is the free shipping threshold?',
-  'Is Cash on Delivery available?',
+  'What are the payment methods and dispatch timeline?',
   'Tell me about the KL-F2 solenoid valve',
 ];
 

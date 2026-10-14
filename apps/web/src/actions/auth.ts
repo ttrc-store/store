@@ -85,6 +85,16 @@ export async function loginAction(formData: FormData) {
 
     const isAdmin = user.role === 'admin' || user.role === 'staff';
     const userId = user._id.toString();
+    const rawRedirect = formData.get('redirectTo') as string;
+    const redirectTo =
+      rawRedirect && rawRedirect.startsWith('/') && !rawRedirect.startsWith('//')
+        ? rawRedirect
+        : null;
+
+    if (redirectTo) {
+      redirect(redirectTo);
+    }
+
     redirect(isAdmin ? '/admin' : `/${userId}`);
   } catch (err: any) {
     if (err?.digest?.startsWith('NEXT_REDIRECT') || err?.message === 'NEXT_REDIRECT') {

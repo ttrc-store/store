@@ -58,6 +58,8 @@ export interface StoreProductItem {
   warranty?: string;
   showManufacturerPublicly: boolean;
   attributes?: Record<string, any>;
+  metaTitle?: string;
+  metaDescription?: string;
   manufacturer?: {
     id: string;
     name: string;
@@ -131,6 +133,8 @@ function mapProductDoc(p: any, manufacturerDoc?: any): StoreProductItem {
     warranty: p.warranty,
     showManufacturerPublicly: showManufacturer,
     attributes: p.attributes || {},
+    metaTitle: p.meta_title,
+    metaDescription: p.meta_description,
     manufacturer:
       showManufacturer && manufacturerDoc
         ? {
