@@ -138,8 +138,8 @@ export async function createOrderAction(raw: CreateOrderInput) {
     }
 
     const subtotalPaise = validatedItems.reduce((s, i) => s + i.lineTotal, 0);
-    const isFreeShipping = subtotalPaise >= freeShippingThreshold;
-    const shippingPaise = isFreeShipping ? 0 : baseShipping;
+    // Standard shipping is always applied across all orders (no free shipping)
+    const shippingPaise = baseShipping || 5900;
 
     let couponDiscountPaise = 0;
     let appliedCouponDoc: any = null;
@@ -170,28 +170,25 @@ export async function createOrderAction(raw: CreateOrderInput) {
       }
     }
 
-    const totals = computeOrderTotals({
-      itemSubtotalPaise: subtotalPaise,
-      shippingPaise,
-      codChargePaise: 0,
-      couponDiscountPaise,
-    });
-
     const isIntraState = stateCode === '33';
     let totalCgst = 0;
     let totalSgst = 0;
     let totalIgst = 0;
 
     for (const item of validatedItems) {
-      const gst = calculateGstFromInclusive(
-        item.lineTotal,
-        (item.product.gst_percent || 18) as 0 | 5 | 12 | 18 | 28,
-        !isIntraState
-      );
-      totalCgst += gst.cgstPaise;
-      totalSgst += gst.sgstPaise;
-      totalIgst += gst.igstPaise;
+      const gstPercent = Number(item.product.gst_percent || 18);
+      const lineTax = Math.round((item.lineTotal * gstPercent) / 100);
+      if (isIntraState) {
+        const half = Math.round(lineTax / 2);
+        totalCgst += half;
+        totalSgst += (lineTax - half);
+      } else {
+        totalIgst += lineTax;
+      }
     }
+
+    const totalTaxPaise = totalCgst + totalSgst + totalIgst;
+    const finalOrderTotalPaise = Math.max(0, subtotalPaise + shippingPaise + totalTaxPaise - couponDiscountPaise);
 
     // Atomic stock deduction to prevent race condition / overselling
     const decrementedItems: Array<{ productId: any; quantity: number }> = [];
@@ -253,9 +250,9 @@ export async function createOrderAction(raw: CreateOrderInput) {
       payment_method: 'razorpay',
       subtotal: subtotalPaise,
       discount_total: couponDiscountPaise,
-      tax_total: totalCgst + totalSgst + totalIgst,
+      tax_total: totalTaxPaise,
       shipping_total: shippingPaise,
-      total: totals.totalPaise,
+      total: finalOrderTotalPaise,
       shipping_address: shippingAddress,
       billing_address: billingAddress || shippingAddress,
       notes: companyGst ? `GST Invoice Request: ${companyGst.companyName} (GSTIN: ${companyGst.gstin})` : undefined,
@@ -266,7 +263,7 @@ export async function createOrderAction(raw: CreateOrderInput) {
       orderNumber,
       orderId: order._id.toString(),
       paymentMethod,
-      amountPaise: totals.totalPaise,
+      amountPaise: finalOrderTotalPaise,
     };
   } catch (err: any) {
     console.error('[Create Order Error]', err);

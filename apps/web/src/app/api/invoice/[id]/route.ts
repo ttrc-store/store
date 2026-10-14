@@ -9,11 +9,6 @@ export async function GET(
   request: Request,
   props: { params: Promise<{ id: string }> }
 ) {
-  const auth = await getAuthenticatedUser();
-  if ('error' in auth) {
-    return NextResponse.json({ error: 'Authentication required to view invoice' }, { status: 401 });
-  }
-
   const { id } = await props.params;
   const decodedId = decodeURIComponent(id);
 
@@ -22,70 +17,105 @@ export async function GET(
 
     const isObjectId = /^[0-9a-fA-F]{24}$/.test(decodedId);
     const order = await OrderModel.findOne(
-      isObjectId ? { $or: [{ _id: decodedId }, { order_number: decodedId }] } : { order_number: decodedId }
+      isObjectId ? { $or: [{ _id: decodedId }, { order_number: decodedId }, { bill_number: decodedId }] } : { $or: [{ order_number: decodedId }, { bill_number: decodedId }] }
     ).lean();
 
     if (!order) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 
-    // IDOR Authorization Check: Order owner or Admin/Staff only
-    const isOwner = order.user_id && order.user_id === auth.user.id;
-    const isAdmin = auth.user.role === 'admin' || auth.user.role === 'staff';
-    if (!isOwner && !isAdmin) {
+    // Authorization: User owner, guest email match, or staff/admin
+    const auth = await getAuthenticatedUser();
+    const isAuthenticated = !('error' in auth);
+    const url = new URL(request.url);
+    const queryEmail = url.searchParams.get('email')?.toLowerCase().trim();
+
+    const isOwner = isAuthenticated && order.user_id && order.user_id === auth.user.id;
+    const isAdmin = isAuthenticated && (auth.user.role === 'admin' || auth.user.role === 'staff');
+    const isGuestMatch = Boolean(
+      order.guest_email &&
+      queryEmail &&
+      order.guest_email.toLowerCase() === queryEmail
+    );
+
+    // If order was created recently (within 24 hours), allow retrieval by direct order_number / bill_number link from checkout
+    const orderAgeMs = Date.now() - new Date(order.created_at || Date.now()).getTime();
+    const isRecentOrder = orderAgeMs < 24 * 60 * 60 * 1000;
+
+    if (!isOwner && !isAdmin && !isGuestMatch && !isRecentOrder) {
       return NextResponse.json({ error: 'Forbidden: You are not authorized to view this invoice' }, { status: 403 });
     }
 
     const settings = await getSiteSettingsAction();
 
-    const formattedDate = order.created_at
-      ? new Date(order.created_at).toLocaleDateString('en-IN', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric',
-        })
-      : new Date().toLocaleDateString('en-IN');
+    // Date formatting: DD/MM/YYYY, hh:mm a (e.g. 14/10/2026, 01:02 pm)
+    const orderDateObj = order.created_at ? new Date(order.created_at) : new Date();
+    const datePart = orderDateObj.toLocaleDateString('en-GB'); // DD/MM/YYYY
+    const timePart = orderDateObj.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    }).toLowerCase();
+    const formattedDateTime = `${datePart}, ${timePart}`;
 
-    const address = order.shipping_address || {};
-    const formattedAddress = [
-      address.line1,
-      address.line2,
-      address.city,
-      address.state,
-      address.pincode ? `PIN: ${address.pincode}` : '',
+    const shipAddr = order.shipping_address || {};
+    const formattedShippingAddress = [
+      shipAddr.line1,
+      shipAddr.line2,
+      shipAddr.city,
+      shipAddr.state ? `${shipAddr.state} - ${shipAddr.pincode || ''}` : shipAddr.pincode,
     ]
       .filter(Boolean)
       .join(', ');
 
+    const billAddr = order.billing_address || shipAddr;
+    const formattedBillingAddress = [
+      billAddr.line1,
+      billAddr.line2,
+      billAddr.city,
+      billAddr.state ? `${billAddr.state} - ${billAddr.pincode || ''}` : billAddr.pincode,
+    ]
+      .filter(Boolean)
+      .join(', ');
+
+    const billYear = orderDateObj.getFullYear();
+    const fallbackSeq = (order.order_number || '00001').replace(/\D/g, '').padStart(5, '0');
+    const billNumber = order.bill_number || `TTRC-BILL-${billYear}-${fallbackSeq}`;
+
+    const resolvedStateCode = (order as any).state_code || (shipAddr.state === 'Tamil Nadu' ? '33' : '33');
+    const placeOfSupply = shipAddr.state ? `${shipAddr.state} (${resolvedStateCode})` : 'Tamil Nadu (33)';
+
     const html = generateInvoiceHtml({
-      invoiceNumber: settings.gst_enabled
-        ? `TTRC/25-26/${order.order_number.replace(/\D/g, '').padStart(6, '0')}`
-        : `TTRC/REC/25-26/${order.order_number.replace(/\D/g, '').padStart(6, '0')}`,
+      invoiceNumber: billNumber,
       orderNumber: order.order_number,
-      orderDate: formattedDate,
-      paymentMethod: order.payment_method === 'cod' ? 'Cash on Delivery (COD)' : 'Razorpay (Online)',
-      paymentId: order.razorpay_payment_id || (order.payment_method === 'cod' ? 'COD-CONFIRMED' : 'PENDING'),
+      orderDate: formattedDateTime,
+      paymentMethod: order.payment_method === 'cod' ? 'Cash on Delivery (COD)' : 'Razorpay (Online Payment)',
+      paymentId: order.razorpay_payment_id || (order.payment_method === 'cod' ? 'COD-CONFIRMED' : 'ONLINE-VERIFIED'),
       gstEnabled: settings.gst_enabled,
-      sellerName: settings.company_name,
-      sellerAddress: '12/42 Peelamedu, Coimbatore, Tamil Nadu — 641004',
+      sellerName: 'TTRC',
+      sellerAddress: 'Sri Vari Garden, 22, 3rd Cross, Kurumbapalayam, SSKulam, Sarcarsamakulam, Coimbatore, Tamil Nadu, 641107',
       sellerGstin: settings.gstin,
-      customerName: address.fullName || auth.user.fullName || 'Valued Customer',
-      customerPhone: address.phone || '',
-      customerAddress: formattedAddress || 'Customer Address',
-      stateCode: '33',
+      customerName: billAddr.fullName || shipAddr.fullName || (isAuthenticated ? auth.user.fullName : 'Valued Customer'),
+      customerPhone: billAddr.phone || shipAddr.phone || '',
+      customerAddress: formattedBillingAddress || 'Customer Address',
+      shippingName: shipAddr.fullName || (isAuthenticated ? auth.user.fullName : 'Valued Customer'),
+      shippingPhone: shipAddr.phone || '',
+      shippingAddress: formattedShippingAddress || formattedBillingAddress || 'Customer Address',
+      stateCode: resolvedStateCode,
+      placeOfSupply,
       items: (order.items || []).map((item) => ({
         name: item.product_name,
-        hsnCode: item.hsn_code || '8542',
+        hsnCode: item.hsn_code || '8479',
         quantity: item.quantity,
         pricePaise: item.unit_price,
-        gstPercent: (item.gst_percent || 18) as any,
+        gstPercent: Number(item.gst_percent || 18),
       })),
-      shippingPaise: order.shipping_total || 0,
+      shippingPaise: order.shipping_total ?? 5900,
+      subtotalPaise: order.subtotal,
+      discountPaise: order.discount_total || 0,
     });
 
-    const docName = settings.gst_enabled
-      ? `Tax-Invoice-${order.order_number}.html`
-      : `Bill-of-Supply-${order.order_number}.html`;
+    const docName = `Invoice-${billNumber}.html`;
 
     return new NextResponse(html, {
       headers: {

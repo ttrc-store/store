@@ -348,16 +348,35 @@ export default function CheckoutPage() {
     setCouponMessage(null);
   };
 
-  // Calculate dynamic shipping cost
-  const isEligibleForFreeShipping = totals.subtotalPaise >= freeShippingThresholdPaise;
-  const standardShippingCost = isEligibleForFreeShipping ? 0 : baseShippingPaise;
-  const expressShippingCost = isEligibleForFreeShipping ? 4900 : 9900;
+  // Calculate dynamic shipping cost (standard delivery applied across all orders, no free shipping)
+  const isEligibleForFreeShipping = false;
+  const standardShippingCost = baseShippingPaise || 5900;
+  const expressShippingCost = 9900;
   const selectedShippingPaise = shippingMethod === 'express' ? expressShippingCost : standardShippingCost;
 
-  // Final Payable Calculation
+  // Calculate GST added to total bill
+  const isIntraState = stateName === 'Tamil Nadu';
+  let totalCgstPaise = 0;
+  let totalSgstPaise = 0;
+  let totalIgstPaise = 0;
+
+  for (const item of items) {
+    const gstPercent = Number(item.gstPercent || 18);
+    const lineTax = Math.round((item.pricePaise * item.quantity * gstPercent) / 100);
+    if (isIntraState) {
+      const half = Math.round(lineTax / 2);
+      totalCgstPaise += half;
+      totalSgstPaise += (lineTax - half);
+    } else {
+      totalIgstPaise += lineTax;
+    }
+  }
+  const totalTaxPaise = totalCgstPaise + totalSgstPaise + totalIgstPaise;
+
+  // Final Payable Calculation: Subtotal + Shipping + GST - Discount
   const finalPayablePaise = Math.max(
     0,
-    totals.subtotalPaise - (discountPaise || 0) + selectedShippingPaise
+    totals.subtotalPaise - (discountPaise || 0) + selectedShippingPaise + totalTaxPaise
   );
 
   // Place Order Handler
@@ -1224,11 +1243,6 @@ export default function CheckoutPage() {
                           <div>
                             <div className="flex items-center gap-2">
                               <p className="text-sm font-bold text-slate-900">Standard Surface Delivery</p>
-                              {isEligibleForFreeShipping && (
-                                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded-full">
-                                  FREE DELIVERY
-                                </span>
-                              )}
                             </div>
                             <p className="text-xs text-slate-500 mt-0.5">
                               Estimated Delivery: Dispatch within 10 days ({pincodeResult?.estimatedDays || '2 – 4 Business Days transit across India'})
@@ -1241,13 +1255,11 @@ export default function CheckoutPage() {
                         </div>
                         <div className="text-right">
                           <p className="font-heading font-extrabold text-sm text-slate-900">
-                            {isEligibleForFreeShipping ? 'FREE' : `₹${(baseShippingPaise / 100).toFixed(0)}`}
+                            ₹{(standardShippingCost / 100).toFixed(0)}
                           </p>
-                          {!isEligibleForFreeShipping && (
-                            <p className="text-[10px] text-slate-400 mt-0.5">
-                              Free on ₹{Math.round(freeShippingThresholdPaise / 100)}+
-                            </p>
-                          )}
+                          <p className="text-[10px] text-slate-400 mt-0.5">
+                            Standard Dispatch
+                          </p>
                         </div>
                       </label>
 
@@ -1399,7 +1411,7 @@ export default function CheckoutPage() {
                             {shippingMethod === 'express' ? 'Express Priority Air (1–2 Days)' : 'Standard Surface Delivery (2–4 Days)'}
                           </p>
                           <p className="text-slate-500 mt-1">
-                            {selectedShippingPaise === 0 ? 'Free Delivery Applied' : `Shipping fee: ₹${(selectedShippingPaise / 100).toFixed(2)}`}
+                            Shipping fee: ₹{(selectedShippingPaise / 100).toFixed(2)}
                           </p>
                         </div>
                       </div>
@@ -1684,22 +1696,25 @@ export default function CheckoutPage() {
                   )}
 
                   <div className="flex justify-between text-slate-600">
-                    <span>Shipping ({shippingMethod === 'express' ? 'Express Air' : 'Standard'})</span>
+                    <span>Shipping ({shippingMethod === 'express' ? 'Express Air' : 'Standard Delivery'})</span>
                     <span className="font-semibold text-slate-800">
-                      {selectedShippingPaise === 0 ? (
-                        <span className="text-emerald-600 font-bold">FREE</span>
-                      ) : (
-                        `₹${(selectedShippingPaise / 100).toFixed(2)}`
-                      )}
+                      ₹{(selectedShippingPaise / 100).toFixed(2)}
                     </span>
                   </div>
 
-                  <div className="flex justify-between text-slate-500 text-[11px]">
-                    <span>GST (18% inclusive)</span>
+                  <div className="flex justify-between text-slate-600">
+                    <span>GST ({stateName === 'Tamil Nadu' ? 'CGST + SGST' : 'IGST'})</span>
+                    <span className="font-semibold text-slate-800">
+                      + ₹{(totalTaxPaise / 100).toFixed(2)}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between text-slate-500 text-[11px] pl-2 border-l-2 border-purple-200">
+                    <span>{stateName === 'Tamil Nadu' ? 'CGST (9%) + SGST (9%)' : 'IGST (18%)'}</span>
                     <span>
                       {stateName === 'Tamil Nadu'
-                        ? `CGST: ₹${((totals.gstBreakdown.cgstPaise || 0) / 100).toFixed(2)} | SGST: ₹${((totals.gstBreakdown.sgstPaise || 0) / 100).toFixed(2)}`
-                        : `IGST: ₹${((totals.gstBreakdown.igstPaise || 0) / 100).toFixed(2)}`}
+                        ? `CGST: ₹${(totalCgstPaise / 100).toFixed(2)} | SGST: ₹${(totalSgstPaise / 100).toFixed(2)}`
+                        : `IGST: ₹${(totalTaxPaise / 100).toFixed(2)}`}
                     </span>
                   </div>
 
@@ -1713,7 +1728,7 @@ export default function CheckoutPage() {
                 <div className="pt-3 border-t border-slate-100 space-y-2 text-[11px] text-slate-500">
                   <div className="flex items-center gap-2">
                     <CheckCircle2 size={14} className="text-emerald-600 flex-shrink-0" />
-                    <span>Free shipping on orders above ₹{Math.round(freeShippingThresholdPaise / 100)}</span>
+                    <span>Fast dispatch &amp; pan-India courier delivery</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <ShieldCheck size={14} className="text-[#844AFB] flex-shrink-0" />
@@ -1721,7 +1736,7 @@ export default function CheckoutPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Lock size={14} className="text-slate-600 flex-shrink-0" />
-                    <span>Direct secure processing via Razorpay &amp; verified COD</span>
+                    <span>Direct secure processing via Razorpay (UPI, Cards &amp; NetBanking)</span>
                   </div>
                 </div>
               </div>

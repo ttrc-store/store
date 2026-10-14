@@ -130,7 +130,7 @@ export default function FullCartPage() {
                 ) : (
                   <form onSubmit={handleApplyCoupon} className="flex gap-2">
                     <Input
-                      placeholder="Try TTRC10 or FREESHIP"
+                      placeholder="Try TTRC10"
                       value={inputCoupon}
                       onChange={(e) => setInputCoupon(e.target.value)}
                       className="bg-white border-slate-200 text-xs h-10 uppercase focus:border-purple-600 focus:ring-purple-600"
@@ -180,8 +180,8 @@ export default function FullCartPage() {
                   </div>
 
                   <div className="flex justify-between">
-                    <span>Shipping Charges</span>
-                    <span>{totals.isFreeShipping ? <strong className="text-purple-700">FREE</strong> : `₹${(totals.shippingPaise / 100).toFixed(2)}`}</span>
+                    <span>Shipping Charges (Standard)</span>
+                    <span>₹{(totals.shippingPaise / 100).toFixed(2)}</span>
                   </div>
 
                   <div className="flex justify-between text-lg font-extrabold text-slate-900 pt-3 border-t border-slate-100">

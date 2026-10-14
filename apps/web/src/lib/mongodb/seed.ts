@@ -17,15 +17,16 @@ const INITIAL_CATEGORIES = [
 const DEFAULT_SETTINGS = [
   { key: 'gst_enabled', value: false },
   { key: 'razorpay_enabled', value: false },
-  { key: 'store_name', value: 'Tamizh Tech Robotics & Components Store' },
+  { key: 'store_name', value: 'TTRC Store' },
+  { key: 'company_name', value: 'TTRC' },
   { key: 'gstin', value: '' },
   { key: 'support_email', value: 'support@ttrc.store' },
   { key: 'support_phone', value: '+91 7904902978' },
-  { key: 'store_address', value: 'Tamizh Tech, Tamil Nadu, India' },
-  { key: 'cod_limit_paise', value: 500000 }, // ₹5000 limit
-  { key: 'cod_fee_paise', value: 4900 }, // ₹49 COD fee
-  { key: 'free_shipping_threshold_paise', value: 99900 }, // ₹999 free shipping
-  { key: 'standard_shipping_fee_paise', value: 5000 }, // ₹50 shipping fee
+  { key: 'store_address', value: 'Sri Vari Garden, 22, 3rd Cross, Kurumbapalayam, SSKulam, Sarcarsamakulam, Coimbatore, Tamil Nadu, 641107' },
+  { key: 'cod_limit_paise', value: 500000 },
+  { key: 'cod_fee_paise', value: 4900 },
+  { key: 'free_shipping_threshold_paise', value: 999999999 },
+  { key: 'standard_shipping_fee_paise', value: 5900 },
 ];
 
 let seeded = false;

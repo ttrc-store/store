@@ -115,9 +115,23 @@ function CheckoutSuccessContent() {
       </div>
 
       {/* Action Buttons */}
-      <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+      <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+        <a
+          href={`/api/invoice/${encodeURIComponent(orderNumber)}`}
+          target="_blank"
+          rel="noreferrer"
+          className="w-full sm:w-auto"
+        >
+          <Button
+            variant="outline"
+            className="w-full sm:w-auto h-11 px-6 border-purple-300 bg-purple-50 hover:bg-purple-100 text-[#844AFB] font-bold text-xs rounded-xl flex items-center justify-center gap-2"
+          >
+            <Package size={15} />
+            <span>View / Print Tax Invoice</span>
+          </Button>
+        </a>
         <Link href="/" className="w-full sm:w-auto">
-          <Button className="w-full sm:w-auto h-11 px-8 bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold text-xs rounded-xl shadow-md shadow-[#844AFB]/20 flex items-center justify-center gap-2">
+          <Button className="w-full sm:w-auto h-11 px-7 bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold text-xs rounded-xl shadow-md shadow-[#844AFB]/20 flex items-center justify-center gap-2">
             <span>Continue Shopping</span>
             <ArrowRight size={15} />
           </Button>
@@ -127,8 +141,7 @@ function CheckoutSuccessContent() {
             variant="outline"
             className="w-full sm:w-auto h-11 px-6 border-slate-300 hover:border-[#844AFB] hover:bg-[#EEE8FA] text-slate-800 font-bold text-xs rounded-xl"
           >
-            <Package size={15} className="mr-1.5" />
-            <span>View All My Orders</span>
+            <span>My Orders</span>
           </Button>
         </Link>
       </div>

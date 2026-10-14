@@ -37,3 +37,24 @@ export async function getNextSequenceId(entity: 'CUS' | 'ORD' | 'INV' | 'PRD' | 
   const paddedNumber = String(counter.seq).padStart(5, '0');
   return `TTRC-${cleanEntity}-${paddedNumber}`;
 }
+
+/**
+ * Generates an official sequential tax bill/invoice number after payment completion:
+ * Format: TTRC-BILL-{YEAR}-{00001} (e.g. TTRC-BILL-2026-00001)
+ * Sequence starts at 00001 and rolls per calendar year.
+ */
+export async function generateBillNumber(): Promise<string> {
+  await connectToDatabase();
+  const year = new Date().getFullYear();
+  const counterKey = `BILL-${year}`;
+
+  const counter = await CounterModel.findByIdAndUpdate(
+    counterKey,
+    { $inc: { seq: 1 } },
+    { new: true, upsert: true }
+  );
+
+  const paddedNumber = String(counter.seq).padStart(5, '0');
+  return `TTRC-BILL-${year}-${paddedNumber}`;
+}
+

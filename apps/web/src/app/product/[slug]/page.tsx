@@ -33,6 +33,7 @@ import { ProductCard } from '@/components/store/product-card';
 import { PincodeChecker } from '@/components/store/pincode-checker';
 import { ProductOrderBox } from '@/components/store/product-order-box';
 import { ProductShareButton } from '@/components/store/product-share-button';
+import { ProductGallery } from '@/components/store/product-gallery';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -200,44 +201,15 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
 
         {/* Top Product Hero Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 mb-16 items-start">
-          {/* Gallery Column (5 cols) — Standard 16:9 Landscape Canvas */}
-          <div className="lg:col-span-5 space-y-4">
-            <div className="relative aspect-[16/9] w-full rounded-2xl bg-[#FDFDFD] border border-slate-200 overflow-hidden flex items-center justify-center group shadow-xs">
-              <Image
-                src={product.imageUrls?.[0] || '/brand/ttrc-logo.png'}
-                alt={product.name}
-                fill
-                priority
-                className="object-contain p-4 group-hover:scale-105 transition-transform duration-300"
-              />
-              <span className="absolute top-4 left-4 z-10">
-                <Badge variant={product.type === 'kit' ? 'purple' : 'default'}>
-                  {product.type === 'kit' ? 'Complete Kit' : product.type === 'spare_part' ? 'Spare Part' : 'Standard Component'}
-                </Badge>
-              </span>
-              <div className="absolute top-4 right-4 z-10">
-                <ProductShareButton
-                  slug={slug}
-                  name={product.name}
-                  pricePaise={product.pricePaise}
-                  variant="card"
-                />
-              </div>
-            </div>
-
-            {/* Thumbnail Row */}
-            {product.imageUrls && product.imageUrls.length > 1 && (
-              <div className="flex gap-3 overflow-x-auto pb-1">
-                {product.imageUrls.map((img, idx) => (
-                  <div
-                    key={idx}
-                    className="relative w-20 h-20 rounded-xl bg-purple-50/40 border border-purple-100 overflow-hidden cursor-pointer hover:border-[#844AFB] transition-colors flex-shrink-0"
-                  >
-                    <Image src={img} alt="" fill className="object-contain p-2" />
-                  </div>
-                ))}
-              </div>
-            )}
+          {/* Gallery Column (5 cols) */}
+          <div className="lg:col-span-5">
+            <ProductGallery
+              images={product.imageUrls || []}
+              productName={product.name}
+              productType={product.type as any}
+              slug={slug}
+              pricePaise={product.pricePaise}
+            />
           </div>
 
           {/* Product Details & Ordering Column (7 cols) */}

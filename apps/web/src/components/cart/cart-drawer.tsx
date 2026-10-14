@@ -115,8 +115,16 @@ export function CartDrawer() {
           <div className="p-5 bg-slate-50 border-t border-slate-200 space-y-4">
             <div className="space-y-1.5 text-xs">
               <div className="flex justify-between text-slate-500">
-                <span>Subtotal (Inclusive of GST)</span>
+                <span>Subtotal</span>
                 <PriceTag pricePaise={totals.subtotalPaise} size="sm" />
+              </div>
+              <div className="flex justify-between text-slate-500">
+                <span>Standard Delivery</span>
+                <span>₹{(totals.shippingPaise / 100).toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-slate-500">
+                <span>GST (Taxes)</span>
+                <span>₹{((totals.gstBreakdown?.gstAmountPaise || 0) / 100).toFixed(2)}</span>
               </div>
               {totals.discountPaise > 0 && (
                 <div className="flex justify-between text-[#844AFB] font-semibold">
@@ -124,10 +132,6 @@ export function CartDrawer() {
                   <span>- ₹{(totals.discountPaise / 100).toFixed(2)}</span>
                 </div>
               )}
-              <div className="flex justify-between text-slate-500">
-                <span>Estimated Shipping</span>
-                <span>{totals.isFreeShipping ? 'FREE' : `₹${(totals.shippingPaise / 100).toFixed(2)}`}</span>
-              </div>
               <div className="flex justify-between text-base font-extrabold text-slate-900 pt-2 border-t border-slate-200">
                 <span>Total Amount</span>
                 <PriceTag pricePaise={totals.totalPaise} size="default" />

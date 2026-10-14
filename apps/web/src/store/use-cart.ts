@@ -195,10 +195,6 @@ export const useCartStore = create<CartStore>()(
           set({ couponCode: 'TTRC10', discountPaise: discount });
           return { success: true, message: 'Coupon TTRC10 applied! 10% discount added.' };
         }
-        if (clean === 'FREESHIP') {
-          set({ couponCode: 'FREESHIP', discountPaise: 0 });
-          return { success: true, message: 'Free Shipping coupon applied!' };
-        }
         return { success: false, message: 'Invalid or expired coupon code.' };
       },
 
@@ -209,21 +205,45 @@ export const useCartStore = create<CartStore>()(
       setStateCode: (code) => set({ stateCode: code }),
 
       getTotals: () => {
-        const { items, discountPaise } = get();
+        const { items, discountPaise, stateCode } = get();
         const subtotalPaise = items.reduce((sum, i) => sum + i.pricePaise * i.quantity, 0);
-        const isFreeShipping = subtotalPaise >= 99900;
-        const shippingPaise = isFreeShipping ? 0 : 5900;
-        const totals = computeOrderTotals({
-          itemSubtotalPaise: subtotalPaise,
-          shippingPaise,
-          codChargePaise: 0,
-          couponDiscountPaise: discountPaise,
-        });
-        const gstBreakdown = calculateGstFromInclusive(subtotalPaise, 18, false);
+        // Standard delivery is charged on all orders (no free shipping)
+        const shippingPaise = 5900;
+
+        const isIntraState = !stateCode || stateCode === '33';
+        let totalCgst = 0;
+        let totalSgst = 0;
+        let totalIgst = 0;
+
+        for (const item of items) {
+          const gstPercent = Number(item.gstPercent || 18);
+          const lineTax = Math.round((item.pricePaise * item.quantity * gstPercent) / 100);
+          if (isIntraState) {
+            const half = Math.round(lineTax / 2);
+            totalCgst += half;
+            totalSgst += (lineTax - half);
+          } else {
+            totalIgst += lineTax;
+          }
+        }
+        const totalTaxPaise = totalCgst + totalSgst + totalIgst;
+        const totalPaise = Math.max(0, subtotalPaise + shippingPaise + totalTaxPaise - discountPaise);
+
         return {
-          ...totals,
-          gstBreakdown,
-          isFreeShipping,
+          subtotalPaise,
+          discountPaise,
+          shippingPaise,
+          taxTotalPaise: totalTaxPaise,
+          totalPaise,
+          gstBreakdown: {
+            taxableAmountPaise: subtotalPaise,
+            gstAmountPaise: totalTaxPaise,
+            cgstPaise: totalCgst,
+            sgstPaise: totalSgst,
+            igstPaise: totalIgst,
+            totalWithGstPaise: subtotalPaise + totalTaxPaise,
+          },
+          isFreeShipping: false,
         };
       },
     }),

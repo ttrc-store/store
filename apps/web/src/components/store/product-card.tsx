@@ -62,8 +62,8 @@ export function ProductCard({
         className
       )}
     >
-      {/* Product Image Area — Standard 16:9 Landscape Canvas without Cropping */}
-      <div className="relative aspect-[16/9] w-full bg-slate-50/80 border-b border-slate-100 overflow-hidden flex items-center justify-center p-2.5">
+      {/* Product Image Area — Clean, High-Impact Product Frame */}
+      <div className="relative aspect-square w-full bg-[#FAF9FC] border-b border-slate-100 overflow-hidden flex items-center justify-center p-3 sm:p-4">
         {/* Badges */}
         <div className="absolute top-2.5 left-2.5 z-10 flex flex-col gap-1.5">
           {productType === 'kit' && (

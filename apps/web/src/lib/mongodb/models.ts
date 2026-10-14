@@ -288,6 +288,7 @@ export interface IOrder extends Document {
   razorpay_order_id?: string;
   razorpay_payment_id?: string;
   razorpay_signature?: string;
+  bill_number?: string;
   tracking_number?: string;
   tracking_url?: string;
   notes?: string;
@@ -338,6 +339,7 @@ const OrderSchema = new Schema<IOrder>(
     razorpay_order_id: { type: String },
     razorpay_payment_id: { type: String },
     razorpay_signature: { type: String },
+    bill_number: { type: String, unique: true, sparse: true },
     tracking_number: { type: String },
     tracking_url: { type: String },
     notes: { type: String },

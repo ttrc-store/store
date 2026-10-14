@@ -21,8 +21,8 @@ export async function getSiteSettingsAction(): Promise<SiteSettings> {
     razorpay_enabled: false,
     razorpay_key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID || '',
     gstin: 'Not yet registered — add GSTIN here when available',
-    company_name: 'Tamizh Tech',
-    free_shipping_threshold_paise: 99900,
+    company_name: 'TTRC',
+    free_shipping_threshold_paise: 999999999,
     base_shipping_paise: 5900,
     cod_max_limit_paise: 500000,
   };

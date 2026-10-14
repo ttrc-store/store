@@ -3,6 +3,7 @@ import { verifyRazorpaySignature, isRazorpayConfigured, getRazorpayClient } from
 import { connectToDatabase } from '@/lib/mongodb/client';
 import { OrderModel, AuditLogModel } from '@/lib/mongodb/models';
 import { getAuthenticatedUser } from '@/lib/auth-helpers';
+import { generateBillNumber } from '@/lib/id-generator';
 
 /**
  * POST /api/verify-payment
@@ -252,13 +253,16 @@ export async function POST(request: Request) {
       );
     }
 
-    // 9. Mark order as paid in MongoDB
+    // 9. Mark order as paid in MongoDB and allocate official Bill Number
     order.payment_status = 'paid';
     order.status = 'processing';
     order.payment_method = 'razorpay';
     order.razorpay_order_id = orderId;
     order.razorpay_payment_id = paymentId;
     order.razorpay_signature = signature;
+    if (!order.bill_number) {
+      order.bill_number = await generateBillNumber();
+    }
     await order.save();
 
     // 10. Record audit log

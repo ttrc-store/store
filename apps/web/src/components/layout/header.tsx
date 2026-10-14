@@ -85,7 +85,7 @@ export default function Header({ user }: HeaderProps) {
         <div className="flex items-center gap-5">
           <span className="flex items-center gap-1.5 font-medium">
             <Truck size={12} className="text-[#AF87F8]" />
-            Free delivery on orders above ₹999
+            Fast Dispatch &amp; Delivery Across India
           </span>
           <span className="text-purple-900">·</span>
           <span className="flex items-center gap-1.5 font-medium">

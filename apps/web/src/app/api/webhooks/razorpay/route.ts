@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { connectToDatabase } from '@/lib/mongodb/client';
 import { OrderModel, AuditLogModel } from '@/lib/mongodb/models';
+import { generateBillNumber } from '@/lib/id-generator';
 
 /**
  * Razorpay Webhook Handler.
@@ -90,8 +91,11 @@ export async function POST(request: Request) {
             order.payment_status = 'paid';
             order.status = 'processing';
             order.razorpay_payment_id = rpPaymentId;
+            if (!order.bill_number) {
+              order.bill_number = await generateBillNumber();
+            }
             await order.save();
-            console.log(`[Razorpay Webhook] ✅ Payment captured for order ${order.order_number}`);
+            console.log(`[Razorpay Webhook] ✅ Payment captured for order ${order.order_number} (Bill: ${order.bill_number})`);
           } else {
             console.warn(`[Razorpay Webhook] No matching order found for ${rpOrderId}`);
           }
