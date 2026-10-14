@@ -73,11 +73,16 @@ export function convertAmountToIndianWords(rupees: number): string {
 
 function getBase64Image(relativePath: string): string {
   try {
-    const fullPath = path.join(process.cwd(), relativePath);
-    if (fs.existsSync(fullPath)) {
-      const ext = path.extname(fullPath).replace('.', '') || 'png';
-      const base64 = fs.readFileSync(fullPath).toString('base64');
-      return `data:image/${ext};base64,${base64}`;
+    const candidatePaths = [
+      path.join(process.cwd(), 'apps', 'web', relativePath),
+      path.join(process.cwd(), relativePath),
+    ];
+    for (const fullPath of candidatePaths) {
+      if (fs.existsSync(/*turbopackIgnore: true*/ fullPath)) {
+        const ext = path.extname(fullPath).replace('.', '') || 'png';
+        const base64 = fs.readFileSync(/*turbopackIgnore: true*/ fullPath).toString('base64');
+        return `data:image/${ext};base64,${base64}`;
+      }
     }
   } catch {
     // ignore

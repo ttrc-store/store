@@ -14,12 +14,11 @@ test.describe('Cart & Checkout Flow', () => {
   test('order confirmation success page renders for valid order', async ({ page }) => {
     await page.goto('/checkout/success?orderNumber=TTRC%2F25-26%2F987654');
     await expect(page.getByRole('heading', { name: /thank you for your order/i })).toBeVisible();
-    await expect(page.getByText('TTRC/25-26/987654')).toBeVisible();
+    await expect(page.getByText('TTRC/25-26/987654').first()).toBeVisible();
   });
 
-  test('order tracking page renders timeline for order', async ({ page }) => {
+  test('order tracking page securely redirects unauthenticated user to login', async ({ page }) => {
     await page.goto('/orders/TTRC%2F25-26%2F987654');
-    await expect(page.getByText(/TTRC\/25-26\/987654/)).toBeVisible();
-    await expect(page.getByText(/shiprocket shipment tracking/i)).toBeVisible();
+    await expect(page).toHaveURL(/\/login/);
   });
 });

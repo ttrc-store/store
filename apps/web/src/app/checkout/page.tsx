@@ -96,6 +96,7 @@ export default function CheckoutPage() {
 
   // Step 1: Contact & Address State
   const [email, setEmail] = React.useState('');
+  const [fullName, setFullName] = React.useState('');
   const [phone, setPhone] = React.useState('');
   const [firstName, setFirstName] = React.useState('');
   const [lastName, setLastName] = React.useState('');

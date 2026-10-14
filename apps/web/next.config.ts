@@ -12,7 +12,7 @@ const nextConfig: NextConfig = {
   async headers() {
     const isProd = process.env.NODE_ENV === 'production';
     const securityHeaders = [
-      { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+      { key: 'X-Frame-Options', value: 'DENY' },
       { key: 'X-Content-Type-Options', value: 'nosniff' },
       ...(isProd
         ? [{ key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' }]
@@ -29,7 +29,7 @@ const nextConfig: NextConfig = {
           "img-src 'self' data: blob: https:",
           "connect-src 'self' https://api.razorpay.com https://*.razorpay.com https://lumberjack.razorpay.com https://va.vercel-scripts.com https://vitals.vercel-insights.com",
           "frame-src 'self' https://checkout.razorpay.com https://api.razorpay.com https://*.razorpay.com https://www.youtube-nocookie.com https://player.vimeo.com",
-          "frame-ancestors 'self'",
+          "frame-ancestors 'none'",
           "base-uri 'self'",
           "form-action 'self'",
         ].join('; '),

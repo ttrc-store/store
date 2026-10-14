@@ -42,6 +42,10 @@ export async function GET(
     const orderAgeMs = Date.now() - new Date(order.created_at || Date.now()).getTime();
     const isRecentOrder = orderAgeMs < 24 * 60 * 60 * 1000;
 
+    if (!isAuthenticated && !isGuestMatch && !isRecentOrder) {
+      return NextResponse.json({ error: 'Authentication required to view invoice' }, { status: 401 });
+    }
+
     if (!isOwner && !isAdmin && !isGuestMatch && !isRecentOrder) {
       return NextResponse.json({ error: 'Forbidden: You are not authorized to view this invoice' }, { status: 403 });
     }

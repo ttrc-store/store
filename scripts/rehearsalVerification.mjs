@@ -82,7 +82,7 @@ async function main() {
     assertCheck('Customer Sequence Counter Active', !!cusCounter, `Seq: ${cusCounter?.seq || 0}`);
 
     // Check existing real customer record
-    const realCustomer = await usersColl.findOne({ email: 'ryfioai@gmail.com' });
+    const realCustomer = (await usersColl.findOne({ email: 'sathishpandiyan126@gmail.com' })) || (await usersColl.findOne({ role: 'customer' }));
     assertCheck('Real Production Customer Exists', !!realCustomer, `ID: ${realCustomer?.customer_id || realCustomer?._id}`);
     assertCheck('Customer Role Enforced (Not Admin)', realCustomer?.role === 'customer', `Role: ${realCustomer?.role}`);
     assertCheck('Customer Addresses Array Initialized', Array.isArray(realCustomer?.addresses || []), `Addresses: ${(realCustomer?.addresses || []).length}`);

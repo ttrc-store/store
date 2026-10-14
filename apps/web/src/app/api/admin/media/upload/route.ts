@@ -3,6 +3,7 @@ import { requireAdmin } from '@/lib/auth-helpers';
 import { connectToDatabase } from '@/lib/mongodb/client';
 import { MediaModel } from '@/lib/mongodb/models';
 import { convertToLosslessWebP } from '@/lib/media/webp-converter';
+import crypto from 'crypto';
 import path from 'path';
 import fs from 'fs/promises';
 
@@ -58,6 +59,19 @@ export async function POST(req: NextRequest) {
     if (buffer.length === 0) {
       return NextResponse.json({ error: 'Uploaded file is empty.' }, { status: 400 });
     }
+
+    // Verify magic bytes (binary file signatures for PNG, JPEG, WebP)
+    const isJpeg = buffer[0] === 0xff && buffer[1] === 0xd8;
+    const isPng = buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47;
+    const isWebP = buffer.length > 12 && buffer.toString('ascii', 0, 4) === 'RIFF' && buffer.toString('ascii', 8, 12) === 'WEBP';
+    const isSvg = declaredType === 'image/svg+xml' || buffer.toString('utf8', 0, 100).includes('<svg');
+
+    if (!isJpeg && !isPng && !isWebP && !isSvg) {
+      return NextResponse.json({ error: 'Invalid file signature: file does not match expected image magic bytes.' }, { status: 400 });
+    }
+
+    // Generate randomized cryptographic filenames to prevent path traversal
+    const safeCryptoId = `ttrc-prd-${Date.now()}-${crypto.randomBytes(8).toString('hex')}`;
 
     // 16:9 Landscape Standard Canvas & Crop Options
     const fitMode = (formData.get('fitMode') as string) || 'original';
