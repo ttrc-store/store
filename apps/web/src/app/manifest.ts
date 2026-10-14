@@ -1,0 +1,37 @@
+import type { MetadataRoute } from 'next';
+
+export default function manifest(): MetadataRoute.Manifest {
+  return {
+    name: 'TTRC Store',
+    short_name: 'TTRC Store',
+    description: 'Official robotics, STEM kits, motors, and electronics store by Tamizh Tech',
+    start_url: '/',
+    scope: '/',
+    display: 'standalone',
+    background_color: '#FDFDFD',
+    theme_color: '#FDFDFD',
+    orientation: 'any',
+    lang: 'en-IN',
+    categories: ['shopping', 'education'],
+    icons: [
+      {
+        src: '/brand/pwa-icon-192.png',
+        sizes: '192x192',
+        type: 'image/png',
+        purpose: 'any',
+      },
+      {
+        src: '/brand/pwa-icon-512.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'any',
+      },
+      {
+        src: '/brand/pwa-maskable-512.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'maskable',
+      },
+    ],
+  };
+}

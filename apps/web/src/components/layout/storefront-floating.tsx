@@ -19,6 +19,10 @@ const StoreSupportChat = dynamic(
   () => import('@/components/support/store-support-chat').then((m) => ({ default: m.StoreSupportChat })),
   { ssr: false }
 );
+const PwaRegister = dynamic(
+  () => import('@/components/pwa/pwa-register').then((m) => ({ default: m.PwaRegister })),
+  { ssr: false }
+);
 
 export function StorefrontFloating() {
   return (
@@ -27,6 +31,7 @@ export function StorefrontFloating() {
       <CookieBanner />
       <CartDrawer />
       <StoreSupportChat />
+      <PwaRegister />
     </>
   );
 }

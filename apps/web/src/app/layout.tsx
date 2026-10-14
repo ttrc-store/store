@@ -30,7 +30,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const viewport: Viewport = {
-  themeColor: '#844AFB',
+  themeColor: '#FDFDFD',
+  colorScheme: 'light',
   width: 'device-width',
   initialScale: 1,
 };
@@ -113,6 +114,7 @@ export default function RootLayout({
   return (
     <html
       lang="en-IN"
+      style={{ backgroundColor: '#FDFDFD', colorScheme: 'light' }}
       className={`${plusJakartaSans.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable}`}
     >
       <body className="bg-background text-foreground antialiased min-h-screen flex flex-col">
