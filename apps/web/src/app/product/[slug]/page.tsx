@@ -32,6 +32,7 @@ import { RatingStars } from '@/components/store/rating-stars';
 import { ProductCard } from '@/components/store/product-card';
 import { PincodeChecker } from '@/components/store/pincode-checker';
 import { ProductOrderBox } from '@/components/store/product-order-box';
+import { ProductShareButton } from '@/components/store/product-share-button';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -71,15 +72,27 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
       title,
       description,
       url: canonicalUrl,
+      siteName: 'TTRC Store',
+      type: 'website',
       images: [
         {
           url: product.imageUrls?.[0]?.startsWith('http')
             ? product.imageUrls[0]
             : `https://www.ttrc.store${product.imageUrls?.[0] || '/brand/ttrc-logo.png'}`,
-          width: 1200,
-          height: 630,
+          width: 2560,
+          height: 1440,
           alt: product.name,
         },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [
+        product.imageUrls?.[0]?.startsWith('http')
+          ? product.imageUrls[0]
+          : `https://www.ttrc.store${product.imageUrls?.[0] || '/brand/ttrc-logo.png'}`,
       ],
     },
   };
@@ -187,21 +200,29 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
 
         {/* Top Product Hero Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 mb-16 items-start">
-          {/* Gallery Column (5 cols) */}
+          {/* Gallery Column (5 cols) — Standard 16:9 Landscape Canvas */}
           <div className="lg:col-span-5 space-y-4">
-            <div className="relative aspect-square rounded-2xl bg-[#FDFDFD] border border-slate-200 overflow-hidden flex items-center justify-center group shadow-xs">
+            <div className="relative aspect-[16/9] w-full rounded-2xl bg-[#FDFDFD] border border-slate-200 overflow-hidden flex items-center justify-center group shadow-xs">
               <Image
                 src={product.imageUrls?.[0] || '/brand/ttrc-logo.png'}
                 alt={product.name}
                 fill
                 priority
-                className="object-contain p-8 group-hover:scale-105 transition-transform duration-300"
+                className="object-contain p-4 group-hover:scale-105 transition-transform duration-300"
               />
-              <span className="absolute top-4 left-4">
+              <span className="absolute top-4 left-4 z-10">
                 <Badge variant={product.type === 'kit' ? 'purple' : 'default'}>
                   {product.type === 'kit' ? 'Complete Kit' : product.type === 'spare_part' ? 'Spare Part' : 'Standard Component'}
                 </Badge>
               </span>
+              <div className="absolute top-4 right-4 z-10">
+                <ProductShareButton
+                  slug={slug}
+                  name={product.name}
+                  pricePaise={product.pricePaise}
+                  variant="card"
+                />
+              </div>
             </div>
 
             {/* Thumbnail Row */}

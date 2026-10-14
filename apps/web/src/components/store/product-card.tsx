@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { PriceTag } from './price-tag';
 import { RatingStars } from './rating-stars';
 import { AddToCompareButton } from './add-to-compare-button';
+import { ProductShareButton } from './product-share-button';
 import { cn } from '@/lib/utils';
 
 export interface ProductCardProps {
@@ -61,29 +62,29 @@ export function ProductCard({
         className
       )}
     >
-      {/* Product Image Area */}
-      <div className="relative aspect-square w-full bg-[#EEE8FA]/30 overflow-hidden flex items-center justify-center p-4">
+      {/* Product Image Area — Standard 16:9 Landscape Canvas without Cropping */}
+      <div className="relative aspect-[16/9] w-full bg-slate-50/80 border-b border-slate-100 overflow-hidden flex items-center justify-center p-2.5">
         {/* Badges */}
         <div className="absolute top-2.5 left-2.5 z-10 flex flex-col gap-1.5">
           {productType === 'kit' && (
-            <Badge variant="kit" className="bg-[#844AFB] text-white font-bold border-none shadow-xs">
+            <Badge variant="kit" className="bg-[#844AFB] text-white font-bold border-none shadow-xs text-[10px]">
               COMPLETE KIT
             </Badge>
           )}
           {productType === 'spare_part' && (
-            <Badge variant="spare" className="bg-purple-100 text-purple-900 font-bold border-purple-200">
+            <Badge variant="spare" className="bg-purple-100 text-purple-900 font-bold border-purple-200 text-[10px]">
               SPARE PART
             </Badge>
           )}
           {lowestBulkPricePaise && lowestBulkPricePaise < pricePaise && (
-            <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 font-bold text-[10px]">
+            <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 font-bold text-[9px]">
               BULK PRICING
             </Badge>
           )}
         </div>
 
-        {/* Add to Compare Quick Action */}
-        <div className="absolute top-2.5 right-2.5 z-10">
+        {/* Action Buttons: Compare + Share */}
+        <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1.5">
           <AddToCompareButton
             product={{
               id,
@@ -99,6 +100,12 @@ export function ProductCard({
               productType,
               bulkPriceTiers,
             }}
+          />
+          <ProductShareButton
+            slug={slug}
+            name={name}
+            pricePaise={pricePaise}
+            variant="card"
           />
         </div>
 

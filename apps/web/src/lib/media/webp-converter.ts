@@ -13,12 +13,23 @@ export interface WebPConversionResult {
   hasAlpha: boolean;
   isAnimated: boolean;
   isLossless: true;
+  fitMode?: 'fit' | 'fill' | 'original';
+  aspectRatio?: string;
 }
 
 export interface ConvertOptions {
   originalFilename?: string;
   maxSizeBytes?: number;
   maxPixels?: number;
+  fitMode?: 'fit' | 'fill' | 'original';
+  crop?: {
+    left: number;
+    top: number;
+    width: number;
+    height: number;
+  };
+  targetCanvasWidth?: number;  // Standard 2560 preferred
+  targetCanvasHeight?: number; // Standard 1440 preferred
 }
 
 const DEFAULT_MAX_SIZE_BYTES = 15 * 1024 * 1024; // 15 MB
@@ -141,6 +152,40 @@ export async function convertToLosslessWebP(
     pipeline = pipeline.toColorspace('srgb');
   }
 
+  // 4a. Crop extraction if user specified crop window in Fill/Crop mode
+  if (options.crop && options.crop.width > 0 && options.crop.height > 0) {
+    const left = Math.max(0, Math.round(options.crop.left));
+    const top = Math.max(0, Math.round(options.crop.top));
+    const width = Math.min(inputWidth - left, Math.round(options.crop.width));
+    const height = Math.min(inputHeight - top, Math.round(options.crop.height));
+    if (width > 0 && height > 0) {
+      pipeline = pipeline.extract({ left, top, width, height });
+    }
+  }
+
+  const targetW = options.targetCanvasWidth || 2560;
+  const targetH = options.targetCanvasHeight || 1440;
+
+  if (options.fitMode === 'fit') {
+    // FIT MODE: Preserves 100% of the complete source image without cropping.
+    // Composes image on neutral light background (#FFFFFF) in standard 16:9 landscape canvas.
+    pipeline = pipeline.resize({
+      width: targetW,
+      height: targetH,
+      fit: 'contain',
+      background: { r: 255, g: 255, b: 255, alpha: 1 },
+    });
+  } else if (options.fitMode === 'fill') {
+    // FILL MODE: Fills the standard 16:9 landscape canvas according to crop or cover
+    pipeline = pipeline.resize({
+      width: targetW,
+      height: targetH,
+      fit: options.crop ? 'fill' : 'cover',
+      position: 'center',
+    });
+  }
+  // 'original' mode preserves original dimensions
+
   pipeline = pipeline.webp({
     lossless: true,
     effort: 4, // 0-6 effort level (4 balances speed with compression)
@@ -181,5 +226,7 @@ export async function convertToLosslessWebP(
     hasAlpha: Boolean(outputMeta.hasAlpha),
     isAnimated,
     isLossless: true,
+    fitMode: options.fitMode || 'original',
+    aspectRatio: `${outputWidth}:${outputHeight}`,
   };
 }

@@ -59,12 +59,30 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Uploaded file is empty.' }, { status: 400 });
     }
 
+    // 16:9 Landscape Standard Canvas & Crop Options
+    const fitMode = (formData.get('fitMode') as string) || 'original';
+    const cropX = formData.get('cropX') ? parseFloat(formData.get('cropX') as string) : undefined;
+    const cropY = formData.get('cropY') ? parseFloat(formData.get('cropY') as string) : undefined;
+    const cropWidth = formData.get('cropWidth') ? parseFloat(formData.get('cropWidth') as string) : undefined;
+    const cropHeight = formData.get('cropHeight') ? parseFloat(formData.get('cropHeight') as string) : undefined;
+    const targetWidth = formData.get('targetWidth') ? parseInt(formData.get('targetWidth') as string, 10) : 2560;
+    const targetHeight = formData.get('targetHeight') ? parseInt(formData.get('targetHeight') as string, 10) : 1440;
+
+    const crop =
+      cropWidth && cropHeight && cropWidth > 0 && cropHeight > 0
+        ? { left: cropX || 0, top: cropY || 0, width: cropWidth, height: cropHeight }
+        : undefined;
+
     // Convert automatically to Lossless WebP using Sharp pipeline
     let converted;
     try {
       converted = await convertToLosslessWebP(buffer, {
         originalFilename: file.name,
         maxSizeBytes: MAX_UPLOAD_BYTES,
+        fitMode: (fitMode as any) || 'original',
+        crop,
+        targetCanvasWidth: targetWidth || 2560,
+        targetCanvasHeight: targetHeight || 1440,
       });
     } catch (conversionErr: any) {
       return NextResponse.json(
@@ -86,6 +104,8 @@ export async function POST(req: NextRequest) {
       original_format: converted.originalFormat,
       original_size: converted.originalSize,
       is_lossless: true,
+      fit_mode: converted.fitMode,
+      aspect_ratio: converted.aspectRatio,
     });
 
     // 2. Best-effort local filesystem cache (Writable on local/Docker, gracefully ignored on Vercel Read-Only)
@@ -110,6 +130,8 @@ export async function POST(req: NextRequest) {
       originalFormat: converted.originalFormat,
       originalSize: converted.originalSize,
       isLossless: true,
+      fitMode: converted.fitMode,
+      aspectRatio: converted.aspectRatio,
       isAnimated: converted.isAnimated,
       hasAlpha: converted.hasAlpha,
     });

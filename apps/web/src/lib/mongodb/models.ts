@@ -611,6 +611,8 @@ export interface IMedia extends Document {
   original_format?: string;
   original_size?: number;
   is_lossless?: boolean;
+  fit_mode?: string;
+  aspect_ratio?: string;
   migrated_from?: string;
   created_at: Date;
 }
@@ -627,6 +629,8 @@ const MediaSchema = new Schema<IMedia>(
     original_format: { type: String },
     original_size: { type: Number },
     is_lossless: { type: Boolean, default: true },
+    fit_mode: { type: String },
+    aspect_ratio: { type: String },
     migrated_from: { type: String, index: true },
   },
   { timestamps: { createdAt: 'created_at', updatedAt: false } }

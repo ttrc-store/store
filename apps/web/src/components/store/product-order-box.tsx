@@ -9,6 +9,7 @@ import { QuantitySelector } from '@/components/store/quantity-selector';
 import { PriceTag } from '@/components/store/price-tag';
 import { useCartStore } from '@/store/use-cart';
 import { AddToCompareButton } from '@/components/store/add-to-compare-button';
+import { ProductShareButton } from '@/components/store/product-share-button';
 
 export interface BulkPriceTier {
   minQuantity: number;
@@ -354,6 +355,14 @@ export function ProductOrderBox({
               productType,
               bulkPriceTiers,
             }}
+          />
+
+          <ProductShareButton
+            slug={slug}
+            name={name}
+            pricePaise={activeUnitPricePaise}
+            variant="detail"
+            className="h-12"
           />
         </div>
 

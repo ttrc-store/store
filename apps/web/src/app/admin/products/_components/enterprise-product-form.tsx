@@ -31,6 +31,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { sanitizeVideoEmbedUrl } from '@/lib/video-utils';
+import { ProductImageCropModal, type CropModalResult } from '@/components/admin/product-image-crop-modal';
 
 export interface EnterpriseProductFormProps {
   initialData?: any;
@@ -231,6 +232,9 @@ export function EnterpriseProductForm({
   const [imageMeta, setImageMeta] = React.useState<
     Record<string, { width?: number; height?: number; size?: number; originalFormat?: string; isLossless?: boolean }>
   >({});
+  const [cropModalFile, setCropModalFile] = React.useState<File | null>(null);
+  const [cropTargetIdx, setCropTargetIdx] = React.useState<number | null>(null);
+  const [pendingUploadQueue, setPendingUploadQueue] = React.useState<File[]>([]);
   const replaceInputRef = React.useRef<HTMLInputElement | null>(null);
   const activeReplaceIndexRef = React.useRef<number | null>(null);
   const [manualImageUrl, setManualImageUrl] = React.useState('');
@@ -417,8 +421,8 @@ export function EnterpriseProductForm({
     setSeoDescription(p.shortDescription);
   };
 
-  // Direct File Upload handler (Auto-converts all formats to Lossless WebP)
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // File Upload handler — Opens 16:9 Standard Canvas Crop/Fit Editor
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
@@ -427,49 +431,11 @@ export function EnterpriseProductForm({
       return;
     }
 
-    setUploadingImage(true);
-    setErrorMsg(null);
-
-    try {
-      const uploaded: string[] = [];
-      const newMeta: Record<string, any> = {};
-
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        setUploadProgressText(`Converting ${file.name} to lossless WebP (${i + 1}/${files.length})...`);
-        const formData = new FormData();
-        formData.append('file', file);
-
-        const res = await fetch('/api/admin/media/upload', {
-          method: 'POST',
-          body: formData,
-        });
-
-        const data = await res.json();
-        if (!res.ok || data.error) {
-          throw new Error(data.error || `Failed to convert ${file.name} to lossless WebP`);
-        }
-        uploaded.push(data.url);
-        if (data.url) {
-          newMeta[data.url] = {
-            width: data.width,
-            height: data.height,
-            size: data.size,
-            originalFormat: data.originalFormat,
-            isLossless: data.isLossless,
-          };
-        }
-      }
-
-      setImageUrls([...imageUrls, ...uploaded]);
-      setImageMeta((prev) => ({ ...prev, ...newMeta }));
-    } catch (err: any) {
-      setErrorMsg(err.message || 'Image upload/conversion failed. Supported formats: JPG, PNG, WebP, AVIF, TIFF, GIF, SVG (< 15MB).');
-    } finally {
-      setUploadingImage(false);
-      setUploadProgressText('');
-      e.target.value = '';
-    }
+    const fileList = Array.from(files);
+    setCropTargetIdx(null);
+    setCropModalFile(fileList[0]);
+    setPendingUploadQueue(fileList.slice(1));
+    e.target.value = '';
   };
 
   const handleTriggerReplace = (idx: number) => {
@@ -480,17 +446,44 @@ export function EnterpriseProductForm({
     }
   };
 
-  const handleExecuteReplace = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleExecuteReplace = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     const targetIdx = activeReplaceIndexRef.current;
     if (!file || targetIdx === null || targetIdx === undefined || targetIdx >= imageUrls.length) return;
 
-    setReplacingIdx(targetIdx);
+    setCropTargetIdx(targetIdx);
+    setCropModalFile(file);
+    setPendingUploadQueue([]);
+    e.target.value = '';
+  };
+
+  // Process and upload image after admin confirms Crop / Fit / Reposition
+  const handleCropConfirm = async (result: CropModalResult) => {
+    setCropModalFile(null);
+    const targetIdx = cropTargetIdx;
+    setCropTargetIdx(null);
+
+    const isReplacing = targetIdx !== null && targetIdx !== undefined;
+    if (isReplacing) {
+      setReplacingIdx(targetIdx);
+    } else {
+      setUploadingImage(true);
+      setUploadProgressText(`Converting ${result.file.name} to 16:9 Lossless WebP (${result.fitMode.toUpperCase()})...`);
+    }
     setErrorMsg(null);
 
     try {
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', result.file);
+      formData.append('fitMode', result.fitMode);
+      if (result.crop) {
+        formData.append('cropX', result.crop.left.toString());
+        formData.append('cropY', result.crop.top.toString());
+        formData.append('cropWidth', result.crop.width.toString());
+        formData.append('cropHeight', result.crop.height.toString());
+      }
+      formData.append('targetWidth', result.targetWidth.toString());
+      formData.append('targetHeight', result.targetHeight.toString());
 
       const res = await fetch('/api/admin/media/upload', {
         method: 'POST',
@@ -499,13 +492,16 @@ export function EnterpriseProductForm({
 
       const data = await res.json();
       if (!res.ok || data.error) {
-        throw new Error(data.error || 'Failed to convert replacement image to lossless WebP');
+        throw new Error(data.error || 'Failed to process and convert image');
       }
 
-      // Preserves existing valid image until replacement succeeds
-      const updated = [...imageUrls];
-      updated[targetIdx] = data.url;
-      setImageUrls(updated);
+      if (isReplacing) {
+        const updated = [...imageUrls];
+        updated[targetIdx] = data.url;
+        setImageUrls(updated);
+      } else {
+        setImageUrls((prev) => [...prev, data.url]);
+      }
 
       if (data.url) {
         setImageMeta((prev) => ({
@@ -519,10 +515,20 @@ export function EnterpriseProductForm({
           },
         }));
       }
+
+      // If multiple files were queued, automatically open crop editor for next file
+      if (pendingUploadQueue.length > 0) {
+        const nextFile = pendingUploadQueue[0];
+        setPendingUploadQueue(pendingUploadQueue.slice(1));
+        setCropTargetIdx(null);
+        setCropModalFile(nextFile);
+      }
     } catch (err: any) {
-      setErrorMsg(err.message || 'Replacement failed. Previous image was preserved.');
+      setErrorMsg(err.message || 'Image processing failed. Previous image was preserved.');
     } finally {
+      setUploadingImage(false);
       setReplacingIdx(null);
+      setUploadProgressText('');
       activeReplaceIndexRef.current = null;
       if (replaceInputRef.current) replaceInputRef.current.value = '';
     }
@@ -1113,9 +1119,9 @@ export function EnterpriseProductForm({
           </Button>
         </div>
 
-        {/* Uploaded Images Grid */}
+        {/* Uploaded Images Grid — Standard 16:9 Previews */}
         {imageUrls.length > 0 && (
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 pt-2">
             {imageUrls.map((url, idx) => {
               const isPrimary = idx === primaryImageIdx;
               const meta = imageMeta[url];
@@ -1124,7 +1130,7 @@ export function EnterpriseProductForm({
               return (
                 <div
                   key={idx}
-                  className={`relative aspect-square rounded-xl bg-slate-50 border-2 overflow-hidden group ${
+                  className={`relative aspect-[16/9] rounded-xl bg-slate-50 border-2 overflow-hidden group ${
                     isPrimary ? 'border-[#844AFB] ring-2 ring-purple-200' : 'border-slate-200'
                   }`}
                 >
@@ -1137,7 +1143,7 @@ export function EnterpriseProductForm({
                     </span>
                     {meta && meta.width && (
                       <span className="text-[8px] font-mono px-1 py-0.5 rounded bg-slate-900/80 text-white backdrop-blur-xs">
-                        {meta.width}×{meta.height} • {((meta.size || 0) / 1024).toFixed(0)}KB
+                        16:9 • {meta.width}×{meta.height}
                       </span>
                     )}
                   </div>
@@ -1631,6 +1637,18 @@ export function EnterpriseProductForm({
           {saving ? 'Saving to Database...' : isEditMode ? 'Update Product' : 'Publish Product to Storefront'}
         </Button>
       </div>
+
+      {/* 16:9 Standard Canvas Crop & Reposition Modal */}
+      <ProductImageCropModal
+        file={cropModalFile}
+        isOpen={Boolean(cropModalFile)}
+        onClose={() => {
+          setCropModalFile(null);
+          setCropTargetIdx(null);
+          setPendingUploadQueue([]);
+        }}
+        onConfirm={handleCropConfirm}
+      />
     </form>
   );
 }
