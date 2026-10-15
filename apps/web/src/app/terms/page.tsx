@@ -22,7 +22,7 @@ export default function TermsPage() {
 
         <section className="space-y-2 text-xs text-slate-600">
           <h2 className="font-heading text-base font-bold text-slate-900">2. Pricing &amp; Payments (Online Payment Only)</h2>
-          <p>All prices listed on the storefront are in Indian Rupees (INR) and inclusive of applicable taxes. Payment is completed securely online via Razorpay Standard Checkout (UPI, Google Pay, PhonePe, Cards, NetBanking, EMI). Cash on Delivery (COD) is not accepted.</p>
+          <p>All product prices listed on the storefront catalog are in Indian Rupees (INR) and are excluding GST. Applicable GST (CGST/SGST for Tamil Nadu, IGST for other Indian states) and express courier shipping are calculated and itemized on the official tax invoice at checkout. Payment is completed securely online via Razorpay Standard Checkout (UPI, Google Pay, PhonePe, Cards, NetBanking, EMI). Cash on Delivery (COD) is not accepted.</p>
         </section>
 
         <section className="space-y-2 text-xs text-slate-600">

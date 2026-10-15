@@ -19,6 +19,8 @@ import {
   Info,
   CheckCircle2,
   HelpCircle,
+  Home,
+  ChevronRight,
 } from 'lucide-react';
 import {
   getProductBySlug,
@@ -116,8 +118,13 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
   const { compatibleSpares, compatibleKits } = await getCompatibleProducts(product.id, product.type);
 
   // Fetch real related products from same category in MongoDB
+  const categoryName = product.categoryName || 'Robotics & STEM';
+  const categorySlug = product.categorySlug || 'gamified-robots';
+  const subCategoryName = product.subCategoryName;
+  const subCategorySlug = product.subCategorySlug;
+
   const { products: relatedProducts } = await getStoreProducts({
-    categorySlug: product.categoryId,
+    categorySlug: product.categorySlug || product.categoryId,
     limit: 4,
   });
   const filteredRelated = relatedProducts.filter((p) => p.id !== product.id).slice(0, 4);
@@ -129,7 +136,10 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
 
   const breadcrumbItems = [
     { name: 'Home', url: 'https://www.ttrc.store' },
-    { name: 'Catalog', url: `https://www.ttrc.store/category/${product.categoryId || 'gamified-robots'}` },
+    { name: categoryName, url: `https://www.ttrc.store/category/${categorySlug}` },
+    ...(subCategoryName && subCategorySlug
+      ? [{ name: subCategoryName, url: `https://www.ttrc.store/category/${categorySlug}?sub=${subCategorySlug}` }]
+      : []),
     { name: product.name, url: `https://www.ttrc.store/product/${slug}` },
   ];
 
@@ -180,24 +190,62 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
       <FAQJsonLd faqs={productFaqs} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Breadcrumbs */}
-        <Breadcrumb className="mb-6">
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink href="/">Home</BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbLink href={`/category/${product.categoryId || 'gamified-robots'}`}>
-                {product.categoryId ? product.categoryId.replace(/-/g, ' ') : 'Catalog'}
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage className="truncate max-w-xs">{product.name}</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+        {/* Catchy, modern, accessible Breadcrumb Trail */}
+        <nav aria-label="Breadcrumb" className="mb-6">
+          <ol className="flex items-center flex-wrap gap-1.5 text-xs font-medium text-slate-500">
+            <li>
+              <Link
+                href="/"
+                className="group inline-flex items-center gap-1.5 py-1 px-2.5 rounded-lg text-slate-600 hover:text-[#E3132A] hover:bg-red-50/70 border border-transparent hover:border-red-100 transition-all font-semibold"
+              >
+                <Home size={13} className="text-slate-400 group-hover:text-[#E3132A] transition-colors" />
+                <span>Home</span>
+              </Link>
+            </li>
+
+            <li className="text-slate-300" aria-hidden="true">
+              <ChevronRight size={13} />
+            </li>
+
+            <li>
+              <Link
+                href={`/category/${categorySlug}`}
+                className="inline-flex items-center py-1 px-2.5 rounded-lg text-slate-700 hover:text-[#E3132A] bg-slate-50 hover:bg-red-50/70 border border-slate-200/80 hover:border-red-200 font-bold transition-all shadow-2xs"
+              >
+                {categoryName}
+              </Link>
+            </li>
+
+            {subCategoryName && subCategorySlug && (
+              <>
+                <li className="text-slate-300" aria-hidden="true">
+                  <ChevronRight size={13} />
+                </li>
+                <li>
+                  <Link
+                    href={`/category/${categorySlug}?sub=${subCategorySlug}`}
+                    className="inline-flex items-center py-1 px-2 rounded-lg text-slate-600 hover:text-[#E3132A] hover:bg-red-50/70 transition-all font-medium"
+                  >
+                    {subCategoryName}
+                  </Link>
+                </li>
+              </>
+            )}
+
+            <li className="text-slate-300" aria-hidden="true">
+              <ChevronRight size={13} />
+            </li>
+
+            <li className="max-w-xs sm:max-w-md truncate">
+              <span
+                className="inline-flex items-center py-1 px-3 rounded-lg bg-[#FAF9FC] text-slate-900 border border-purple-100 font-bold tracking-tight truncate shadow-2xs"
+                aria-current="page"
+              >
+                {product.name}
+              </span>
+            </li>
+          </ol>
+        </nav>
 
         {/* Top Product Hero Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 mb-16 items-start">

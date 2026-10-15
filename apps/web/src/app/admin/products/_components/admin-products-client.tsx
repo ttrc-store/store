@@ -4,10 +4,11 @@ import * as React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
-import { Search, Filter, Edit, ExternalLink, Package, Plus } from 'lucide-react';
+import { Search, Filter, Edit, ExternalLink, Package, Plus, Trash2, AlertTriangle, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { PriceTag } from '@/components/store/price-tag';
+import { deleteProductAction, archiveProductAction } from '@/actions/admin';
 
 interface Product {
   id: string;
@@ -45,6 +46,10 @@ export default function AdminProductsClient({
   const searchParams = useSearchParams();
 
   const [localSearch, setLocalSearch] = React.useState(currentSearch);
+  const [deleteTarget, setDeleteTarget] = React.useState<Product | null>(null);
+  const [deleting, setDeleting] = React.useState(false);
+  const [deleteError, setDeleteError] = React.useState<string | null>(null);
+  const [canArchiveFallback, setCanArchiveFallback] = React.useState(false);
 
   React.useEffect(() => {
     const t = setTimeout(() => {
@@ -63,6 +68,50 @@ export default function AdminProductsClient({
     else params.set('type', type);
     params.delete('page');
     router.push(`${pathname}?${params.toString()}`);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    setDeleteError(null);
+    setCanArchiveFallback(false);
+
+    try {
+      const res = await deleteProductAction(deleteTarget.id);
+      if (res.error) {
+        setDeleteError(res.error);
+        if ((res as any).canArchive) {
+          setCanArchiveFallback(true);
+        }
+      } else {
+        setDeleteTarget(null);
+        router.refresh();
+      }
+    } catch (err: any) {
+      setDeleteError(err.message || 'Failed to delete product.');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleArchiveConfirm = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    setDeleteError(null);
+
+    try {
+      const res = await archiveProductAction(deleteTarget.id);
+      if (res.error) {
+        setDeleteError(res.error);
+      } else {
+        setDeleteTarget(null);
+        router.refresh();
+      }
+    } catch (err: any) {
+      setDeleteError(err.message || 'Failed to archive product.');
+    } finally {
+      setDeleting(false);
+    }
   };
 
   return (
@@ -101,7 +150,7 @@ export default function AdminProductsClient({
               <tr className="border-b border-slate-200 bg-slate-50 text-slate-600 font-bold uppercase tracking-wider">
                 <th className="p-3 rounded-l-lg">Product</th>
                 <th className="p-3">Type</th>
-                <th className="p-3">Price (Inc. GST)</th>
+                <th className="p-3">Price (Excl. GST)</th>
                 <th className="p-3">Stock</th>
                 <th className="p-3">GST Rate</th>
                 <th className="p-3 text-right rounded-r-lg">Actions</th>
@@ -157,6 +206,18 @@ export default function AdminProductsClient({
                       >
                         <Edit size={14} />
                       </Link>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDeleteTarget(p);
+                          setDeleteError(null);
+                          setCanArchiveFallback(false);
+                        }}
+                        className="p-1.5 rounded-lg bg-slate-100 text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                        title="Remove / Delete Product"
+                      >
+                        <Trash2 size={14} />
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -186,6 +247,75 @@ export default function AdminProductsClient({
           </div>
         )}
       </div>
+
+      {/* Delete / Remove Confirmation Modal */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-5 animate-in fade-in-50 zoom-in-95">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center text-[#E3132A] flex-shrink-0">
+                <AlertTriangle size={20} />
+              </div>
+              <div>
+                <h3 className="font-heading text-base font-extrabold text-slate-900">Remove Product</h3>
+                <p className="text-xs text-slate-500">Confirm catalog deletion from database</p>
+              </div>
+            </div>
+
+            <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs text-slate-700 space-y-1">
+              <p className="font-bold text-slate-900">{deleteTarget.name}</p>
+              <p className="text-[11px] text-slate-500 font-mono">SKU: {deleteTarget.sku || 'N/A'} • Slug: {deleteTarget.slug}</p>
+            </div>
+
+            {deleteError ? (
+              <div className="p-3 bg-red-50 rounded-xl border border-red-200 text-xs text-red-700">
+                {deleteError}
+              </div>
+            ) : (
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Are you sure you want to remove this product? Once deleted, it will immediately disappear from the storefront, catalog, and admin inventory.
+              </p>
+            )}
+
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={deleting}
+                onClick={() => {
+                  setDeleteTarget(null);
+                  setDeleteError(null);
+                }}
+                className="text-xs font-bold rounded-xl h-9"
+              >
+                Cancel
+              </Button>
+
+              {canArchiveFallback ? (
+                <Button
+                  type="button"
+                  disabled={deleting}
+                  onClick={handleArchiveConfirm}
+                  className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl h-9 gap-1.5"
+                >
+                  {deleting ? <Loader2 size={14} className="animate-spin" /> : null}
+                  Archive Product
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  disabled={deleting}
+                  onClick={handleDeleteConfirm}
+                  className="bg-[#E3132A] hover:bg-[#B80F21] text-white text-xs font-bold rounded-xl h-9 gap-1.5 shadow-sm shadow-red-900/10"
+                >
+                  {deleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                  {deleting ? 'Deleting...' : 'Confirm Remove'}
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

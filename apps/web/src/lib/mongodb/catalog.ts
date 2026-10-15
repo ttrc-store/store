@@ -18,6 +18,7 @@ export interface StoreCategoryItem {
   slug: string;
   description?: string;
   imageUrl?: string;
+  parentId?: string | null;
   productCount: number;
 }
 
@@ -31,6 +32,11 @@ export interface StoreProductItem {
   status: 'draft' | 'published' | 'archived';
   brand: string;
   categoryId?: string;
+  categoryName?: string;
+  categorySlug?: string;
+  subCategoryId?: string;
+  subCategoryName?: string;
+  subCategorySlug?: string;
   shortDescription: string;
   longDescription: string;
   pricePaise: number;
@@ -90,11 +96,18 @@ export function toStoreProductCardProps(product: StoreProductItem): ProductCardP
   };
 }
 
-function mapProductDoc(p: any, manufacturerDoc?: any): StoreProductItem {
+function mapProductDoc(
+  p: any,
+  manufacturerDoc?: any,
+  categoryInfo?: { categoryName?: string; categorySlug?: string; subCategoryName?: string; subCategorySlug?: string }
+): StoreProductItem {
   const pricePaise = p.price ?? 0;
   const mrpPaise = p.compare_at_price ?? pricePaise;
   const discountPct = mrpPaise > pricePaise ? Math.round(((mrpPaise - pricePaise) / mrpPaise) * 100) : 0;
   const showManufacturer = p.show_manufacturer_publicly ?? true;
+
+  const isCatIdOid = p.category_id && mongoose.Types.ObjectId.isValid(p.category_id) && p.category_id.length === 24;
+  const isSubCatIdOid = p.sub_category_id && mongoose.Types.ObjectId.isValid(p.sub_category_id) && p.sub_category_id.length === 24;
 
   return {
     id: p._id.toString(),
@@ -106,6 +119,11 @@ function mapProductDoc(p: any, manufacturerDoc?: any): StoreProductItem {
     status: p.status || 'published',
     brand: p.brand || 'Tamizh Tech',
     categoryId: p.category_id,
+    categoryName: categoryInfo?.categoryName,
+    categorySlug: categoryInfo?.categorySlug || (!isCatIdOid ? p.category_id : undefined),
+    subCategoryId: p.sub_category_id,
+    subCategoryName: categoryInfo?.subCategoryName,
+    subCategorySlug: categoryInfo?.subCategorySlug || (!isSubCatIdOid ? p.sub_category_id : undefined),
     shortDescription: p.short_description || p.name,
     longDescription: p.description || p.short_description || p.name,
     pricePaise,
@@ -197,17 +215,24 @@ export async function getStoreCategories(): Promise<StoreCategoryItem[]> {
       .sort({ sort_order: 1 })
       .lean();
 
-    // Compute real product count for each category
+    // Compute real product count for each category (including subcategories for parents)
     const categoryItems = await Promise.all(
       categories.map(async (cat) => {
+        const subCats = categories.filter(
+          (s) => s.parent_id === cat._id.toString() || s.parent_id === cat.slug
+        );
+        const allCatIds = [
+          cat.slug,
+          cat._id.toString(),
+          ...subCats.map((s) => s.slug),
+          ...subCats.map((s) => s._id.toString()),
+        ];
+
         const count = await ProductModel.countDocuments({
           $or: [
-            { category_id: cat.slug },
-            { category_id: cat._id.toString() },
-            { sub_category_id: cat.slug },
-            { sub_category_id: cat._id.toString() },
-            { category_ids: cat.slug },
-            { category_ids: cat._id.toString() },
+            { category_id: { $in: allCatIds } },
+            { sub_category_id: { $in: allCatIds } },
+            { category_ids: { $in: allCatIds } },
           ],
           is_active: true,
         });
@@ -218,6 +243,7 @@ export async function getStoreCategories(): Promise<StoreCategoryItem[]> {
           slug: cat.slug,
           description: cat.description,
           imageUrl: cat.image_url,
+          parentId: cat.parent_id || null,
           productCount: count,
         };
       })
@@ -227,6 +253,83 @@ export async function getStoreCategories(): Promise<StoreCategoryItem[]> {
   } catch (err) {
     console.error('[MongoDB Catalog] Error loading store categories:', err);
     return [];
+  }
+}
+
+async function resolveCategoryInfo(catId?: string, subCatId?: string): Promise<{
+  categoryName?: string;
+  categorySlug?: string;
+  subCategoryName?: string;
+  subCategorySlug?: string;
+}> {
+  if (!catId && !subCatId) return {};
+
+  try {
+    let categoryName: string | undefined = undefined;
+    let categorySlug: string | undefined = undefined;
+    let subCategoryName: string | undefined = undefined;
+    let subCategorySlug: string | undefined = undefined;
+
+    const mainCat = catId
+      ? await CategoryModel.findOne({
+          $or: [
+            { slug: catId },
+            ...(mongoose.Types.ObjectId.isValid(catId) && catId.length === 24 ? [{ _id: catId }] : []),
+          ],
+        }).lean()
+      : null;
+
+    const subCat = subCatId
+      ? await CategoryModel.findOne({
+          $or: [
+            { slug: subCatId },
+            ...(mongoose.Types.ObjectId.isValid(subCatId) && subCatId.length === 24 ? [{ _id: subCatId }] : []),
+          ],
+        }).lean()
+      : null;
+
+    if (mainCat) {
+      if (mainCat.parent_id && !subCat) {
+        const isParentIdOid = mongoose.Types.ObjectId.isValid(mainCat.parent_id) && mainCat.parent_id.length === 24;
+        const parentCat = await CategoryModel.findOne({
+          $or: [
+            { slug: mainCat.parent_id },
+            ...(isParentIdOid ? [{ _id: mainCat.parent_id }] : []),
+          ],
+        }).lean();
+
+        categoryName = parentCat ? parentCat.name : mainCat.name;
+        categorySlug = parentCat ? parentCat.slug : mainCat.slug;
+        subCategoryName = mainCat.name;
+        subCategorySlug = mainCat.slug;
+      } else {
+        categoryName = mainCat.name;
+        categorySlug = mainCat.slug;
+      }
+    }
+
+    if (subCat) {
+      subCategoryName = subCat.name;
+      subCategorySlug = subCat.slug;
+      if (!categoryName && subCat.parent_id) {
+        const isParentIdOid = mongoose.Types.ObjectId.isValid(subCat.parent_id) && subCat.parent_id.length === 24;
+        const parentCat = await CategoryModel.findOne({
+          $or: [
+            { slug: subCat.parent_id },
+            ...(isParentIdOid ? [{ _id: subCat.parent_id }] : []),
+          ],
+        }).lean();
+        if (parentCat) {
+          categoryName = parentCat.name;
+          categorySlug = parentCat.slug;
+        }
+      }
+    }
+
+    return { categoryName, categorySlug, subCategoryName, subCategorySlug };
+  } catch (err) {
+    console.warn('[MongoDB Catalog] Error resolving category info:', err);
+    return {};
   }
 }
 
@@ -347,7 +450,33 @@ export async function getStoreProducts(opts?: {
       ProductModel.countDocuments(query),
     ]);
 
-    const products = docs.map((doc) => mapProductDoc(doc));
+    const allCategories = await CategoryModel.find().lean();
+    const catMap = new Map<string, any>();
+    allCategories.forEach((c) => {
+      catMap.set(c._id.toString(), c);
+      catMap.set(c.slug, c);
+    });
+
+    const products = docs.map((doc) => {
+      const mainCat = doc.category_id ? catMap.get(doc.category_id) : null;
+      const subCat = doc.sub_category_id ? catMap.get(doc.sub_category_id) : null;
+      let categoryName = mainCat?.name;
+      let categorySlug = mainCat?.slug;
+      let subCategoryName = subCat?.name;
+      let subCategorySlug = subCat?.slug;
+
+      if (mainCat?.parent_id && !subCat) {
+        const parentCat = catMap.get(mainCat.parent_id);
+        if (parentCat) {
+          categoryName = parentCat.name;
+          categorySlug = parentCat.slug;
+          subCategoryName = mainCat.name;
+          subCategorySlug = mainCat.slug;
+        }
+      }
+
+      return mapProductDoc(doc, undefined, { categoryName, categorySlug, subCategoryName, subCategorySlug });
+    });
     return { products, total };
   } catch (err) {
     console.error('[MongoDB Catalog] Error loading store products:', err);
@@ -375,16 +504,12 @@ export async function getProductBySlug(slug: string): Promise<StoreProductItem |
     const productDoc = await ProductModel.findOne(query).lean();
     if (!productDoc) return null;
 
-    let manufacturerDoc = null;
-    if (productDoc.manufacturer_id) {
-      try {
-        manufacturerDoc = await findManufacturerSafely(productDoc.manufacturer_id);
-      } catch (err) {
-        console.warn(`[MongoDB Catalog] Error finding manufacturer for ${slug}:`, err);
-      }
-    }
+    const [manufacturerDoc, categoryInfo] = await Promise.all([
+      productDoc.manufacturer_id ? findManufacturerSafely(productDoc.manufacturer_id) : Promise.resolve(null),
+      resolveCategoryInfo(productDoc.category_id, productDoc.sub_category_id),
+    ]);
 
-    return mapProductDoc(productDoc, manufacturerDoc);
+    return mapProductDoc(productDoc, manufacturerDoc, categoryInfo);
   } catch (err) {
     console.error(`[MongoDB Catalog] Error loading product ${slug}:`, err);
     return null;
@@ -405,16 +530,12 @@ export async function getProductById(id: string): Promise<StoreProductItem | nul
     }
     if (!productDoc) return null;
 
-    let manufacturerDoc = null;
-    if (productDoc.manufacturer_id) {
-      try {
-        manufacturerDoc = await findManufacturerSafely(productDoc.manufacturer_id);
-      } catch (err) {
-        console.warn(`[MongoDB Catalog] Error finding manufacturer by id ${id}:`, err);
-      }
-    }
+    const [manufacturerDoc, categoryInfo] = await Promise.all([
+      productDoc.manufacturer_id ? findManufacturerSafely(productDoc.manufacturer_id) : Promise.resolve(null),
+      resolveCategoryInfo(productDoc.category_id, productDoc.sub_category_id),
+    ]);
 
-    return mapProductDoc(productDoc, manufacturerDoc);
+    return mapProductDoc(productDoc, manufacturerDoc, categoryInfo);
   } catch (err) {
     console.error(`[MongoDB Catalog] Error loading product by id ${id}:`, err);
     return null;

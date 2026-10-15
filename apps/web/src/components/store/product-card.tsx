@@ -113,10 +113,10 @@ export function ProductCard({
         />
       </div>
 
-      {/* Product Image Area — Clean pure-white background with seamless mix-blend */}
+      {/* Product Image Area — Maximized image visual display */}
       <Link
         href={`/product/${slug}`}
-        className="relative aspect-square w-full bg-white flex items-center justify-center p-3 sm:p-4 overflow-hidden border-b border-slate-100 cursor-pointer"
+        className="relative aspect-square w-full bg-[#FAF9FC] flex items-center justify-center p-1.5 sm:p-2 overflow-hidden border-b border-slate-100 cursor-pointer"
         aria-label={`View ${name}`}
       >
         <div className="relative w-full h-full flex items-center justify-center">
@@ -124,8 +124,8 @@ export function ProductCard({
             src={imageUrl}
             alt={name}
             fill
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-            className="object-contain p-1 mix-blend-multiply transform group-hover:scale-108 transition-transform duration-300 ease-out"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            className="object-contain object-center mix-blend-multiply transform group-hover:scale-106 transition-transform duration-300 ease-out"
             loading="lazy"
           />
         </div>
@@ -167,6 +167,9 @@ export function ProductCard({
             <div className="flex items-baseline gap-1.5 flex-wrap">
               <span className="font-extrabold text-base sm:text-lg text-slate-900 tracking-tight tabular-nums">
                 {formatRupees(pricePaise)}
+              </span>
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">
+                (Excl. GST)
               </span>
               {mrpPaise && mrpPaise > pricePaise && (
                 <span className="text-[11px] text-slate-400 line-through tabular-nums font-medium">

@@ -172,8 +172,11 @@ export function ProductOrderBox({
               <span className="text-xs text-slate-500">Configurable in Admin</span>
             </div>
           )}
-          <span className="text-[11px] text-slate-500 mt-1 block">
-            Inclusive of {gstPercent}% GST • Delivery calculated at checkout
+          <span className="text-[11px] text-slate-500 mt-1 flex items-center gap-1.5 flex-wrap">
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-bold text-[10px] uppercase tracking-wider">
+              Excl. GST
+            </span>
+            <span>+{gstPercent}% GST added on invoice at checkout • Delivery calculated at checkout</span>
           </span>
         </div>
 

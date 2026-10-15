@@ -34,7 +34,7 @@ export async function callGroq(
         model,
         messages,
         temperature: 0.2,
-        max_tokens: options.maxTokens || 1200,
+        max_tokens: options.maxTokens || 2500,
         response_format: options.responseFormatJson ? { type: 'json_object' } : undefined,
       }),
       signal: controller.signal,
@@ -55,7 +55,11 @@ export async function callGroq(
       } else if (response.status === 403) {
         errorType = 'AUTH_ERROR';
       } else if (response.status === 400) {
-        errorType = 'BAD_REQUEST';
+        if (/json_validate_failed|max completion tokens|token limit/i.test(errText)) {
+          errorType = 'PARSE_ERROR';
+        } else {
+          errorType = 'BAD_REQUEST';
+        }
       } else if (response.status === 404) {
         errorType = 'SERVER_ERROR';
       }

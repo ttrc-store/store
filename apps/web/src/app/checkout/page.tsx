@@ -1685,7 +1685,7 @@ export default function CheckoutPage() {
                 {/* Totals Breakdown */}
                 <div className="space-y-2 text-xs pt-3 border-t border-slate-100">
                   <div className="flex justify-between text-slate-600">
-                    <span>Subtotal</span>
+                    <span>Subtotal (Excl. GST)</span>
                     <PriceTag pricePaise={totals.subtotalPaise} size="sm" />
                   </div>
 
@@ -1703,8 +1703,8 @@ export default function CheckoutPage() {
                     </span>
                   </div>
 
-                  <div className="flex justify-between text-slate-600">
-                    <span>GST ({stateName === 'Tamil Nadu' ? 'CGST + SGST' : 'IGST'})</span>
+                  <div className="flex justify-between text-slate-600 font-medium">
+                    <span>GST (Added on Invoice — {stateName === 'Tamil Nadu' ? 'CGST + SGST' : 'IGST'})</span>
                     <span className="font-semibold text-slate-800">
                       + ₹{(totalTaxPaise / 100).toFixed(2)}
                     </span>

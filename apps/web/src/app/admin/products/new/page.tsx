@@ -11,6 +11,8 @@ export default async function NewProductPage() {
     id: c.id,
     name: c.name,
     slug: c.slug,
+    parentId: c.parentId || null,
+    parentName: c.parentName || undefined,
   }));
 
   return (

@@ -7,7 +7,7 @@ import { PriceTag } from '@/components/store/price-tag';
 import { getAdminProductsAction } from '@/actions/orders';
 import AdminProductsClient from './_components/admin-products-client';
 
-export const revalidate = 30;
+export const dynamic = 'force-dynamic';
 
 const TYPE_LABEL: Record<string, string> = {
   kit: 'Robot Kit',

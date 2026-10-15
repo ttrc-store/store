@@ -26,147 +26,234 @@ import {
   Tag,
   Factory,
   RefreshCw,
+  AlertTriangle,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { sanitizeVideoEmbedUrl } from '@/lib/video-utils';
 import { ProductImageCropModal, type CropModalResult } from '@/components/admin/product-image-crop-modal';
+import { createAdminCategoryAction } from '@/actions/admin-categories';
+import { deleteProductAction, archiveProductAction } from '@/actions/admin';
 
 export interface EnterpriseProductFormProps {
   initialData?: any;
   productId?: string;
   isEditMode?: boolean;
-  availableCategories?: Array<{ id: string; name: string; slug: string }>;
+  availableCategories?: Array<{ id: string; name: string; slug: string; parentId?: string | null; parentName?: string }>;
   onSubmitAction: (data: any) => Promise<{ success?: boolean; error?: string; productId?: string; slug?: string }>;
 }
 
-// 4 Initial Reference Product Presets per Master Prompt
+export const KNOWN_MANUFACTURERS = [
+  'TAMIZH TECH ROBOTICS COMPANY',
+  'Tamizh Tech / TTRC',
+  'Arduino',
+  'Raspberry Pi Foundation',
+  'Espressif Systems',
+  'STMicroelectronics',
+  'Waveshare Electronics',
+  'Pololu Robotics',
+];
+
+export const KNOWN_BRANDS = [
+  'TTRC',
+  'TAMIZH TECH ROBOTICS COMPANY',
+  'Tamizh Tech',
+  'Arduino',
+  'Raspberry Pi',
+  'Espressif',
+  'Waveshare',
+  'Generic / Unbranded',
+];
+
+export const KNOWN_SUPPLIERS = [
+  'In-House Production (TTRC Facility)',
+  'Direct Factory Procurement',
+  'Authorized Domestic Distributor',
+  'Imported / Overseas Partner',
+  'Direct OEM Partner',
+];
+
+// Official TTRC Robotics Product Presets
 const REFERENCE_PRESETS = [
   {
-    id: 'kl-f2',
-    name: 'CNKALUN KL-F2 2-Way Brass Solenoid Valve',
-    sku: 'CNK-KLF2',
-    unit: 'Piece',
-    category: 'industrial-components',
-    productType: 'standard',
-    price: '1299',
-    mrp: '1499',
-    manufacturer: 'CNKALUN',
-    brand: 'CNKALUN',
-    countryOfOrigin: 'China',
-    hsnCode: '84818090',
+    id: 'ttrc-lf-6-kit',
+    name: 'TTRC LF 6.0 – Line Follower Robot (Without Battery)',
+    sku: 'TTRC-LFR-60',
+    unit: 'Kit',
+    category: 'gamified-robots',
+    productType: 'kit',
+    price: '3300',
+    mrp: '3999',
+    manufacturer: 'TAMIZH TECH ROBOTICS COMPANY',
+    brand: 'TTRC',
+    countryOfOrigin: 'India',
+    hsnCode: '8479',
     gstPercent: '18',
-    stock: '50',
-    weight: '320',
-    material: 'Forged Brass',
-    shortDescription: 'High precision 2-way normally closed brass solenoid valve for liquid and gas flow control.',
-    description: 'The CNKALUN KL-F2 is an industrial-grade 2-way brass solenoid valve designed for reliable fluid automation, water dispensing machines, coffee apparatus, and industrial pneumatic control circuits. Built with a forged brass body and corrosion-resistant plunger assembly for high-cycle longevity.',
-    applications: ['Coffee machines & beverage dispensers', 'Water dispensing systems', 'Fluid automation equipment', 'Industrial pneumatic control'],
+    stock: '25',
+    weight: '95',
+    material: 'FR4 Glass Epoxy PCB Chassis with 3D Printed Clamp & Wheels',
+    voltage: '7–12 V DC',
+    shortDescription: 'High-speed autonomous line follower robot kit featuring a 7-array sensor, TB6612FNG driver, and Type-C Arduino Nano.',
+    description: 'The TTRC LF 6.0 is a professional-grade competition line follower robot engineered by Tamizh Tech Robotics Company in Tamil Nadu, India. Fitted with an ultra-responsive 7-array analog line sensor, TTRC TB6612FNG dual motor driver, Type-C Arduino Nano microcontroller, high-traction custom LFR wheels, and tactile calibration controls.',
+    applications: ['National & International Line Follower Competitions', 'Robo Race & Fast Line Tracking', 'Robotics Labs & STEM Engineering Workshops', 'Embedded C & PID Control Learning'],
     specs: [
-      { key: 'Valve Type', value: '2-Way Normally Closed (N/C)' },
-      { key: 'Body Material', value: 'High Grade Forged Brass' },
-      { key: 'Operating Medium', value: 'Water, Liquid, Air' },
-      { key: 'Fluid Temperature Range', value: '0°C to 100°C' },
+      { key: 'Chassis Dimensions', value: '165 mm × 145 mm × 35 mm' },
+      { key: 'Weight (Without Battery)', value: '95 g' },
+      { key: 'Line Sensor', value: '7-Array Analog Line Sensor' },
+      { key: 'Motor Driver', value: 'TTRC TB6612FNG Dual H-Bridge' },
+      { key: 'Microcontroller', value: 'Arduino Nano (Type-C USB)' },
+      { key: 'Wheels', value: 'Custom TTRC LFR Wheels (35 mm × 25 mm × 4 mm)' },
+      { key: 'Operating Voltage', value: '7–12 V DC' },
     ],
     bulkTiers: [
-      { minQuantity: 5, maxQuantity: 9, unitPrice: '1199' },
-      { minQuantity: 10, unitPrice: '1099' },
+      { minQuantity: 5, maxQuantity: 9, unitPrice: '3150' },
+      { minQuantity: 10, unitPrice: '2950' },
     ],
   },
   {
-    id: 'kl-f3',
-    name: 'CNKALUN KL-F3 3-Way Brass Solenoid Valve',
-    sku: 'CNK-KLF3',
+    id: 'ttrc-carrier-board',
+    name: 'TTRC LF 6.0 CARRIER BOARD',
+    sku: 'TTRC-PCB-60',
     unit: 'Piece',
-    category: 'industrial-components',
-    productType: 'standard',
-    price: '1499',
-    mrp: '1799',
-    manufacturer: 'CNKALUN',
-    brand: 'CNKALUN',
-    countryOfOrigin: 'China',
-    hsnCode: '84818090',
+    category: 'gamified-robots',
+    productType: 'spare_part',
+    price: '650',
+    mrp: '799',
+    manufacturer: 'TAMIZH TECH ROBOTICS COMPANY',
+    brand: 'TTRC',
+    countryOfOrigin: 'India',
+    hsnCode: '8534',
     gstPercent: '18',
-    stock: '40',
-    weight: '360',
-    material: 'Forged Brass',
-    shortDescription: 'Industrial 3-way brass solenoid valve engineered for dual-channel routing and pressure relief.',
-    description: 'The CNKALUN KL-F3 is a commercial 3-way brass solenoid valve featuring precision porting for directional diversion, steam release, and automated fluid routing. Ideal for espresso boiler circuits, commercial beverage dispensers, and automated hydraulic setups.',
-    applications: ['Espresso machine brew groups', 'Directional fluid routing circuits', 'Steam & condensate relief', 'Automated dispensing lines'],
+    stock: '50',
+    weight: '24',
+    material: 'Double-Sided FR4 PCB',
+    voltage: '7–12 V DC',
+    shortDescription: 'Integrated motherboard carrier for TTRC Line Follower Robot with dual motor terminals and tactile buttons.',
+    description: 'TTRC LF 6.0 Carrier Board (60 mm × 50 mm, 24 g) designed specifically for fast robotics platforms. Includes slide power switch, S1 Calibrate and S2 Start pushbuttons, PWR red and CLB green status LEDs, and heavy-duty motor terminal blocks.',
+    applications: ['TTRC LF 6.0 Robot Platform', 'Custom Dual-Motor Robotic Chassis', 'Competition LFR Builds'],
     specs: [
-      { key: 'Valve Type', value: '3-Way 2-Position' },
-      { key: 'Body Material', value: 'Forged Brass' },
-      { key: 'Port Configuration', value: 'Inlet, Outlet, Exhaust / Diverter' },
-      { key: 'Operating Medium', value: 'Water, Steam, Air' },
+      { key: 'Board Size', value: '60 mm × 50 mm' },
+      { key: 'Weight', value: '24 g' },
+      { key: 'Input Voltage', value: '7–12 V DC' },
+      { key: 'Motor Outputs', value: '2 (Motor A, Motor B) via screw terminals' },
+      { key: 'Controls', value: 'Slide switch (ON/OFF), S1 Calibrate, S2 Start' },
+      { key: 'Indicators', value: 'PWR (Red), CLB (Green)' },
+    ],
+    bulkTiers: [
+      { minQuantity: 5, maxQuantity: 9, unitPrice: '600' },
+      { minQuantity: 10, unitPrice: '550' },
+    ],
+  },
+  {
+    id: 'ttrc-lfr-wheels',
+    name: 'TTRC LFR wheel',
+    sku: 'TTRC-WHL-35',
+    unit: 'Pair',
+    category: 'gamified-robots',
+    productType: 'spare_part',
+    price: '180',
+    mrp: '250',
+    manufacturer: 'TAMIZH TECH ROBOTICS COMPANY',
+    brand: 'TTRC',
+    countryOfOrigin: 'India',
+    hsnCode: '9503',
+    gstPercent: '18',
+    stock: '100',
+    weight: '13',
+    material: 'High-traction synthetic rubber tyre with rigid 3-spoke core',
+    shortDescription: 'Precision competition line follower robot wheels with textured grip for high-speed cornering.',
+    description: 'Custom engineered TTRC LFR wheels (35 mm × 25 mm × 4 mm, 13 g). Feature a 3-spoke structural hub and high-grip textured tread specifically engineered to eliminate slip during tight radius turns on arena surfaces.',
+    applications: ['Line Follower Robot Kits', 'Robo Race Chassis', 'N20 Gear Motor Shafts'],
+    specs: [
+      { key: 'Dimensions', value: '35 mm outer diameter × 25 mm width × 4 mm bore' },
+      { key: 'Weight', value: '13 g each' },
+      { key: 'Hub Design', value: 'Custom TTRC 3-Spoke Rigid Core' },
+      { key: 'Tyre Type', value: 'High-Traction Textured Synthetic Tread' },
+    ],
+    bulkTiers: [
+      { minQuantity: 5, maxQuantity: 9, unitPrice: '160' },
+      { minQuantity: 10, unitPrice: '140' },
+    ],
+  },
+  {
+    id: 'ttrc-motor-driver',
+    name: 'TTRC TB6612FNG Motor Driver Module',
+    sku: 'TTRC-DRV-TB6612',
+    unit: 'Piece',
+    category: 'motor-drivers',
+    productType: 'spare_part',
+    price: '240',
+    mrp: '300',
+    manufacturer: 'TAMIZH TECH ROBOTICS COMPANY',
+    brand: 'TTRC',
+    countryOfOrigin: 'India',
+    hsnCode: '8542',
+    gstPercent: '18',
+    stock: '75',
+    weight: '15',
+    material: 'FR4 PCB with SMT Power MOSFETs',
+    voltage: '4.5–13.5 V DC',
+    shortDescription: 'High-efficiency dual H-bridge motor driver with 1.2A per channel continuous and 3.2A peak output.',
+    description: 'High performance dual MOSFET H-bridge motor driver module by Tamizh Tech Robotics Company. Exceptional thermal efficiency and negligible voltage drop compared to legacy L298N drivers.',
+    applications: ['Line follower robots', 'Robo soccer bots', 'Dual DC motor drive systems', 'Arduino & Raspberry Pi robotics'],
+    specs: [
+      { key: 'Driver IC', value: 'Toshiba TB6612FNG' },
+      { key: 'Motor Supply Voltage (VM)', value: '4.5 V to 13.5 V DC' },
+      { key: 'Logic Supply Voltage (VCC)', value: '2.7 V to 5.5 V DC' },
+      { key: 'Output Current', value: '1.2 A continuous, 3.2 A peak per channel' },
+      { key: 'Protection', value: 'Built-in thermal shutdown & low-voltage detection' },
+    ],
+    bulkTiers: [
+      { minQuantity: 5, maxQuantity: 9, unitPrice: '220' },
+      { minQuantity: 10, unitPrice: '199' },
+    ],
+  },
+  {
+    id: 'ttrc-theera-v1',
+    name: 'TTRC THEERA V-1.0',
+    sku: 'TTRC-MD-THEERA1',
+    unit: 'Piece',
+    category: 'motor-drivers',
+    productType: 'standard',
+    price: '1500',
+    mrp: '1899',
+    manufacturer: 'TAMIZH TECH ROBOTICS COMPANY',
+    brand: 'TTRC',
+    supplier: 'In-House Production (TTRC Facility)',
+    countryOfOrigin: 'India',
+    hsnCode: '8542',
+    gstPercent: '18',
+    stock: '30',
+    weight: '28',
+    material: 'Double-Sided FR4 Glass Epoxy PCB with Dual Screw Terminals',
+    voltage: '7–12 V DC',
+    dimensions: '65 mm × 45 mm',
+    shortDescription: 'ESP32-C3 powered mobile phone controlled dual motor driver board with onboard L298N dual H-bridge for competition robotics.',
+    description: 'TTRC THEERA V-1.0 is an enterprise mobile-controlled motor driver board engineered by Tamizh Tech Robotics Company in Tamil Nadu, India. Powered by a high-speed ESP32-C3 microcontroller with integrated Bluetooth 5 (LE) and 2.4 GHz Wi-Fi smartphone app control, coupled with a heavy-duty L298N dual H-bridge driver. Features 2 independent DC motor channels, 7–12 V DC wide input voltage range, 4 × 3 mm precision mounting holes, and a lightweight 28 g footprint purpose-built for Robo Soccer, Sumo bots, and wireless combat robotics.',
+    applications: [
+      'Lightweight Soccer Bots & Robo Football Platforms',
+      'Autonomous & RC Mini Sumo Bots',
+      'Bluetooth & Wi-Fi Smartphone-Controlled Combat Robots',
+      'IoT Robotics & Wireless Embedded Systems',
+    ],
+    specs: [
+      { key: 'Product Name', value: 'TTRC THEERA V-1.0' },
+      { key: 'Board Type', value: 'Mobile-Controlled Motor Driver Board' },
+      { key: 'Motor Driver', value: 'L298N Dual H-Bridge Motor Driver' },
+      { key: 'Controller Microcontroller', value: 'ESP32-C3 (32-bit RISC-V Single-Core)' },
+      { key: 'Control Mode', value: 'Mobile Phone App (Dual Bluetooth 5 LE & 2.4 GHz Wi-Fi)' },
+      { key: 'Motor Channels', value: '2 Independent DC Motor Channels (Screw Terminals)' },
+      { key: 'Input Operating Voltage', value: '7–12 V DC' },
+      { key: 'Dimensions (L × W)', value: '65 mm × 45 mm' },
+      { key: 'Weight', value: '28 g' },
+      { key: 'Mounting', value: '4 × 3 mm Mounting Holes' },
+      { key: 'Suited Applications', value: 'Lightweight Soccer Bots, Sumo Bots, RC Robots' },
     ],
     bulkTiers: [
       { minQuantity: 5, maxQuantity: 9, unitPrice: '1399' },
       { minQuantity: 10, unitPrice: '1299' },
-    ],
-  },
-  {
-    id: 'kp1-plastic',
-    name: 'CNKALUN KP1 220–240V Solenoid Water Pump — Plastic Output',
-    sku: 'CNK-KP1-PLS',
-    unit: 'Piece',
-    category: 'industrial-components',
-    productType: 'standard',
-    price: '1799',
-    mrp: '2199',
-    manufacturer: 'CNKALUN',
-    brand: 'CNKALUN',
-    countryOfOrigin: 'China',
-    hsnCode: '84138190',
-    gstPercent: '18',
-    stock: '35',
-    weight: '440',
-    material: 'Engineered Polymer Housing with Plastic Output Nozzle',
-    voltage: '220-240V AC 50Hz',
-    shortDescription: 'Self-priming reciprocating electromagnetic solenoid water pump with durable engineered plastic output nozzle.',
-    description: 'The CNKALUN KP1 (Plastic Output) is an electromagnetic solenoid plunger pump engineered for high-pressure fluid delivery in steam irons, floor steamers, garment presses, and automated liquid dispensing units. Operates directly on standard 220–240V AC electrical supplies.',
-    applications: ['Garment steamers & commercial irons', 'Automated floor cleaners & mops', 'Coffee and beverage pumping', 'Precision chemical dosing apparatus'],
-    specs: [
-      { key: 'Pump Principle', value: 'Electromagnetic Solenoid Reciprocating' },
-      { key: 'Rated Voltage', value: '220–240V AC / 50Hz' },
-      { key: 'Output Fitting', value: 'Reinforced Polymer / Plastic Nozzle' },
-      { key: 'Insulation Class', value: 'Class H (Thermal Protected)' },
-    ],
-    bulkTiers: [
-      { minQuantity: 5, maxQuantity: 9, unitPrice: '1699' },
-      { minQuantity: 10, unitPrice: '1599' },
-    ],
-  },
-  {
-    id: 'kp1-brass',
-    name: 'CNKALUN KP1 220–240V Solenoid Water Pump — Brass Output',
-    sku: 'CNK-KP1-BRS',
-    unit: 'Piece',
-    category: 'industrial-components',
-    productType: 'standard',
-    price: '2099',
-    mrp: '2499',
-    manufacturer: 'CNKALUN',
-    brand: 'CNKALUN',
-    countryOfOrigin: 'China',
-    hsnCode: '84138190',
-    gstPercent: '18',
-    stock: '30',
-    weight: '480',
-    material: 'Engineered Polymer Housing with Machined Brass Output Nozzle',
-    voltage: '220-240V AC 50Hz',
-    shortDescription: 'Heavy-duty reciprocating electromagnetic solenoid water pump with high-strength machined brass output connector.',
-    description: 'The CNKALUN KP1 (Brass Output) is a premium commercial solenoid pump fitted with a heavy-duty threaded brass output fitting. Designed for high pressure, elevated thermal environments, commercial espresso machines, and industrial steam cleaning equipment where metallic structural integrity is required.',
-    applications: ['Commercial espresso machines', 'High-pressure steam generators', 'Medical sterilization autoclaves', 'Industrial fluid circulation'],
-    specs: [
-      { key: 'Pump Principle', value: 'Electromagnetic Solenoid Plunger' },
-      { key: 'Rated Voltage', value: '220–240V AC / 50Hz' },
-      { key: 'Output Fitting', value: 'Solid Machined Brass' },
-      { key: 'Insulation Class', value: 'Class H (180°C)' },
-    ],
-    bulkTiers: [
-      { minQuantity: 5, maxQuantity: 9, unitPrice: '1999' },
-      { minQuantity: 10, unitPrice: '1899' },
     ],
   },
 ];
@@ -189,9 +276,107 @@ export function EnterpriseProductForm({
   // Classification & Status
   const [productType, setProductType] = React.useState(initialData?.productType || 'standard');
   const [status, setStatus] = React.useState(initialData?.status || 'published');
+
+  // Categories list with dynamic in-form creation
+  const [categoriesList, setCategoriesList] = React.useState<
+    Array<{ id: string; name: string; slug: string; parentId?: string | null; parentName?: string }>
+  >(availableCategories || []);
+
+  React.useEffect(() => {
+    if (availableCategories && availableCategories.length > 0) {
+      setCategoriesList(availableCategories);
+    }
+  }, [availableCategories]);
+
+  // Find initial category match (handles matching by either MongoDB ObjectId or slug)
+  const initialCat = React.useMemo(() => {
+    if (!initialData?.categoryId || !categoriesList) return null;
+    return categoriesList.find(
+      (c) => c.id === initialData.categoryId || c.slug === initialData.categoryId
+    );
+  }, [initialData?.categoryId, categoriesList]);
+
   const [categoryId, setCategoryId] = React.useState(
-    initialData?.categoryId || availableCategories?.[0]?.slug || 'gamified-robots'
+    initialCat ? initialCat.slug : (initialData?.categoryId || categoriesList?.[0]?.slug || 'gamified-robots')
   );
+
+  React.useEffect(() => {
+    if (initialData?.categoryId && categoriesList && categoriesList.length > 0) {
+      const match = categoriesList.find(
+        (c) => c.id === initialData.categoryId || c.slug === initialData.categoryId
+      );
+      if (match) {
+        setCategoryId(match.slug);
+      }
+    }
+  }, [initialData?.categoryId, categoriesList]);
+
+  const mainCategories = React.useMemo(() => {
+    return (categoriesList || []).filter((c) => !c.parentId);
+  }, [categoriesList]);
+
+  const subcategories = React.useMemo(() => {
+    return (categoriesList || []).filter((c) => !!c.parentId);
+  }, [categoriesList]);
+
+  const selectedCategoryInfo = React.useMemo(() => {
+    return (categoriesList || []).find((c) => c.slug === categoryId || c.id === categoryId);
+  }, [categoriesList, categoryId]);
+
+  // Quick category creation modal state
+  const [isAddCatOpen, setIsAddCatOpen] = React.useState(false);
+  const [newCatName, setNewCatName] = React.useState('');
+  const [newCatSlug, setNewCatSlug] = React.useState('');
+  const [newCatParentId, setNewCatParentId] = React.useState('');
+  const [creatingCategory, setCreatingCategory] = React.useState(false);
+  const [catCreationError, setCatCreationError] = React.useState<string | null>(null);
+
+  const handleQuickAddCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCatName.trim()) return;
+    const computedSlug =
+      newCatSlug.trim() ||
+      newCatName
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+    setCreatingCategory(true);
+    setCatCreationError(null);
+
+    try {
+      const res = await createAdminCategoryAction({
+        name: newCatName.trim(),
+        slug: computedSlug,
+        parentId: newCatParentId || undefined,
+        sortOrder: 0,
+        isActive: true,
+      });
+
+      if (res.error) {
+        setCatCreationError(res.error);
+      } else {
+        const parent = categoriesList.find((c) => c.id === newCatParentId || c.slug === newCatParentId);
+        const addedCat = {
+          id: res.id || computedSlug,
+          name: newCatName.trim(),
+          slug: computedSlug,
+          parentId: newCatParentId || null,
+          parentName: parent?.name,
+        };
+
+        setCategoriesList((prev) => [...prev, addedCat]);
+        setCategoryId(computedSlug);
+        setIsAddCatOpen(false);
+        setNewCatName('');
+        setNewCatSlug('');
+        setNewCatParentId('');
+      }
+    } catch (err: any) {
+      setCatCreationError(err.message || 'Failed to create category');
+    } finally {
+      setCreatingCategory(false);
+    }
+  };
 
   // Commercial Pricing & Bulk Tiers
   const [price, setPrice] = React.useState(
@@ -265,14 +450,18 @@ export function EnterpriseProductForm({
   );
 
   // Brand & Manufacturer
-  const [brand, setBrand] = React.useState(initialData?.brand || 'CNKALUN');
-  const [manufacturerName, setManufacturerName] = React.useState(initialData?.manufacturerName || 'CNKALUN');
+  const [brand, setBrand] = React.useState(initialData?.brand || 'TTRC');
+  const [manufacturerName, setManufacturerName] = React.useState(
+    initialData?.manufacturerName || 'TAMIZH TECH ROBOTICS COMPANY'
+  );
   const [showManufacturerPublicly, setShowManufacturerPublicly] = React.useState(
     initialData?.showManufacturerPublicly ?? true
   );
 
   // Supplier / Internal Procurement (ADMIN ONLY)
-  const [supplier, setSupplier] = React.useState(initialData?.supplier || 'Direct Factory Procurement');
+  const [supplier, setSupplier] = React.useState(
+    initialData?.supplier || 'In-House Production (TTRC Facility)'
+  );
   const [costPrice, setCostPrice] = React.useState(
     initialData?.costPricePaise ? (initialData.costPricePaise / 100).toString() : ''
   );
@@ -304,10 +493,56 @@ export function EnterpriseProductForm({
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
   const [success, setSuccess] = React.useState(false);
 
+  // Delete Product State & Handlers
+  const [showDeleteModal, setShowDeleteModal] = React.useState(false);
+  const [deletingProduct, setDeletingProduct] = React.useState(false);
+  const [deleteProductError, setDeleteProductError] = React.useState<string | null>(null);
+  const [canArchiveInForm, setCanArchiveInForm] = React.useState(false);
+
+  const handleDeleteProductInForm = async () => {
+    if (!productId) return;
+    setDeletingProduct(true);
+    setDeleteProductError(null);
+    try {
+      const res = await deleteProductAction(productId);
+      if (res.error) {
+        setDeleteProductError(res.error);
+        if ((res as any).canArchive) setCanArchiveInForm(true);
+      } else {
+        router.refresh();
+        router.push('/admin/products');
+      }
+    } catch (err: any) {
+      setDeleteProductError(err.message || 'Failed to delete product');
+    } finally {
+      setDeletingProduct(false);
+    }
+  };
+
+  const handleArchiveProductInForm = async () => {
+    if (!productId) return;
+    setDeletingProduct(true);
+    setDeleteProductError(null);
+    try {
+      const res = await archiveProductAction(productId);
+      if (res.error) {
+        setDeleteProductError(res.error);
+      } else {
+        router.refresh();
+        router.push('/admin/products');
+      }
+    } catch (err: any) {
+      setDeleteProductError(err.message || 'Failed to archive product');
+    } finally {
+      setDeletingProduct(false);
+    }
+  };
+
   // AI & Slug Generation State
   const [autoSlugLocked, setAutoSlugLocked] = React.useState(Boolean(initialData?.slug));
   const [aiGenerating, setAiGenerating] = React.useState(false);
   const [aiSuccessMsg, setAiSuccessMsg] = React.useState<string | null>(null);
+  const [aiErrorMsg, setAiErrorMsg] = React.useState<string | null>(null);
   const [hsnAiSuggestion, setHsnAiSuggestion] = React.useState<{
     confidence: string;
     reasoning: string;
@@ -348,12 +583,15 @@ export function EnterpriseProductForm({
   // AI Details & SEO Generation Handler
   const handleGenerateWithAi = async () => {
     if (!name.trim()) {
-      setErrorMsg('Please enter a Product Title first to generate AI details.');
+      const msg = 'Please enter a Product Title first to generate AI details & SEO.';
+      setErrorMsg(msg);
+      setAiErrorMsg(msg);
       return;
     }
     setAiGenerating(true);
     setErrorMsg(null);
     setAiSuccessMsg(null);
+    setAiErrorMsg(null);
 
     try {
       const res = await fetch('/api/admin/ai/generate-product-details', {
@@ -388,7 +626,9 @@ export function EnterpriseProductForm({
 
       setAiSuccessMsg('✨ AI Product Details & SEO generated! Review and verify before saving.');
     } catch (err: any) {
-      setErrorMsg(`AI Generation error: ${err.message}`);
+      const errMsg = `AI Generation error: ${err.message}`;
+      setErrorMsg(errMsg);
+      setAiErrorMsg(errMsg);
     } finally {
       setAiGenerating(false);
     }
@@ -690,9 +930,10 @@ export function EnterpriseProductForm({
         setErrorMsg(res.error);
       } else {
         setSuccess(true);
+        router.refresh();
         setTimeout(() => {
           router.push('/admin/products');
-        }, 1200);
+        }, 800);
       }
     } catch (err: any) {
       setErrorMsg(err.message || 'Failed to save product.');
@@ -723,6 +964,22 @@ export function EnterpriseProductForm({
         </div>
 
         <div className="flex items-center gap-3">
+          {isEditMode && productId && (
+            <Button
+              type="button"
+              variant="outline"
+              disabled={saving || deletingProduct}
+              onClick={() => {
+                setShowDeleteModal(true);
+                setDeleteProductError(null);
+                setCanArchiveInForm(false);
+              }}
+              className="border-red-200 text-[#E3132A] hover:bg-red-50 hover:border-red-300 font-bold text-xs h-10 px-3.5 gap-1.5 rounded-xl"
+            >
+              <Trash2 size={15} /> Delete Product
+            </Button>
+          )}
+
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value as any)}
@@ -735,7 +992,7 @@ export function EnterpriseProductForm({
 
           <Button
             type="submit"
-            disabled={saving}
+            disabled={saving || deletingProduct}
             className="bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold text-xs h-10 px-5 gap-2 rounded-xl shadow-md shadow-purple-900/20"
           >
             <Save size={16} />
@@ -820,7 +1077,7 @@ export function EnterpriseProductForm({
             <Input
               value={name}
               onChange={(e) => handleNameChange(e.target.value)}
-              placeholder="e.g. CNKALUN KL-F2 2-Way Brass Solenoid Valve"
+              placeholder="e.g. TTRC LF 6.0 Line Follower Robot Kit"
               required
               className="h-10 text-xs font-semibold"
             />
@@ -885,32 +1142,87 @@ export function EnterpriseProductForm({
             </select>
           </div>
 
-          <div className="space-y-1 sm:col-span-2">
-            <label className="font-bold text-slate-700">Category Selection *</label>
+          <div className="space-y-1.5 sm:col-span-2">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <label className="font-bold text-slate-700">Category Selection *</label>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsAddCatOpen(true)}
+                  className="text-xs font-bold text-[#E3132A] hover:text-[#B80F21] flex items-center gap-1 hover:underline"
+                >
+                  <Plus size={13} />
+                  <span>Add New Category / Subcategory</span>
+                </button>
+                <Link
+                  href="/admin/categories"
+                  target="_blank"
+                  className="text-xs text-slate-500 hover:text-slate-800 flex items-center gap-1 hover:underline"
+                >
+                  <span>Manage All ↗</span>
+                </Link>
+              </div>
+            </div>
             <select
               value={categoryId}
               onChange={(e) => setCategoryId(e.target.value)}
-              className="w-full h-10 px-3 rounded-md border border-slate-200 text-xs bg-white focus:border-red-600 focus:outline-none"
+              className="w-full h-10 px-3 rounded-md border border-slate-200 text-xs bg-white focus:border-red-600 focus:outline-none font-medium"
             >
-              {availableCategories && availableCategories.length > 0 ? (
-                availableCategories.map((c) => (
-                  <option key={c.id || c.slug} value={c.slug}>
-                    {c.name}
-                  </option>
-                ))
+              {categoriesList && categoriesList.length > 0 ? (
+                <>
+                  {mainCategories.length > 0 && (
+                    <optgroup label="Main Categories (Header Nav)">
+                      {mainCategories.map((c) => (
+                        <option key={c.id || c.slug} value={c.slug}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                  {subcategories.length > 0 && (
+                    <optgroup label="Subcategories (Specific Kits & Parts)">
+                      {subcategories.map((c) => (
+                        <option key={c.id || c.slug} value={c.slug}>
+                          {c.parentName ? `${c.parentName} → ${c.name}` : c.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                </>
               ) : (
                 <>
                   <option value="gamified-robots">Gamified Robots (Robo Race, Line Follower, Soccer)</option>
+                  <option value="motors">Motors &amp; Drivers</option>
+                  <option value="motor-drivers">Motor Drivers</option>
                   <option value="stem-kits">STEM Kits</option>
                   <option value="fasteners">Fasteners (Screws, Nuts, Standoffs)</option>
                   <option value="batteries">Batteries &amp; Chargers</option>
-                  <option value="motors">Motors &amp; Drivers</option>
                   <option value="sensors">Sensors Array</option>
                   <option value="drones">Drone Parts &amp; Flight Controllers</option>
                   <option value="wires-connectors">Wires &amp; Connectors</option>
                 </>
               )}
             </select>
+
+            {selectedCategoryInfo && (
+              <div className="flex flex-wrap items-center gap-1.5 pt-0.5 text-[11px] text-slate-600">
+                <span className="font-semibold text-slate-700">Storefront Placement:</span>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 font-bold border border-purple-100">
+                  {selectedCategoryInfo.parentName ? (
+                    <>
+                      <span>{selectedCategoryInfo.parentName}</span>
+                      <span className="text-slate-400">›</span>
+                      <span>{selectedCategoryInfo.name}</span>
+                    </>
+                  ) : (
+                    <span>{selectedCategoryInfo.name}</span>
+                  )}
+                </span>
+                <span className="text-slate-400">
+                  (Shows in header navigation once published)
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -1252,29 +1564,132 @@ export function EnterpriseProductForm({
 
       {/* SECTION 5: Brand & Manufacturer */}
       <div className="p-6 rounded-2xl bg-white border border-slate-200 space-y-4 shadow-xs">
-        <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
-          <Factory size={16} className="text-[#844AFB]" /> 5. Manufacturer &amp; Brand System
-        </h2>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 gap-2">
+          <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+            <Factory size={16} className="text-[#844AFB]" /> 5. Manufacturer &amp; Brand System
+          </h2>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setManufacturerName('TAMIZH TECH ROBOTICS COMPANY');
+                setBrand('TTRC');
+                setSupplier('In-House Production (TTRC Facility)');
+                setCountryOfOrigin('India');
+              }}
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                manufacturerName.toUpperCase().includes('TAMIZH') || brand === 'TTRC'
+                  ? 'bg-purple-100 text-purple-800 border border-purple-300'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              🏭 In-House (TTRC)
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setManufacturerName('Arduino');
+                setBrand('Arduino');
+                setSupplier('Authorized Domestic Distributor');
+              }}
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                !manufacturerName.toUpperCase().includes('TAMIZH') && brand !== 'TTRC'
+                  ? 'bg-purple-100 text-purple-800 border border-purple-300'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              📦 Third-Party / OEM
+            </button>
+          </div>
+        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-          <div className="space-y-1">
-            <label className="font-bold text-slate-700">Manufacturer Name</label>
-            <Input
-              value={manufacturerName}
-              onChange={(e) => setManufacturerName(e.target.value)}
-              placeholder="e.g. CNKALUN or Tamizh Tech Robotics Company"
-              className="h-10 text-xs font-semibold"
-            />
+          {/* Manufacturer Selector */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label className="font-bold text-slate-700">Manufacturer</label>
+              <span className="text-[10px] text-purple-700 font-semibold">Select or custom</span>
+            </div>
+            <select
+              value={KNOWN_MANUFACTURERS.includes(manufacturerName) ? manufacturerName : '__custom__'}
+              onChange={(e) => {
+                if (e.target.value === '__custom__') {
+                  setManufacturerName('');
+                } else {
+                  setManufacturerName(e.target.value);
+                  if (e.target.value.includes('TAMIZH')) {
+                    setBrand('TTRC');
+                    setCountryOfOrigin('India');
+                  }
+                }
+              }}
+              className="w-full h-10 px-3 rounded-md border border-slate-200 text-xs font-semibold bg-white focus:border-purple-600 focus:outline-none"
+            >
+              <optgroup label="TTRC In-House Manufacturing">
+                <option value="TAMIZH TECH ROBOTICS COMPANY">TAMIZH TECH ROBOTICS COMPANY / TTRC (In-House)</option>
+                <option value="Tamizh Tech / TTRC">Tamizh Tech / TTRC</option>
+              </optgroup>
+              <optgroup label="Global Electronics & Robotics OEM">
+                <option value="Arduino">Arduino</option>
+                <option value="Raspberry Pi Foundation">Raspberry Pi Foundation</option>
+                <option value="Espressif Systems">Espressif Systems</option>
+                <option value="STMicroelectronics">STMicroelectronics</option>
+                <option value="Waveshare Electronics">Waveshare Electronics</option>
+                <option value="Pololu Robotics">Pololu Robotics</option>
+              </optgroup>
+              <option value="__custom__">✍️ Custom / Other Manufacturer...</option>
+            </select>
+            {(!KNOWN_MANUFACTURERS.includes(manufacturerName) || manufacturerName === '') && (
+              <Input
+                value={manufacturerName}
+                onChange={(e) => setManufacturerName(e.target.value)}
+                placeholder="Enter custom manufacturer name"
+                className="h-9 text-xs font-semibold mt-1.5"
+                autoFocus
+              />
+            )}
           </div>
 
-          <div className="space-y-1">
-            <label className="font-bold text-slate-700">Brand Display Name</label>
-            <Input
-              value={brand}
-              onChange={(e) => setBrand(e.target.value)}
-              placeholder="e.g. CNKALUN or Tamizh Tech"
-              className="h-10 text-xs font-semibold"
-            />
+          {/* Brand Selector */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label className="font-bold text-slate-700">Brand Display Name</label>
+              <span className="text-[10px] text-purple-700 font-semibold">Customer-facing badge</span>
+            </div>
+            <select
+              value={KNOWN_BRANDS.includes(brand) ? brand : '__custom__'}
+              onChange={(e) => {
+                if (e.target.value === '__custom__') {
+                  setBrand('');
+                } else {
+                  setBrand(e.target.value);
+                }
+              }}
+              className="w-full h-10 px-3 rounded-md border border-slate-200 text-xs font-semibold bg-white focus:border-purple-600 focus:outline-none"
+            >
+              <optgroup label="TTRC Official Brands">
+                <option value="TTRC">TTRC (Primary Brand)</option>
+                <option value="TAMIZH TECH ROBOTICS COMPANY">TAMIZH TECH ROBOTICS COMPANY</option>
+                <option value="Tamizh Tech">Tamizh Tech</option>
+              </optgroup>
+              <optgroup label="OEM & Partner Brands">
+                <option value="Arduino">Arduino</option>
+                <option value="Raspberry Pi">Raspberry Pi</option>
+                <option value="Espressif">Espressif</option>
+                <option value="Waveshare">Waveshare</option>
+                <option value="Generic / Unbranded">Generic / Unbranded</option>
+              </optgroup>
+              <option value="__custom__">✍️ Custom / Other Brand...</option>
+            </select>
+            {(!KNOWN_BRANDS.includes(brand) || brand === '') && (
+              <Input
+                value={brand}
+                onChange={(e) => setBrand(e.target.value)}
+                placeholder="Enter custom brand display name"
+                className="h-9 text-xs font-semibold mt-1.5"
+                autoFocus
+              />
+            )}
           </div>
 
           <div className="sm:col-span-2 pt-2 flex items-center gap-3">
@@ -1286,7 +1701,7 @@ export function EnterpriseProductForm({
               className="w-4 h-4 text-purple-600 rounded border-slate-300 focus:ring-purple-500"
             />
             <label htmlFor="showMfg" className="text-xs font-bold text-slate-800 cursor-pointer">
-              Show Manufacturer entity publicly on storefront product page (CNKALUN)
+              Show Manufacturer entity publicly on storefront product page ({manufacturerName || 'TTRC'})
             </label>
           </div>
         </div>
@@ -1304,14 +1719,33 @@ export function EnterpriseProductForm({
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
-          <div className="space-y-1">
-            <label className="font-bold text-slate-700">Supplier Name / Vendor</label>
-            <Input
-              value={supplier}
-              onChange={(e) => setSupplier(e.target.value)}
-              placeholder="e.g. Factory Direct / Domestic Distributor"
-              className="h-10 text-xs bg-white"
-            />
+          <div className="space-y-1.5">
+            <label className="font-bold text-slate-700">Supplier Name / Vendor Source</label>
+            <select
+              value={KNOWN_SUPPLIERS.includes(supplier) ? supplier : '__custom__'}
+              onChange={(e) => {
+                if (e.target.value === '__custom__') {
+                  setSupplier('');
+                } else {
+                  setSupplier(e.target.value);
+                }
+              }}
+              className="w-full h-10 px-3 rounded-md border border-amber-200 text-xs font-semibold bg-white focus:border-amber-600 focus:outline-none"
+            >
+              {KNOWN_SUPPLIERS.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+              <option value="__custom__">✍️ Custom / Other Supplier...</option>
+            </select>
+            {(!KNOWN_SUPPLIERS.includes(supplier) || supplier === '') && (
+              <Input
+                value={supplier}
+                onChange={(e) => setSupplier(e.target.value)}
+                placeholder="Enter vendor/supplier name"
+                className="h-9 text-xs bg-white mt-1.5"
+                autoFocus
+              />
+            )}
           </div>
 
           <div className="space-y-1">
@@ -1599,6 +2033,38 @@ export function EnterpriseProductForm({
           </Button>
         </div>
 
+        {aiSuccessMsg && (
+          <div className="p-3 rounded-xl bg-purple-50 border border-purple-200 text-xs text-purple-900 font-semibold flex items-center justify-between animate-in fade-in">
+            <span className="flex items-center gap-2">
+              <Sparkles size={14} className="text-[#844AFB] shrink-0" />
+              {aiSuccessMsg}
+            </span>
+            <button
+              type="button"
+              onClick={() => setAiSuccessMsg(null)}
+              className="text-purple-600 hover:text-purple-900 font-bold ml-2 text-sm"
+            >
+              ×
+            </button>
+          </div>
+        )}
+
+        {aiErrorMsg && (
+          <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 font-semibold flex items-center justify-between animate-in fade-in">
+            <span className="flex items-center gap-2">
+              <AlertCircle size={14} className="text-red-500 shrink-0" />
+              {aiErrorMsg}
+            </span>
+            <button
+              type="button"
+              onClick={() => setAiErrorMsg(null)}
+              className="text-red-600 hover:text-red-900 font-bold ml-2 text-sm"
+            >
+              ×
+            </button>
+          </div>
+        )}
+
         <div className="space-y-3 text-xs">
           <div className="space-y-1">
             <div className="flex items-center justify-between">
@@ -1610,7 +2076,7 @@ export function EnterpriseProductForm({
             <Input
               value={seoTitle}
               onChange={(e) => setSeoTitle(e.target.value)}
-              placeholder="e.g. CNKALUN KL-F2 2-Way Brass Solenoid Valve | TTRC Store"
+              placeholder="e.g. TTRC LF 6.0 Line Follower Robot Kit | TTRC Store"
               className="h-9 text-xs"
             />
           </div>
@@ -1662,6 +2128,168 @@ export function EnterpriseProductForm({
         }}
         onConfirm={handleCropConfirm}
       />
+      {/* Quick Category / Subcategory Creation Modal */}
+      {isAddCatOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="font-bold text-sm text-slate-900">Add New Category or Subcategory</h3>
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  Immediately available in the product dropdown &amp; storefront
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsAddCatOpen(false)}
+                className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100"
+              >
+                ✕
+              </button>
+            </div>
+
+            {catCreationError && (
+              <div className="p-3 bg-red-50 text-red-700 text-xs rounded-xl border border-red-200">
+                {catCreationError}
+              </div>
+            )}
+
+            <form onSubmit={handleQuickAddCategory} className="space-y-3 text-xs">
+              <div className="space-y-1">
+                <label className="font-bold text-slate-700">Category Name *</label>
+                <Input
+                  value={newCatName}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setNewCatName(val);
+                    setNewCatSlug(val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
+                  }}
+                  placeholder="e.g. Motor Drivers, LiPo Batteries, Sumo Bots"
+                  required
+                  className="h-10 text-xs font-medium"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-bold text-slate-700">URL Slug *</label>
+                <Input
+                  value={newCatSlug}
+                  onChange={(e) => setNewCatSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]+/g, ''))}
+                  placeholder="e.g. motor-drivers"
+                  required
+                  className="h-10 text-xs font-mono"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-bold text-slate-700">Parent Category (Optional)</label>
+                <select
+                  value={newCatParentId}
+                  onChange={(e) => setNewCatParentId(e.target.value)}
+                  className="w-full h-10 px-3 rounded-md border border-slate-200 text-xs bg-white focus:border-red-600 focus:outline-none"
+                >
+                  <option value="">None (Top-Level Main Category)</option>
+                  {mainCategories.map((c) => (
+                    <option key={c.id || c.slug} value={c.id || c.slug}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[11px] text-slate-500">
+                  Select a parent to create a subcategory (e.g. under Motors &amp; Drivers or Gamified Robots)
+                </p>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsAddCatOpen(false)}
+                  className="h-9 text-xs"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={creatingCategory || !newCatName.trim()}
+                  className="h-9 text-xs font-bold bg-[#E3132A] hover:bg-[#B80F21] text-white"
+                >
+                  {creatingCategory ? 'Creating...' : 'Create & Select Category'}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Product Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-5 animate-in fade-in-50 zoom-in-95">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center text-[#E3132A] flex-shrink-0">
+                <AlertTriangle size={20} />
+              </div>
+              <div>
+                <h3 className="font-heading text-base font-extrabold text-slate-900">Delete Product Permanently</h3>
+                <p className="text-xs text-slate-500">Database Authority • Action cannot be undone</p>
+              </div>
+            </div>
+
+            <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs text-slate-700 space-y-1">
+              <p className="font-bold text-slate-900">{name || 'Current Product'}</p>
+              <p className="text-[11px] text-slate-500 font-mono">SKU: {sku || 'N/A'} • Slug: {slug}</p>
+            </div>
+
+            {deleteProductError ? (
+              <div className="p-3 bg-red-50 rounded-xl border border-red-200 text-xs text-red-700">
+                {deleteProductError}
+              </div>
+            ) : (
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Are you sure you want to delete this product? It will be permanently removed from MongoDB Atlas and instantly purged from all catalog pages and storefront navigation.
+              </p>
+            )}
+
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={deletingProduct}
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeleteProductError(null);
+                }}
+                className="text-xs font-bold rounded-xl h-9"
+              >
+                Cancel
+              </Button>
+
+              {canArchiveInForm ? (
+                <Button
+                  type="button"
+                  disabled={deletingProduct}
+                  onClick={handleArchiveProductInForm}
+                  className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl h-9 gap-1.5"
+                >
+                  {deletingProduct ? <Loader2 size={14} className="animate-spin" /> : null}
+                  Archive Product
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  disabled={deletingProduct}
+                  onClick={handleDeleteProductInForm}
+                  className="bg-[#E3132A] hover:bg-[#B80F21] text-white text-xs font-bold rounded-xl h-9 gap-1.5 shadow-sm shadow-red-900/10"
+                >
+                  {deletingProduct ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                  {deletingProduct ? 'Deleting...' : 'Confirm Delete'}
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </form>
   );
 }

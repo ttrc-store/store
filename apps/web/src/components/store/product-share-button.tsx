@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { Share2, Copy, Check, Smartphone, ExternalLink } from 'lucide-react';
-import { WhatsAppIcon, InstagramIcon, XIcon } from '@/components/ui/brand-icons';
+import { WhatsAppIcon } from '@/components/ui/brand-icons';
 import { cn } from '@/lib/utils';
 
 export interface ProductShareButtonProps {
@@ -88,42 +88,6 @@ export function ProductShareButton({
       `${shareText}\n${canonicalUrl}`
     )}`;
     window.open(waUrl, '_blank', 'noopener,noreferrer');
-    setIsOpen(false);
-  };
-
-  const handleShareX = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const xUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-      shareText
-    )}&url=${encodeURIComponent(canonicalUrl)}`;
-    window.open(xUrl, '_blank', 'noopener,noreferrer');
-    setIsOpen(false);
-  };
-
-  const handleShareInstagram = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    // If native share sheet is available, trigger it so customer can pick Instagram Stories/DM
-    if (typeof navigator !== 'undefined' && navigator.share) {
-      try {
-        await navigator.share({
-          title: name,
-          text: `${shareText} ${formattedPrice}`,
-          url: canonicalUrl,
-        });
-        setIsOpen(false);
-        return;
-      } catch (err: any) {
-        if (err.name === 'AbortError') return;
-      }
-    }
-
-    // Fallback: copy link and inform user
-    await copyToClipboard(
-      'Link copied! Instagram does not support direct browser links—paste this into your Story, DM, or Bio.'
-    );
     setIsOpen(false);
   };
 
@@ -218,33 +182,6 @@ export function ProductShareButton({
                 <WhatsAppIcon className="w-3.5 h-3.5" />
               </span>
               <span>Share on WhatsApp</span>
-            </button>
-
-            {/* X (Twitter) */}
-            <button
-              type="button"
-              onClick={handleShareX}
-              className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-colors"
-            >
-              <span className="p-1 rounded-md bg-slate-900 text-white flex items-center justify-center">
-                <XIcon className="w-3.5 h-3.5" />
-              </span>
-              <span>Share on X (Twitter)</span>
-            </button>
-
-            {/* Instagram */}
-            <button
-              type="button"
-              onClick={handleShareInstagram}
-              className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-semibold text-slate-700 hover:bg-pink-50 hover:text-pink-800 transition-colors"
-            >
-              <span className="p-1 rounded-md bg-pink-100 text-pink-600 flex items-center justify-center">
-                <InstagramIcon className="w-3.5 h-3.5" />
-              </span>
-              <div className="flex flex-col text-left">
-                <span>Share for Instagram</span>
-                <span className="text-[9px] text-slate-400 font-normal">Sheet or Copy Link</span>
-              </div>
             </button>
 
             {/* Native Mobile Share Sheet (if supported) */}

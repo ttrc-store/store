@@ -1,11 +1,30 @@
 'use server';
 
+import mongoose from 'mongoose';
 import { z } from 'zod';
 import { connectToDatabase } from '@/lib/mongodb/client';
-import { ProductModel, OrderModel, UserModel, CouponModel, AuditLogModel } from '@/lib/mongodb/models';
+import { ProductModel, CategoryModel, OrderModel, UserModel, CouponModel, AuditLogModel } from '@/lib/mongodb/models';
 import { requireAdmin } from '@/lib/auth-helpers';
 import { ProductSchema, sanitizeVideoEmbedUrl } from '@/lib/video-utils';
 import { revalidatePath } from 'next/cache';
+
+function revalidateCatalog(slug?: string, oldSlug?: string) {
+  try {
+    revalidatePath('/admin/products');
+    revalidatePath('/');
+    revalidatePath('/categories');
+    revalidatePath('/search');
+    revalidatePath('/cart');
+    if (slug) {
+      revalidatePath(`/product/${slug}`);
+    }
+    if (oldSlug && oldSlug !== slug) {
+      revalidatePath(`/product/${oldSlug}`);
+    }
+  } catch (err) {
+    console.error('Failed to revalidate catalog paths:', err);
+  }
+}
 
 // ─── Product CRUD ─────────────────────────────────────────────────────────────
 
@@ -32,9 +51,50 @@ export async function createProductAction(input: z.infer<typeof ProductSchema>) 
       return { error: 'A product with this slug or SKU already exists. Please use a unique value.' };
     }
 
-    const images = [...(data.imageUrls || [])];
+    const images = (data.imageUrls || []).filter(
+      (img) => !img.includes('youtube.com') && !img.includes('youtu.be') && !img.includes('vimeo.com') && !img.includes('youtube-nocookie.com')
+    );
     if (sanitizedVideo) {
       images.push(sanitizedVideo);
+    }
+
+    // Resolve category and subcategory hierarchically
+    let catIdToSave = data.categoryId;
+    let subCatIdToSave: string | undefined = undefined;
+    let allCatIdsToSave: string[] = [];
+
+    if (data.categoryId) {
+      const isObjectId = mongoose.isValidObjectId(data.categoryId);
+      const selectedCat = await CategoryModel.findOne({
+        $or: [
+          { slug: data.categoryId },
+          ...(isObjectId ? [{ _id: data.categoryId }] : []),
+        ],
+      }).lean();
+
+      if (selectedCat) {
+        if (selectedCat.parent_id) {
+          const isParentObjectId = mongoose.isValidObjectId(selectedCat.parent_id);
+          const parentCat = await CategoryModel.findOne({
+            $or: [
+              { slug: selectedCat.parent_id },
+              ...(isParentObjectId ? [{ _id: selectedCat.parent_id }] : []),
+            ],
+          }).lean();
+
+          catIdToSave = parentCat ? parentCat.slug : selectedCat.slug;
+          subCatIdToSave = selectedCat.slug;
+          allCatIdsToSave = [
+            selectedCat.slug,
+            selectedCat._id.toString(),
+            ...(parentCat ? [parentCat.slug, parentCat._id.toString()] : []),
+          ];
+        } else {
+          catIdToSave = selectedCat.slug;
+          subCatIdToSave = undefined;
+          allCatIdsToSave = [selectedCat.slug, selectedCat._id.toString()];
+        }
+      }
     }
 
     const product = await ProductModel.create({
@@ -44,7 +104,9 @@ export async function createProductAction(input: z.infer<typeof ProductSchema>) 
       product_type: data.productType === 'general' ? 'standard' : data.productType,
       unit: data.unit || 'Piece',
       status: data.status || 'published',
-      category_id: data.categoryId || undefined,
+      category_id: catIdToSave || undefined,
+      sub_category_id: subCatIdToSave || undefined,
+      category_ids: allCatIdsToSave.length > 0 ? allCatIdsToSave : undefined,
       manufacturer_id: data.manufacturerId || undefined,
       brand: data.brand || 'Tamizh Tech',
       supplier: data.supplier || undefined,
@@ -94,8 +156,7 @@ export async function createProductAction(input: z.infer<typeof ProductSchema>) 
       },
     });
 
-    revalidatePath('/admin/products');
-    revalidatePath(`/product/${product.slug}`);
+    revalidateCatalog(product.slug);
 
     return { success: true, productId: product._id.toString(), slug: product.slug };
   } catch (err: any) {
@@ -129,9 +190,50 @@ export async function updateProductAction(
       return { error: 'Product not found.' };
     }
 
-    const images = [...(data.imageUrls || [])];
+    const images = (data.imageUrls || []).filter(
+      (img) => !img.includes('youtube.com') && !img.includes('youtu.be') && !img.includes('vimeo.com') && !img.includes('youtube-nocookie.com')
+    );
     if (sanitizedVideo) {
       images.push(sanitizedVideo);
+    }
+
+    // Resolve category and subcategory hierarchically
+    let catIdToSave = data.categoryId;
+    let subCatIdToSave: string | undefined = undefined;
+    let allCatIdsToSave: string[] = [];
+
+    if (data.categoryId) {
+      const isObjectId = mongoose.isValidObjectId(data.categoryId);
+      const selectedCat = await CategoryModel.findOne({
+        $or: [
+          { slug: data.categoryId },
+          ...(isObjectId ? [{ _id: data.categoryId }] : []),
+        ],
+      }).lean();
+
+      if (selectedCat) {
+        if (selectedCat.parent_id) {
+          const isParentObjectId = mongoose.isValidObjectId(selectedCat.parent_id);
+          const parentCat = await CategoryModel.findOne({
+            $or: [
+              { slug: selectedCat.parent_id },
+              ...(isParentObjectId ? [{ _id: selectedCat.parent_id }] : []),
+            ],
+          }).lean();
+
+          catIdToSave = parentCat ? parentCat.slug : selectedCat.slug;
+          subCatIdToSave = selectedCat.slug;
+          allCatIdsToSave = [
+            selectedCat.slug,
+            selectedCat._id.toString(),
+            ...(parentCat ? [parentCat.slug, parentCat._id.toString()] : []),
+          ];
+        } else {
+          catIdToSave = selectedCat.slug;
+          subCatIdToSave = undefined;
+          allCatIdsToSave = [selectedCat.slug, selectedCat._id.toString()];
+        }
+      }
     }
 
     const updated = await ProductModel.findByIdAndUpdate(
@@ -144,7 +246,9 @@ export async function updateProductAction(
           product_type: data.productType === 'general' ? 'standard' : data.productType,
           unit: data.unit || 'Piece',
           status: data.status || 'published',
-          category_id: data.categoryId || undefined,
+          category_id: catIdToSave || undefined,
+          sub_category_id: subCatIdToSave || undefined,
+          category_ids: allCatIdsToSave.length > 0 ? allCatIdsToSave : undefined,
           manufacturer_id: data.manufacturerId || undefined,
           brand: data.brand || 'Tamizh Tech',
           supplier: data.supplier || undefined,
@@ -202,8 +306,7 @@ export async function updateProductAction(
       },
     });
 
-    revalidatePath('/admin/products');
-    revalidatePath(`/product/${data.slug}`);
+    revalidateCatalog(data.slug, existing.slug);
 
     return { success: true };
   } catch (err: any) {
@@ -220,6 +323,24 @@ export async function getAdminProductByIdAction(id: string) {
     const doc = await ProductModel.findById(id).lean();
     if (!doc) return { error: 'Product not found' };
 
+    // Separate video from image URLs if present
+    const rawImages = doc.images || [];
+    let detectedVideoUrl: string | undefined = undefined;
+    const cleanImageUrls: string[] = [];
+
+    for (const img of rawImages) {
+      if (
+        img.includes('youtube.com') ||
+        img.includes('youtu.be') ||
+        img.includes('vimeo.com') ||
+        img.includes('youtube-nocookie.com')
+      ) {
+        detectedVideoUrl = img;
+      } else {
+        cleanImageUrls.push(img);
+      }
+    }
+
     return {
       product: {
         id: doc._id.toString(),
@@ -229,7 +350,7 @@ export async function getAdminProductByIdAction(id: string) {
         productType: doc.product_type,
         unit: doc.unit || 'Piece',
         status: doc.status || 'published',
-        categoryId: doc.category_id,
+        categoryId: doc.sub_category_id || doc.category_id,
         manufacturerId: doc.manufacturer_id,
         brand: doc.brand || 'Tamizh Tech',
         supplier: doc.supplier,
@@ -247,7 +368,8 @@ export async function getAdminProductByIdAction(id: string) {
         stockQty: doc.stock_quantity,
         weightGrams: doc.weight_grams,
         countryOfOrigin: doc.country_of_origin,
-        imageUrls: doc.images || [],
+        imageUrls: cleanImageUrls,
+        videoUrl: detectedVideoUrl,
         media: doc.media || [],
         bulkPriceTiers: doc.bulk_price_tiers || [],
         specs: doc.technical_specs || [],
@@ -260,6 +382,8 @@ export async function getAdminProductByIdAction(id: string) {
         material: doc.material,
         dimensions: doc.dimensions,
         warranty: doc.warranty,
+        seoTitle: doc.meta_title,
+        seoDescription: doc.meta_description,
         attributes: doc.attributes || {},
       },
     };
@@ -290,9 +414,11 @@ export async function archiveProductAction(id: string) {
         entity_id: id,
         metadata: { name: updated.name, sku: updated.sku },
       });
+      revalidateCatalog(updated.slug);
+    } else {
+      revalidateCatalog();
     }
 
-    revalidatePath('/admin/products');
     return { success: true };
   } catch {
     return { error: 'Failed to archive product.' };
@@ -327,9 +453,11 @@ export async function deleteProductAction(id: string) {
         entity_id: id,
         metadata: { name: deleted.name, sku: deleted.sku },
       });
+      revalidateCatalog(deleted.slug);
+    } else {
+      revalidateCatalog();
     }
 
-    revalidatePath('/admin/products');
     return { success: true };
   } catch {
     return { error: 'Failed to delete product.' };

@@ -26,11 +26,30 @@ interface SearchResultItem {
   stockQty: number;
 }
 
-interface HeaderProps {
-  user?: AuthenticatedUser | null;
+export interface HeaderCategoryItem {
+  href: string;
+  label: string;
+  slug: string;
+  productCount?: number;
 }
 
-export default function Header({ user }: HeaderProps) {
+const DEFAULT_HEADER_CATEGORIES: HeaderCategoryItem[] = [
+  { href: '/category/gamified-robots', label: 'Gamified Robots', slug: 'gamified-robots' },
+  { href: '/category/stem-kits', label: 'STEM Kits', slug: 'stem-kits' },
+  { href: '/category/fasteners', label: 'Fasteners', slug: 'fasteners' },
+  { href: '/category/batteries', label: 'Batteries & Power', slug: 'batteries' },
+  { href: '/category/motors', label: 'Motors & Drivers', slug: 'motors' },
+  { href: '/category/sensors', label: 'Sensors', slug: 'sensors' },
+  { href: '/category/drones', label: 'Drones', slug: 'drones' },
+  { href: '/category/wires-connectors', label: 'Wires & Connectors', slug: 'wires-connectors' },
+];
+
+interface HeaderProps {
+  user?: AuthenticatedUser | null;
+  categories?: HeaderCategoryItem[];
+}
+
+export default function Header({ user, categories }: HeaderProps) {
   const router = useRouter();
   const [isMegaMenuOpen, setIsMegaMenuOpen] = React.useState(false);
   const [isAccountMenuOpen, setIsAccountMenuOpen] = React.useState(false);
@@ -402,26 +421,22 @@ export default function Header({ user }: HeaderProps) {
         </form>
       </div>
 
-      {/* Category Navigation Subbar */}
+      {/* Category Navigation Subbar - Data-driven based on categories with products */}
       <div className="bg-white border-t border-slate-100 hidden md:block">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center h-9 text-xs font-semibold text-[#1E0D45] overflow-x-auto scrollbar-hide">
           <nav className="flex items-center gap-1 flex-1" aria-label="Product categories">
-            {[
-              { href: '/category/gamified-robots', label: 'Gamified Robots' },
-              { href: '/category/stem-kits', label: 'STEM Kits' },
-              { href: '/category/fasteners', label: 'Fasteners' },
-              { href: '/category/batteries', label: 'Batteries & Power' },
-              { href: '/category/motors', label: 'Motors & Drivers' },
-              { href: '/category/sensors', label: 'Sensors' },
-              { href: '/category/drones', label: 'Drones' },
-              { href: '/category/wires-connectors', label: 'Wires & Connectors' },
-            ].map((item) => (
+            {(categories && categories.length > 0 ? categories : DEFAULT_HEADER_CATEGORIES).map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="whitespace-nowrap px-3 py-2 hover:text-[#844AFB] hover:bg-[#EEE8FA]/60 rounded-lg transition-colors"
+                className="whitespace-nowrap px-3 py-2 hover:text-[#844AFB] hover:bg-[#EEE8FA]/60 rounded-lg transition-colors flex items-center gap-1.5"
               >
-                {item.label}
+                <span>{item.label}</span>
+                {item.productCount !== undefined && item.productCount > 0 && (
+                  <span className="text-[10px] text-purple-600 bg-purple-50 font-bold px-1.5 py-0.2 rounded-full border border-purple-100">
+                    {item.productCount}
+                  </span>
+                )}
               </Link>
             ))}
           </nav>

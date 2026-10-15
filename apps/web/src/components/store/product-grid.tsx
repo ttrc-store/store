@@ -61,9 +61,9 @@ export function ProductGrid({
   return (
     <div
       className={cn(
-        'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4',
-        columns === 'dense' && 'lg:grid-cols-6',
-        columns === 'wide' && 'lg:grid-cols-4',
+        'grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6',
+        columns === 'dense' && 'lg:grid-cols-5',
+        columns === 'wide' && 'lg:grid-cols-3',
         className
       )}
     >

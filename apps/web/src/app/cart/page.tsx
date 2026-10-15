@@ -183,7 +183,7 @@ export default function FullCartPage() {
 
                 <div className="space-y-2.5 text-xs text-slate-700">
                   <div className="flex justify-between">
-                    <span>Item Subtotal</span>
+                    <span>Item Subtotal (Excl. GST)</span>
                     <PriceTag pricePaise={totals.subtotalPaise} size="sm" />
                   </div>
 
@@ -194,13 +194,17 @@ export default function FullCartPage() {
                     </div>
                   )}
 
-                  {/* GST Breakdown */}
+                  {/* GST Breakdown (Added on Invoice) */}
                   <div className="py-2 border-y border-slate-100 space-y-1 text-[11px] text-slate-500">
-                    <div className="flex justify-between">
+                    <div className="flex justify-between text-slate-700 font-semibold">
+                      <span>GST (Added on Invoice)</span>
+                      <span>+ ₹{(totals.gstBreakdown.gstAmountPaise / 100).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between pl-2">
                       <span>CGST (Intra-state TN)</span>
                       <span>₹{(totals.gstBreakdown.cgstPaise / 100).toFixed(2)}</span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex justify-between pl-2">
                       <span>SGST (Intra-state TN)</span>
                       <span>₹{(totals.gstBreakdown.sgstPaise / 100).toFixed(2)}</span>
                     </div>

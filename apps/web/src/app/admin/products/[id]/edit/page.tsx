@@ -14,7 +14,9 @@ export default function EditProductPage() {
 
   const [loading, setLoading] = React.useState(true);
   const [product, setProduct] = React.useState<any>(null);
-  const [categories, setCategories] = React.useState<Array<{ id: string; name: string; slug: string }>>([]);
+  const [categories, setCategories] = React.useState<
+    Array<{ id: string; name: string; slug: string; parentId?: string | null; parentName?: string }>
+  >([]);
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
 
   React.useEffect(() => {
@@ -26,7 +28,15 @@ export default function EditProductPage() {
           getAdminCategoriesAction(),
         ]);
         if (catRes.categories && isMounted) {
-          setCategories(catRes.categories.map((c) => ({ id: c.id, name: c.name, slug: c.slug })));
+          setCategories(
+            catRes.categories.map((c) => ({
+              id: c.id,
+              name: c.name,
+              slug: c.slug,
+              parentId: c.parentId || null,
+              parentName: c.parentName || undefined,
+            }))
+          );
         }
         if (prodRes.product && isMounted) {
           setProduct(prodRes.product);
