@@ -19,7 +19,10 @@ export function AccountNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="p-3 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-1">
+    <nav
+      aria-label="Account navigation"
+      className="p-2 sm:p-2.5 lg:p-3 rounded-2xl bg-white border border-slate-200 shadow-xs flex lg:flex-col overflow-x-auto lg:overflow-visible gap-1.5 scrollbar-none whitespace-nowrap"
+    >
       {NAV_ITEMS.map((item) => {
         const Icon = item.icon;
         const isActive =
@@ -31,10 +34,11 @@ export function AccountNav() {
           <Link
             key={item.href}
             href={item.href}
+            aria-current={isActive ? 'page' : undefined}
             className={cn(
-              'flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all',
+              'flex items-center gap-2 sm:gap-3 px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-xl text-xs font-bold transition-all shrink-0 min-h-[44px]',
               isActive
-                ? 'bg-purple-50 text-[#844AFB] border border-purple-200 shadow-xs'
+                ? 'bg-purple-50 text-[#844AFB] border border-purple-200 shadow-xs font-extrabold'
                 : 'text-slate-700 hover:text-[#844AFB] hover:bg-purple-50/50'
             )}
           >

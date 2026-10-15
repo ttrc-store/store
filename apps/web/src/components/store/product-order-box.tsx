@@ -308,9 +308,9 @@ export function ProductOrderBox({
 
       {/* Quantity & CTA Buttons */}
       <div className="space-y-3">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-          <div className="flex items-center justify-between sm:justify-start gap-3">
-            <span className="text-xs font-bold text-slate-700 sm:hidden">Quantity:</span>
+        {/* Row 1: Quantity Selector + Add to Cart */}
+        <div className="flex items-center gap-3">
+          <div className="flex-shrink-0">
             <QuantitySelector
               quantity={quantity}
               onQuantityChange={setQuantity}
@@ -322,37 +322,43 @@ export function ProductOrderBox({
             size="lg"
             onClick={handleAddToCart}
             disabled={!canAddToCart}
-            className="flex-1 bg-[#844AFB] hover:bg-[#6721F2] text-white font-extrabold text-sm h-12 shadow-md shadow-purple-900/20 rounded-xl glow-purple-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 bg-[#844AFB] hover:bg-[#6721F2] text-white font-extrabold text-xs sm:text-sm h-12 shadow-md shadow-purple-900/20 rounded-xl glow-purple-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <ShoppingBag size={18} className="mr-2" />
-            {!isConfigPriceConfigured
-              ? 'Price Pending Admin Setup'
-              : added
-              ? 'Added to Cart ✓'
-              : 'Add to Cart'}
+            <ShoppingBag size={18} className="mr-2 shrink-0" />
+            <span className="truncate">
+              {!isConfigPriceConfigured
+                ? 'Price Pending Admin Setup'
+                : added
+                ? 'Added to Cart ✓'
+                : 'Add to Cart'}
+            </span>
           </Button>
+        </div>
 
-          <Button
-            size="lg"
-            onClick={handleBuyNow}
-            disabled={!canAddToCart}
-            variant="outline"
-            className="h-12 px-6 border-purple-300 text-purple-950 font-bold text-sm hover:bg-purple-50 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Zap size={18} className="mr-1 text-[#844AFB]" />
-            Buy Now
-          </Button>
+        {/* Row 2: Buy Now full-width button */}
+        <Button
+          size="lg"
+          onClick={handleBuyNow}
+          disabled={!canAddToCart}
+          variant="outline"
+          className="w-full h-12 border-purple-300 text-purple-950 font-bold text-xs sm:text-sm hover:bg-purple-50 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        >
+          <Zap size={18} className="text-[#844AFB]" />
+          <span>Buy Now with Express Checkout</span>
+        </Button>
 
+        {/* Row 3: Secondary Actions (Wishlist, Compare, Share) in equal responsive grid */}
+        <div className="grid grid-cols-3 gap-2 pt-0.5">
           <AddToWishlistButton
             productId={id}
             productName={name}
             variant="button"
-            className="h-12"
+            className="h-10 w-full justify-center"
           />
 
           <AddToCompareButton
             variant="button"
-            className="h-12 px-4"
+            className="h-10 w-full px-2 justify-center"
             product={{
               id,
               slug,
@@ -373,9 +379,10 @@ export function ProductOrderBox({
             name={name}
             pricePaise={activeUnitPricePaise}
             variant="detail"
-            className="h-12"
+            className="h-10 w-full justify-center"
           />
         </div>
+      </div>
 
         {/* High Volume / B2B Quote Trigger (Requirement 31) */}
         <div className="pt-2 text-center sm:text-left">
@@ -389,6 +396,5 @@ export function ProductOrderBox({
           </Link>
         </div>
       </div>
-    </div>
   );
 }

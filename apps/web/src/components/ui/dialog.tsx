@@ -123,7 +123,7 @@ export function DialogContent({
         aria-modal="true"
         className={cn(
           'fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2',
-          'w-full max-w-lg bg-popover border border-border rounded-xl shadow-2xl p-6',
+          'w-[calc(100vw-2rem)] max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto bg-popover border border-border rounded-xl shadow-2xl p-4 sm:p-6',
           'animate-fade-in-up',
           className,
         )}

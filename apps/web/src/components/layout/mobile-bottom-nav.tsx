@@ -21,7 +21,10 @@ export default function MobileBottomNav() {
   ];
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200 h-16 flex items-center justify-around px-2 shadow-lg">
+    <nav
+      aria-label="Mobile bottom navigation"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200 h-[calc(4rem+env(safe-area-inset-bottom,0px))] pb-[env(safe-area-inset-bottom,0px)] flex items-center justify-around px-2 shadow-lg"
+    >
       {navItems.map((item) => {
         const Icon = item.icon;
         const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
@@ -30,9 +33,10 @@ export default function MobileBottomNav() {
           <Link
             key={item.label}
             href={item.href}
+            aria-current={isActive ? 'page' : undefined}
             className={cn(
-              'flex flex-col items-center justify-center w-full h-full text-xs font-semibold transition-colors relative',
-              isActive ? 'text-purple-700' : 'text-slate-500 hover:text-slate-900'
+              'flex flex-col items-center justify-center w-full h-full min-h-[44px] text-xs font-semibold transition-colors relative',
+              isActive ? 'text-[#844AFB]' : 'text-slate-500 hover:text-slate-900'
             )}
           >
             <div className="relative flex items-center justify-center">

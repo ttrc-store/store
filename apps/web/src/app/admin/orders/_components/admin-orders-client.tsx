@@ -229,8 +229,8 @@ export default function AdminOrdersClient({
 
       {/* Edit Status Modal */}
       {editingOrderId && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 w-full max-w-md space-y-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto space-y-4 shadow-2xl">
             <h3 className="font-heading text-lg font-bold text-slate-900">Update Order Status</h3>
             <p className="text-[11px] text-slate-500 font-mono break-all">{editingOrderId}</p>
 

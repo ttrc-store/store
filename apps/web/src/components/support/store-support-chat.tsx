@@ -92,12 +92,12 @@ export function StoreSupportChat() {
   };
 
   return (
-    <div className="fixed bottom-20 right-3 sm:bottom-20 sm:right-6 md:bottom-6 md:right-6 z-40 font-sans">
+    <div className="fixed bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] right-3 sm:bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] sm:right-6 md:bottom-6 md:right-6 z-40 font-sans">
       {/* Floating Trigger Button (Positioned above bottom nav on mobile, standard corner on desktop) */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="flex items-center gap-2 px-3 py-2.5 sm:px-4 sm:py-3 bg-[#844AFB] hover:bg-[#6721F2] text-white rounded-full shadow-xl shadow-purple-900/30 transition-all transform hover:scale-105 active:scale-95 group focus:outline-none focus:ring-2 focus:ring-purple-400 cursor-pointer"
+          className="flex items-center gap-2 px-3 py-2.5 sm:px-4 sm:py-3 min-h-[44px] bg-[#844AFB] hover:bg-[#6721F2] text-white rounded-full shadow-xl shadow-purple-900/30 transition-all transform hover:scale-105 active:scale-95 group focus:outline-none focus:ring-2 focus:ring-purple-400 cursor-pointer"
           aria-label="Open AI Technical Assistant"
         >
           <div className="relative flex items-center justify-center">
@@ -114,7 +114,7 @@ export function StoreSupportChat() {
 
       {/* Expanded Chat Window */}
       {isOpen && (
-        <div className="w-[calc(100vw-24px)] max-w-[360px] sm:w-[400px] h-[min(520px,calc(100vh-100px))] max-h-[85vh] bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-200">
+        <div className="w-[calc(100vw-24px)] max-w-[360px] sm:w-[400px] h-[min(520px,calc(100dvh-120px))] max-h-[85dvh] bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-200">
           {/* Header (Rich Dark Purple Header Matching Platform) */}
           <div className="p-3.5 bg-gradient-to-r from-[#1E0D45] via-[#2F146B] to-[#1E0D45] text-white flex items-center justify-between shadow-xs">
             <div className="flex items-center gap-2.5">
@@ -215,7 +215,7 @@ export function StoreSupportChat() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask about parts, specs, orders..."
-              className="flex-1 text-xs px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#844AFB] focus:bg-white transition-all text-slate-900"
+              className="flex-1 text-base sm:text-xs px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#844AFB] focus:bg-white transition-all text-slate-900"
               disabled={loading}
             />
             <button

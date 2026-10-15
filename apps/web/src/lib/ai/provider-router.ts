@@ -50,19 +50,19 @@ export function generateDeterministicSlug(title: string): string {
 const TASK_ROUTING_TABLE: Record<AITaskType, TaskRouteConfig> = {
   seo_enrichment: {
     task: 'seo_enrichment',
-    preferenceList: ['groq', 'gemini', 'openrouter', 'aimlapi'],
+    preferenceList: ['groq', 'openrouter', 'aimlapi'],
     timeoutMs: 8000,
     maxTokens: 1500,
   },
   product_description: {
     task: 'product_description',
-    preferenceList: ['groq', 'gemini', 'openrouter', 'aimlapi'],
+    preferenceList: ['groq', 'openrouter', 'aimlapi'],
     timeoutMs: 8000,
     maxTokens: 2000,
   },
   spec_extraction: {
     task: 'spec_extraction',
-    preferenceList: ['gemini', 'groq', 'openrouter', 'aimlapi'],
+    preferenceList: ['openrouter', 'gemini', 'aimlapi'],
     timeoutMs: 10000,
     maxTokens: 2000,
   },
@@ -74,19 +74,19 @@ const TASK_ROUTING_TABLE: Record<AITaskType, TaskRouteConfig> = {
   },
   customer_support: {
     task: 'customer_support',
-    preferenceList: ['groq', 'gemini', 'openrouter'],
+    preferenceList: ['groq', 'openrouter', 'gemini'],
     timeoutMs: 6000,
     maxTokens: 1200,
   },
   complex_reasoning: {
     task: 'complex_reasoning',
-    preferenceList: ['gemini', 'groq', 'openrouter', 'aimlapi'],
+    preferenceList: ['openrouter', 'gemini', 'aimlapi'],
     timeoutMs: 12000,
     maxTokens: 2500,
   },
   structured_json: {
     task: 'structured_json',
-    preferenceList: ['groq', 'gemini', 'openrouter'],
+    preferenceList: ['groq', 'openrouter', 'gemini'],
     timeoutMs: 18000,
     maxTokens: 2500,
   },

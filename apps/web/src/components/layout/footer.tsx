@@ -16,10 +16,10 @@ import {
 
 export default function Footer() {
   return (
-    <footer className="bg-white text-slate-600 border-t border-slate-200 pt-12 pb-24 md:pb-12 mt-auto">
+    <footer className="bg-white text-slate-600 border-t border-slate-200 pt-12 pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] md:pb-12 mt-auto">
       {/* Trust Badges Strip */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 mb-10 border-b border-slate-100">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
           <div className="flex items-center gap-3">
             <div className="p-2.5 rounded-xl bg-[#EEE8FA] text-[#844AFB] flex-shrink-0">
               <Truck size={22} />
@@ -35,7 +35,7 @@ export default function Footer() {
             </div>
             <div>
               <h4 className="font-heading text-sm font-bold text-slate-900">100% Genuine Parts</h4>
-              <p className="text-xs text-slate-500">Directly sourced & tested</p>
+              <p className="text-xs text-slate-500">Directly sourced &amp; tested</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -60,7 +60,7 @@ export default function Footer() {
       </div>
 
       {/* Main Footer Grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-5 gap-8 lg:gap-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-8 lg:gap-10">
 
         {/* Brand column (spans 2 on md) */}
         <div className="col-span-2 md:col-span-1 space-y-4">

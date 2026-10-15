@@ -33,6 +33,7 @@ export function CatalogFilterBar({
 
   const [minPriceInput, setMinPriceInput] = React.useState(minPrice);
   const [maxPriceInput, setMaxPriceInput] = React.useState(maxPrice);
+  const [isMobileOpen, setIsMobileOpen] = React.useState(false);
 
   const updateParam = (key: string, value: string | null) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -74,14 +75,14 @@ export function CatalogFilterBar({
     currentBrand !== 'all';
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Top Toolbar: Count + Sort Selection */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-2xl bg-purple-50/50 border border-purple-100 shadow-xs">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl bg-purple-50/50 border border-purple-100 shadow-xs">
         <p className="text-xs text-slate-700">
           Showing <strong className="text-slate-900 font-bold">{totalCount}</strong> matching components
         </p>
 
-        <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end">
           <label htmlFor="catalog-sort" className="text-xs font-bold text-slate-600 whitespace-nowrap">
             Sort by:
           </label>
@@ -100,18 +101,30 @@ export function CatalogFilterBar({
         </div>
       </div>
 
-      {/* Filter Options Panel */}
-      <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-6">
+      {/* Filter Options Panel (Collapsible on mobile) */}
+      <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-4 sm:space-y-6">
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-          <h3 className="font-heading font-bold text-sm text-slate-900 uppercase tracking-wider flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setIsMobileOpen(!isMobileOpen)}
+            className="flex items-center gap-2 text-left font-heading font-bold text-sm text-slate-900 uppercase tracking-wider cursor-pointer w-full sm:w-auto"
+          >
             <SlidersHorizontal size={15} className="text-[#844AFB]" />
-            Filters
-          </h3>
+            <span>Filters</span>
+            {hasActiveFilters && (
+              <span className="ml-1 px-1.5 py-0.2 rounded-full bg-purple-100 text-[#844AFB] text-[10px] font-bold">
+                Active
+              </span>
+            )}
+            <span className="lg:hidden text-xs text-[#844AFB] font-bold ml-auto sm:ml-2">
+              {isMobileOpen ? 'Hide ▲' : 'Show Filters ▼'}
+            </span>
+          </button>
           {hasActiveFilters && (
             <button
               type="button"
               onClick={handleReset}
-              className="text-xs text-[#844AFB] hover:text-[#6721F2] font-bold flex items-center gap-1 cursor-pointer"
+              className="text-xs text-[#844AFB] hover:text-[#6721F2] font-bold flex items-center gap-1 cursor-pointer shrink-0 ml-2"
             >
               <RotateCcw size={12} />
               Reset All
@@ -119,10 +132,11 @@ export function CatalogFilterBar({
           )}
         </div>
 
-        {/* Product Type Radios */}
-        <div className="space-y-2.5">
-          <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Product Type</h4>
-          <div className="space-y-2 text-xs">
+        <div className={`space-y-6 ${!isMobileOpen ? 'hidden lg:block' : 'block'}`}>
+          {/* Product Type Radios */}
+          <div className="space-y-2.5">
+            <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Product Type</h4>
+            <div className="space-y-2 text-xs">
             {[
               { id: 'all', label: 'All Items' },
               { id: 'kit', label: 'Complete Competition Kits' },
@@ -225,6 +239,7 @@ export function CatalogFilterBar({
             </div>
           </div>
         )}
+        </div>
       </div>
     </div>
   );

@@ -251,8 +251,8 @@ export default function AdminProductsClient({
 
       {/* Delete / Remove Confirmation Modal */}
       {deleteTarget && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-5 animate-in fade-in-50 zoom-in-95">
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-md w-full max-h-[calc(100dvh-2rem)] overflow-y-auto p-6 shadow-2xl border border-slate-200 space-y-5 animate-in fade-in-50 zoom-in-95">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center text-[#E3132A] flex-shrink-0">
                 <AlertTriangle size={20} />

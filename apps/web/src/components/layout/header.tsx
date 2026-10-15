@@ -151,7 +151,7 @@ export default function Header({ user, categories }: HeaderProps) {
               width={140}
               height={40}
               priority
-              className="object-contain"
+              className="h-7 sm:h-9 w-auto object-contain"
             />
           </div>
         </Link>
@@ -402,15 +402,18 @@ export default function Header({ user, categories }: HeaderProps) {
       </div>
 
       {/* Mobile Live Search Bar */}
-      <div className="sm:hidden px-4 pb-3">
+      <div className="sm:hidden px-4 pb-3 relative">
         <form onSubmit={handleSearchSubmit} className="relative flex items-center">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#6D6A6A] w-4 h-4" />
           <Input
-            type="text"
+            type="search"
             placeholder="Search robotics kits, motors, sensors..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 pr-20 h-10 bg-white border-slate-200 text-[#050507] placeholder:text-[#6D6A6A] rounded-xl text-xs font-medium w-full focus:ring-2 focus:ring-[#844AFB]"
+            onFocus={() => setIsSearchFocused(true)}
+            onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
+            aria-label="Search products"
+            className="pl-10 pr-20 h-10 bg-white border-slate-200 text-[#050507] placeholder:text-[#6D6A6A] rounded-xl text-base sm:text-xs font-medium w-full focus:ring-2 focus:ring-[#844AFB]"
           />
           <Button
             type="submit"
@@ -419,6 +422,40 @@ export default function Header({ user, categories }: HeaderProps) {
             Search
           </Button>
         </form>
+
+        {/* Mobile Live Suggestions Dropdown */}
+        {isSearchFocused && searchQuery.length > 1 && (
+          <div className="absolute top-full left-4 right-4 mt-1 bg-white border border-[#AF87F8]/40 rounded-xl shadow-2xl overflow-hidden z-50 text-[#050507]">
+            <div className="p-2.5 text-[11px] font-bold text-[#1E0D45] uppercase tracking-wider border-b border-[#EEE8FA] flex justify-between items-center bg-[#EEE8FA]">
+              <span>Matching &quot;{searchQuery}&quot;</span>
+              <span className="text-[10px] text-[#6721F2] font-normal">Tap to view</span>
+            </div>
+            <div className="divide-y divide-[#EEE8FA] max-h-64 overflow-y-auto">
+              {suggestions.length > 0 ? (
+                suggestions.map((item) => (
+                  <Link
+                    key={item.id}
+                    href={`/product/${item.slug}`}
+                    className="flex items-center gap-3 p-2.5 hover:bg-[#EEE8FA] transition-colors"
+                  >
+                    <div className="relative w-9 h-9 rounded-lg bg-[#EEE8FA]/60 border border-[#AF87F8]/30 flex-shrink-0 overflow-hidden">
+                      <Image src={item.imageUrl || '/brand/ttrc-logo.png'} alt={item.name} fill className="object-contain p-1" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-[#050507] truncate">{item.name}</p>
+                      <span className="text-[9px] font-bold text-[#6721F2] bg-[#EEE8FA] px-1.5 py-0.2 rounded border border-[#AF87F8]/40">
+                        {item.type === 'kit' ? 'Robot Kit' : item.type === 'spare_part' ? 'Spare Part' : 'Component'}
+                      </span>
+                    </div>
+                    <PriceTag pricePaise={item.pricePaise} size="sm" />
+                  </Link>
+                ))
+              ) : (
+                <div className="p-3 text-xs text-[#6D6A6A] text-center">No products found</div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Navigation Subbar - Brand Tagline & Institutional Orders */}
