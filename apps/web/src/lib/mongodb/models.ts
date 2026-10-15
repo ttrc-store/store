@@ -112,6 +112,8 @@ export interface IProduct extends Document {
   is_bestseller?: boolean;
   is_new_arrival?: boolean;
   category_id?: string;
+  sub_category_id?: string;
+  category_ids?: string[];
   manufacturer_id?: string;
   brand?: string;
   supplier?: string;
@@ -197,6 +199,8 @@ const ProductSchema = new Schema<IProduct>(
     is_bestseller: { type: Boolean, default: false },
     is_new_arrival: { type: Boolean, default: false },
     category_id: { type: String },
+    sub_category_id: { type: String },
+    category_ids: [{ type: String }],
     manufacturer_id: { type: String },
     brand: { type: String, default: 'Tamizh Tech' },
     supplier: { type: String },

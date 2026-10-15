@@ -204,6 +204,10 @@ export async function getStoreCategories(): Promise<StoreCategoryItem[]> {
           $or: [
             { category_id: cat.slug },
             { category_id: cat._id.toString() },
+            { sub_category_id: cat.slug },
+            { sub_category_id: cat._id.toString() },
+            { category_ids: cat.slug },
+            { category_ids: cat._id.toString() },
           ],
           is_active: true,
         });
@@ -255,6 +259,7 @@ export async function getStoreProducts(opts?: {
       query.$or = [
         { category_id: { $in: subCatIds } },
         { sub_category_id: { $in: subCatIds } },
+        { category_ids: { $in: subCatIds } },
         { 'attributes.subcategory': opts.subcategorySlug },
         ...(isLfr
           ? [
@@ -278,9 +283,13 @@ export async function getStoreProducts(opts?: {
         query.$or = [
           { category_id: { $in: allCatIds } },
           { sub_category_id: { $in: allCatIds } },
+          { category_ids: { $in: allCatIds } },
         ];
       } else {
-        query.category_id = opts.categorySlug;
+        query.$or = [
+          { category_id: opts.categorySlug },
+          { category_ids: opts.categorySlug },
+        ];
       }
     }
 
