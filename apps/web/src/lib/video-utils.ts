@@ -29,6 +29,8 @@ export const ProductSchema = z
     unit: z.string().default('Piece'),
     status: z.enum(['draft', 'published', 'archived']).default('published'),
     categoryId: z.string().optional(),
+    subCategoryId: z.string().optional(),
+    categoryIds: z.array(z.string()).optional(),
     shortDescription: z.string().optional(),
     longDescription: z.string().optional(),
     pricePaise: z.number().positive('Price must be greater than 0'),

@@ -277,6 +277,25 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
                   <span>Sold by: <strong>TTRC Store</strong></span>
                 </div>
 
+                <Link
+                  href={`/category/${categorySlug}`}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-800 hover:text-[#E3132A] text-xs font-semibold border border-slate-200 transition-colors"
+                  title={`Browse all ${categoryName}`}
+                >
+                  <Layers size={13} className="text-[#E3132A]" />
+                  <span>Category: <strong>{categoryName}</strong></span>
+                </Link>
+
+                {subCategoryName && (
+                  <Link
+                    href={`/category/${categorySlug}?sub=${subCategorySlug}`}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#FDECEE] hover:bg-red-100/70 text-[#E3132A] text-xs font-bold border border-red-200 transition-colors"
+                    title={`Browse ${subCategoryName}`}
+                  >
+                    <span>Subcategory: <strong>{subCategoryName}</strong></span>
+                  </Link>
+                )}
+
                 {product.brand && (!product.manufacturer || product.brand !== product.manufacturer?.name) && (
                   <span className="text-xs text-slate-500 font-medium">
                     Brand: <strong className="text-slate-800">{product.brand}</strong>

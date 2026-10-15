@@ -288,40 +288,84 @@ export function EnterpriseProductForm({
     }
   }, [availableCategories]);
 
-  // Find initial category match (handles matching by either MongoDB ObjectId or slug)
-  const initialCat = React.useMemo(() => {
-    if (!initialData?.categoryId || !categoriesList) return null;
-    return categoriesList.find(
-      (c) => c.id === initialData.categoryId || c.slug === initialData.categoryId
-    );
-  }, [initialData?.categoryId, categoriesList]);
-
-  const [categoryId, setCategoryId] = React.useState(
-    initialCat ? initialCat.slug : (initialData?.categoryId || categoriesList?.[0]?.slug || 'gamified-robots')
-  );
-
-  React.useEffect(() => {
-    if (initialData?.categoryId && categoriesList && categoriesList.length > 0) {
-      const match = categoriesList.find(
-        (c) => c.id === initialData.categoryId || c.slug === initialData.categoryId
-      );
-      if (match) {
-        setCategoryId(match.slug);
-      }
-    }
-  }, [initialData?.categoryId, categoriesList]);
-
   const mainCategories = React.useMemo(() => {
     return (categoriesList || []).filter((c) => !c.parentId);
   }, [categoriesList]);
 
-  const subcategories = React.useMemo(() => {
+  const allSubcategories = React.useMemo(() => {
     return (categoriesList || []).filter((c) => !!c.parentId);
   }, [categoriesList]);
 
-  const selectedCategoryInfo = React.useMemo(() => {
+  // Main Category state
+  const [categoryId, setCategoryId] = React.useState<string>(() => {
+    if (initialData?.categoryId) {
+      const match = (categoriesList || []).find(
+        (c) => c.id === initialData.categoryId || c.slug === initialData.categoryId
+      );
+      if (match) {
+        if (match.parentId) {
+          const parent = (categoriesList || []).find(
+            (p) => p.id === match.parentId || p.slug === match.parentId
+          );
+          return parent ? parent.slug : match.slug;
+        }
+        return match.slug;
+      }
+      return initialData.categoryId;
+    }
+    return 'gamified-robots';
+  });
+
+  // Subcategory state
+  const [subCategoryId, setSubCategoryId] = React.useState<string>(() => {
+    if (initialData?.subCategoryId) {
+      const match = (categoriesList || []).find(
+        (c) => c.id === initialData.subCategoryId || c.slug === initialData.subCategoryId
+      );
+      return match ? match.slug : initialData.subCategoryId;
+    }
+    if (initialData?.categoryId) {
+      const match = (categoriesList || []).find(
+        (c) => (c.id === initialData.categoryId || c.slug === initialData.categoryId) && c.parentId
+      );
+      if (match) return match.slug;
+    }
+    return '';
+  });
+
+  // Multiple additional category placements
+  const [additionalCategoryIds, setAdditionalCategoryIds] = React.useState<string[]>(() => {
+    if (initialData?.categoryIds && Array.isArray(initialData.categoryIds)) {
+      return initialData.categoryIds.filter(
+        (c: string) => c !== initialData?.categoryId && c !== initialData?.subCategoryId
+      );
+    }
+    return [];
+  });
+
+  // Subcategories belonging to the currently selected main category
+  const activeSubcategories = React.useMemo(() => {
+    if (!categoryId) return allSubcategories;
+    const mainCat = (categoriesList || []).find((c) => c.slug === categoryId || c.id === categoryId);
+    if (!mainCat) return [];
+    return (categoriesList || []).filter(
+      (c) => c.parentId === mainCat.id || c.parentId === mainCat.slug
+    );
+  }, [categoriesList, categoryId, allSubcategories]);
+
+  const selectedMainCategory = React.useMemo(() => {
     return (categoriesList || []).find((c) => c.slug === categoryId || c.id === categoryId);
   }, [categoriesList, categoryId]);
+
+  const selectedSubCategory = React.useMemo(() => {
+    return (categoriesList || []).find((c) => c.slug === subCategoryId || c.id === subCategoryId);
+  }, [categoriesList, subCategoryId]);
+
+  const toggleAdditionalCategory = (slugOrId: string) => {
+    setAdditionalCategoryIds((prev) =>
+      prev.includes(slugOrId) ? prev.filter((s) => s !== slugOrId) : [...prev, slugOrId]
+    );
+  };
 
   // Quick category creation modal state
   const [isAddCatOpen, setIsAddCatOpen] = React.useState(false);
@@ -642,9 +686,16 @@ export function EnterpriseProductForm({
     setName(p.name);
     setSlug(p.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
     setSku(p.sku);
-    setUnit(p.unit);
-    setCategoryId(p.category);
-    setProductType(p.productType as any);
+    if (p.category === 'motor-drivers') {
+      setCategoryId('motors');
+      setSubCategoryId('motor-drivers');
+    } else if (p.category === 'gamified-robots') {
+      setCategoryId('gamified-robots');
+      setSubCategoryId('line-follower');
+    } else {
+      setCategoryId(p.category);
+      setSubCategoryId('');
+    }
     setPrice(p.price);
     setMrp(p.mrp);
     setBrand(p.brand);
@@ -890,6 +941,14 @@ export function EnterpriseProductForm({
       productType,
       status,
       categoryId,
+      subCategoryId: subCategoryId || undefined,
+      categoryIds: Array.from(
+        new Set([
+          ...(categoryId ? [categoryId] : []),
+          ...(subCategoryId ? [subCategoryId] : []),
+          ...additionalCategoryIds,
+        ])
+      ),
       brand,
       manufacturerId: manufacturerName,
       showManufacturerPublicly,
@@ -1142,9 +1201,19 @@ export function EnterpriseProductForm({
             </select>
           </div>
 
-          <div className="space-y-1.5 sm:col-span-2">
+          {/* Main Category, Subcategory, and Multiple Category Placement */}
+          <div className="space-y-4 sm:col-span-2 pt-2 border-t border-slate-100">
             <div className="flex items-center justify-between flex-wrap gap-2">
-              <label className="font-bold text-slate-700">Category Selection *</label>
+              <div>
+                <label className="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+                  <Layers size={16} className="text-[#E3132A]" />
+                  <span>Category &amp; Subcategory Architecture *</span>
+                </label>
+                <p className="text-[11px] text-slate-500">
+                  Select primary Main Category, specific Subcategory, and optional multiple cross-category placements.
+                </p>
+              </div>
+
               <div className="flex items-center gap-3">
                 <button
                   type="button"
@@ -1163,66 +1232,169 @@ export function EnterpriseProductForm({
                 </Link>
               </div>
             </div>
-            <select
-              value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
-              className="w-full h-10 px-3 rounded-md border border-slate-200 text-xs bg-white focus:border-red-600 focus:outline-none font-medium"
-            >
-              {categoriesList && categoriesList.length > 0 ? (
-                <>
-                  {mainCategories.length > 0 && (
-                    <optgroup label="Main Categories (Header Nav)">
-                      {mainCategories.map((c) => (
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Primary Main Category */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 flex items-center justify-between">
+                  <span>1. Main Category (Header Nav) *</span>
+                  <span className="text-[10px] text-slate-400 font-normal">Primary parent category</span>
+                </label>
+                <select
+                  value={categoryId}
+                  onChange={(e) => {
+                    const newMain = e.target.value;
+                    setCategoryId(newMain);
+                    const matchMain = (categoriesList || []).find((c) => c.slug === newMain || c.id === newMain);
+                    const matchingSubs = (categoriesList || []).filter(
+                      (c) => matchMain && (c.parentId === matchMain.id || c.parentId === matchMain.slug)
+                    );
+                    if (!matchingSubs.some((s) => s.slug === subCategoryId)) {
+                      setSubCategoryId('');
+                    }
+                  }}
+                  className="w-full h-10 px-3 rounded-xl border border-slate-200 text-xs bg-slate-50/50 hover:bg-white focus:bg-white focus:border-red-600 focus:outline-none font-semibold text-slate-900"
+                >
+                  {mainCategories.map((c) => (
+                    <option key={c.id || c.slug} value={c.slug}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Subcategory */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 flex items-center justify-between">
+                  <span>2. Subcategory (Specific Module / Type)</span>
+                  <span className="text-[10px] text-slate-400 font-normal">Optional specific tier</span>
+                </label>
+                <select
+                  value={subCategoryId}
+                  onChange={(e) => setSubCategoryId(e.target.value)}
+                  className="w-full h-10 px-3 rounded-xl border border-slate-200 text-xs bg-slate-50/50 hover:bg-white focus:bg-white focus:border-red-600 focus:outline-none font-medium text-slate-800"
+                >
+                  <option value="">None (Top-Level Product in {selectedMainCategory?.name || 'Category'})</option>
+                  {activeSubcategories.length > 0 && (
+                    <optgroup label={`Subcategories under ${selectedMainCategory?.name || 'Selected'}`}>
+                      {activeSubcategories.map((c) => (
                         <option key={c.id || c.slug} value={c.slug}>
                           {c.name}
                         </option>
                       ))}
                     </optgroup>
                   )}
-                  {subcategories.length > 0 && (
-                    <optgroup label="Subcategories (Specific Kits & Parts)">
-                      {subcategories.map((c) => (
-                        <option key={c.id || c.slug} value={c.slug}>
-                          {c.parentName ? `${c.parentName} → ${c.name}` : c.name}
-                        </option>
-                      ))}
+                  {allSubcategories.filter((s) => !activeSubcategories.some((a) => a.slug === s.slug)).length > 0 && (
+                    <optgroup label="Other Subcategories">
+                      {allSubcategories
+                        .filter((s) => !activeSubcategories.some((a) => a.slug === s.slug))
+                        .map((c) => (
+                          <option key={c.id || c.slug} value={c.slug}>
+                            {c.parentName ? `${c.parentName} → ${c.name}` : c.name}
+                          </option>
+                        ))}
                     </optgroup>
                   )}
-                </>
-              ) : (
-                <>
-                  <option value="gamified-robots">Gamified Robots (Robo Race, Line Follower, Soccer)</option>
-                  <option value="motors">Motors &amp; Drivers</option>
-                  <option value="motor-drivers">Motor Drivers</option>
-                  <option value="stem-kits">STEM Kits</option>
-                  <option value="fasteners">Fasteners (Screws, Nuts, Standoffs)</option>
-                  <option value="batteries">Batteries &amp; Chargers</option>
-                  <option value="sensors">Sensors Array</option>
-                  <option value="drones">Drone Parts &amp; Flight Controllers</option>
-                  <option value="wires-connectors">Wires &amp; Connectors</option>
-                </>
-              )}
-            </select>
+                </select>
+              </div>
+            </div>
 
-            {selectedCategoryInfo && (
-              <div className="flex flex-wrap items-center gap-1.5 pt-0.5 text-[11px] text-slate-600">
-                <span className="font-semibold text-slate-700">Storefront Placement:</span>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 font-bold border border-purple-100">
-                  {selectedCategoryInfo.parentName ? (
-                    <>
-                      <span>{selectedCategoryInfo.parentName}</span>
-                      <span className="text-slate-400">›</span>
-                      <span>{selectedCategoryInfo.name}</span>
-                    </>
-                  ) : (
-                    <span>{selectedCategoryInfo.name}</span>
-                  )}
+            {/* Multiple Category Options (Cross-Category Selection) */}
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div>
+                  <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <Tag size={13} className="text-[#E3132A]" />
+                    <span>3. Multiple Category Placements (Also Display Under...)</span>
+                  </span>
+                  <p className="text-[11px] text-slate-500">
+                    Click to select multiple categories / subcategories where this product should also appear.
+                  </p>
+                </div>
+                {additionalCategoryIds.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setAdditionalCategoryIds([])}
+                    className="text-[11px] text-red-600 hover:underline font-semibold"
+                  >
+                    Clear All ({additionalCategoryIds.length})
+                  </button>
+                )}
+              </div>
+
+              {/* Category Pills Grid */}
+              <div className="flex flex-wrap gap-1.5">
+                {(categoriesList || []).map((cat) => {
+                  const isPrimaryMain = cat.slug === categoryId || cat.id === categoryId;
+                  const isPrimarySub = cat.slug === subCategoryId || cat.id === subCategoryId;
+                  const isSelected = additionalCategoryIds.includes(cat.slug) || additionalCategoryIds.includes(cat.id);
+
+                  if (isPrimaryMain || isPrimarySub) {
+                    return (
+                      <span
+                        key={cat.id || cat.slug}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-red-100/70 text-[#E3132A] text-xs font-bold border border-red-200 cursor-default"
+                        title={isPrimaryMain ? 'Primary Main Category' : 'Primary Subcategory'}
+                      >
+                        <CheckCircle2 size={12} />
+                        <span>{cat.name}</span>
+                        <span className="text-[9px] uppercase tracking-wider bg-white px-1.5 py-0.5 rounded font-extrabold text-[#E3132A]">
+                          {isPrimaryMain ? 'Main' : 'Sub'}
+                        </span>
+                      </span>
+                    );
+                  }
+
+                  return (
+                    <button
+                      key={cat.id || cat.slug}
+                      type="button"
+                      onClick={() => toggleAdditionalCategory(cat.slug)}
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border transition-all ${
+                        isSelected
+                          ? 'bg-[#14141A] text-white border-slate-900 font-bold shadow-xs'
+                          : 'bg-white text-slate-700 border-slate-200 hover:border-slate-400 hover:bg-slate-100'
+                      }`}
+                    >
+                      {isSelected ? <CheckCircle2 size={12} className="text-emerald-400" /> : <Plus size={11} className="text-slate-400" />}
+                      <span>{cat.parentName ? `${cat.parentName} → ${cat.name}` : cat.name}</span>
+                      {isSelected && (
+                        <span className="text-slate-400 hover:text-white text-[11px] ml-0.5">✕</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Live Storefront Placement & Breadcrumb Preview */}
+            <div className="p-3.5 rounded-xl bg-purple-50/70 border border-purple-200 text-xs space-y-1.5">
+              <div className="flex items-center justify-between text-purple-950 font-bold">
+                <span className="flex items-center gap-1.5">
+                  <Eye size={13} className="text-[#844AFB]" />
+                  <span>Storefront Shown &amp; Navigation Preview:</span>
                 </span>
-                <span className="text-slate-400">
-                  (Shows in header navigation once published)
+                <span className="text-[10px] text-purple-700 font-mono font-semibold">
+                  Active in {1 + (subCategoryId ? 1 : 0) + additionalCategoryIds.length} location(s)
                 </span>
               </div>
-            )}
+              <div className="flex flex-wrap items-center gap-2 text-slate-700 font-medium">
+                <span className="text-slate-500 font-semibold">Breadcrumb:</span>
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-white border border-purple-200 font-mono text-[11px] text-slate-800 shadow-2xs">
+                  <span>Home</span>
+                  <span className="text-purple-400">›</span>
+                  <strong className="text-slate-900">{selectedMainCategory?.name || categoryId}</strong>
+                  {selectedSubCategory && (
+                    <>
+                      <span className="text-purple-400">›</span>
+                      <strong className="text-[#E3132A]">{selectedSubCategory.name}</strong>
+                    </>
+                  )}
+                  <span className="text-purple-400">›</span>
+                  <span className="text-slate-500 truncate max-w-[150px]">{name || 'Product Title'}</span>
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

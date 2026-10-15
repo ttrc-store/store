@@ -26,6 +26,98 @@ function revalidateCatalog(slug?: string, oldSlug?: string) {
   }
 }
 
+async function resolveProductCategories(
+  categoryId?: string,
+  subCategoryId?: string,
+  categoryIds?: string[]
+) {
+  let mainCatSlug: string | undefined = undefined;
+  let subCatSlug: string | undefined = subCategoryId;
+  const set = new Set<string>();
+
+  // 1. Process Main Category
+  if (categoryId) {
+    const isObjectId = mongoose.isValidObjectId(categoryId);
+    const selectedCat = await CategoryModel.findOne({
+      $or: [{ slug: categoryId }, ...(isObjectId ? [{ _id: categoryId }] : [])],
+    }).lean();
+
+    if (selectedCat) {
+      if (selectedCat.parent_id) {
+        const isParentObjectId = mongoose.isValidObjectId(selectedCat.parent_id);
+        const parentCat = await CategoryModel.findOne({
+          $or: [
+            { slug: selectedCat.parent_id },
+            ...(isParentObjectId ? [{ _id: selectedCat.parent_id }] : []),
+          ],
+        }).lean();
+
+        mainCatSlug = parentCat ? parentCat.slug : selectedCat.slug;
+        subCatSlug = selectedCat.slug;
+        set.add(selectedCat.slug);
+        set.add(selectedCat._id.toString());
+        if (parentCat) {
+          set.add(parentCat.slug);
+          set.add(parentCat._id.toString());
+        }
+      } else {
+        mainCatSlug = selectedCat.slug;
+        set.add(selectedCat.slug);
+        set.add(selectedCat._id.toString());
+      }
+    }
+  }
+
+  // 2. Process Subcategory
+  if (subCategoryId) {
+    const isSubObjId = mongoose.isValidObjectId(subCategoryId);
+    const subCatDoc = await CategoryModel.findOne({
+      $or: [{ slug: subCategoryId }, ...(isSubObjId ? [{ _id: subCategoryId }] : [])],
+    }).lean();
+
+    if (subCatDoc) {
+      subCatSlug = subCatDoc.slug;
+      set.add(subCatDoc.slug);
+      set.add(subCatDoc._id.toString());
+
+      if (!mainCatSlug && subCatDoc.parent_id) {
+        const isParentObjectId = mongoose.isValidObjectId(subCatDoc.parent_id);
+        const parentDoc = await CategoryModel.findOne({
+          $or: [{ slug: subCatDoc.parent_id }, ...(isParentObjectId ? [{ _id: subCatDoc.parent_id }] : [])],
+        }).lean();
+        if (parentDoc) {
+          mainCatSlug = parentDoc.slug;
+          set.add(parentDoc.slug);
+          set.add(parentDoc._id.toString());
+        }
+      }
+    }
+  }
+
+  // 3. Process Multiple Additional Categories
+  if (categoryIds && Array.isArray(categoryIds)) {
+    for (const cid of categoryIds) {
+      if (!cid || !cid.trim()) continue;
+      const clean = cid.trim();
+      set.add(clean);
+      const isCidObj = mongoose.isValidObjectId(clean);
+      const cDoc = await CategoryModel.findOne({
+        $or: [{ slug: clean }, ...(isCidObj ? [{ _id: clean }] : [])],
+      }).lean();
+      if (cDoc) {
+        set.add(cDoc.slug);
+        set.add(cDoc._id.toString());
+      }
+    }
+  }
+
+  return {
+    category_id: mainCatSlug || undefined,
+    sub_category_id: subCatSlug || undefined,
+    category_ids: set.size > 0 ? Array.from(set) : undefined,
+  };
+}
+
 // ─── Product CRUD ─────────────────────────────────────────────────────────────
 
 export async function createProductAction(input: z.infer<typeof ProductSchema>) {
@@ -58,44 +150,12 @@ export async function createProductAction(input: z.infer<typeof ProductSchema>) 
       images.push(sanitizedVideo);
     }
 
-    // Resolve category and subcategory hierarchically
-    let catIdToSave = data.categoryId;
-    let subCatIdToSave: string | undefined = undefined;
-    let allCatIdsToSave: string[] = [];
-
-    if (data.categoryId) {
-      const isObjectId = mongoose.isValidObjectId(data.categoryId);
-      const selectedCat = await CategoryModel.findOne({
-        $or: [
-          { slug: data.categoryId },
-          ...(isObjectId ? [{ _id: data.categoryId }] : []),
-        ],
-      }).lean();
-
-      if (selectedCat) {
-        if (selectedCat.parent_id) {
-          const isParentObjectId = mongoose.isValidObjectId(selectedCat.parent_id);
-          const parentCat = await CategoryModel.findOne({
-            $or: [
-              { slug: selectedCat.parent_id },
-              ...(isParentObjectId ? [{ _id: selectedCat.parent_id }] : []),
-            ],
-          }).lean();
-
-          catIdToSave = parentCat ? parentCat.slug : selectedCat.slug;
-          subCatIdToSave = selectedCat.slug;
-          allCatIdsToSave = [
-            selectedCat.slug,
-            selectedCat._id.toString(),
-            ...(parentCat ? [parentCat.slug, parentCat._id.toString()] : []),
-          ];
-        } else {
-          catIdToSave = selectedCat.slug;
-          subCatIdToSave = undefined;
-          allCatIdsToSave = [selectedCat.slug, selectedCat._id.toString()];
-        }
-      }
-    }
+    // Resolve category, subcategory, and multiple placements
+    const { category_id, sub_category_id, category_ids } = await resolveProductCategories(
+      data.categoryId,
+      data.subCategoryId,
+      data.categoryIds
+    );
 
     const product = await ProductModel.create({
       name: data.name,
@@ -104,9 +164,9 @@ export async function createProductAction(input: z.infer<typeof ProductSchema>) 
       product_type: data.productType === 'general' ? 'standard' : data.productType,
       unit: data.unit || 'Piece',
       status: data.status || 'published',
-      category_id: catIdToSave || undefined,
-      sub_category_id: subCatIdToSave || undefined,
-      category_ids: allCatIdsToSave.length > 0 ? allCatIdsToSave : undefined,
+      category_id,
+      sub_category_id,
+      category_ids,
       manufacturer_id: data.manufacturerId || undefined,
       brand: data.brand || 'Tamizh Tech',
       supplier: data.supplier || undefined,
@@ -197,44 +257,12 @@ export async function updateProductAction(
       images.push(sanitizedVideo);
     }
 
-    // Resolve category and subcategory hierarchically
-    let catIdToSave = data.categoryId;
-    let subCatIdToSave: string | undefined = undefined;
-    let allCatIdsToSave: string[] = [];
-
-    if (data.categoryId) {
-      const isObjectId = mongoose.isValidObjectId(data.categoryId);
-      const selectedCat = await CategoryModel.findOne({
-        $or: [
-          { slug: data.categoryId },
-          ...(isObjectId ? [{ _id: data.categoryId }] : []),
-        ],
-      }).lean();
-
-      if (selectedCat) {
-        if (selectedCat.parent_id) {
-          const isParentObjectId = mongoose.isValidObjectId(selectedCat.parent_id);
-          const parentCat = await CategoryModel.findOne({
-            $or: [
-              { slug: selectedCat.parent_id },
-              ...(isParentObjectId ? [{ _id: selectedCat.parent_id }] : []),
-            ],
-          }).lean();
-
-          catIdToSave = parentCat ? parentCat.slug : selectedCat.slug;
-          subCatIdToSave = selectedCat.slug;
-          allCatIdsToSave = [
-            selectedCat.slug,
-            selectedCat._id.toString(),
-            ...(parentCat ? [parentCat.slug, parentCat._id.toString()] : []),
-          ];
-        } else {
-          catIdToSave = selectedCat.slug;
-          subCatIdToSave = undefined;
-          allCatIdsToSave = [selectedCat.slug, selectedCat._id.toString()];
-        }
-      }
-    }
+    // Resolve category, subcategory, and multiple placements
+    const { category_id, sub_category_id, category_ids } = await resolveProductCategories(
+      data.categoryId,
+      data.subCategoryId,
+      data.categoryIds
+    );
 
     const updated = await ProductModel.findByIdAndUpdate(
       id,
@@ -246,9 +274,9 @@ export async function updateProductAction(
           product_type: data.productType === 'general' ? 'standard' : data.productType,
           unit: data.unit || 'Piece',
           status: data.status || 'published',
-          category_id: catIdToSave || undefined,
-          sub_category_id: subCatIdToSave || undefined,
-          category_ids: allCatIdsToSave.length > 0 ? allCatIdsToSave : undefined,
+          category_id,
+          sub_category_id,
+          category_ids,
           manufacturer_id: data.manufacturerId || undefined,
           brand: data.brand || 'Tamizh Tech',
           supplier: data.supplier || undefined,
@@ -349,9 +377,9 @@ export async function getAdminProductByIdAction(id: string) {
         sku: doc.sku,
         productType: doc.product_type,
         unit: doc.unit || 'Piece',
-        status: doc.status || 'published',
-        categoryId: doc.sub_category_id || doc.category_id,
-        manufacturerId: doc.manufacturer_id,
+        categoryId: doc.category_id || undefined,
+        subCategoryId: doc.sub_category_id || undefined,
+        categoryIds: doc.category_ids || [],
         brand: doc.brand || 'Tamizh Tech',
         supplier: doc.supplier,
         showManufacturerPublicly: doc.show_manufacturer_publicly ?? true,
