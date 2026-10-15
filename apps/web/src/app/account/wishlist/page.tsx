@@ -115,7 +115,7 @@ export default function AccountWishlistPage() {
           <p className="text-xs text-slate-500 max-w-xs mx-auto">
             Explore our robotics kits, sensors, motors, and components and save items for your next build!
           </p>
-          <Link href="/categories">
+          <Link href="/category">
             <Button className="bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold text-xs rounded-full shadow-sm mt-2">
               Explore Products
             </Button>

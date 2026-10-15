@@ -1,7 +1,7 @@
 'use server';
 
 import { connectToDatabase } from '@/lib/mongodb/client';
-import { OrderModel, ProductModel, UserModel } from '@/lib/mongodb/models';
+import { OrderModel, ProductModel, UserModel, AuditLogModel, CouponModel } from '@/lib/mongodb/models';
 import { requireAdmin, requireAuth } from '@/lib/auth-helpers';
 import { revalidatePath } from 'next/cache';
 
@@ -17,6 +17,12 @@ export interface OrderListItem {
   coupon_discount_paise?: number;
   shipping_paise?: number;
   created_at: string;
+  order_items?: Array<{
+    productId?: string;
+    name: string;
+    quantity: number;
+    pricePaise?: number;
+  }>;
   customer?: {
     id: string;
     email: string;
@@ -96,6 +102,13 @@ export async function getMyOrdersAction(
       status: o.status,
       payment_method: o.payment_method,
       total_paise: o.total,
+      shipping_paise: o.shipping_total,
+      order_items: (o.items || []).map((it: any) => ({
+        productId: it.product_id,
+        name: it.product_name || 'Robotics Component',
+        quantity: it.quantity,
+        pricePaise: it.unit_price,
+      })),
       created_at: o.created_at.toISOString(),
     }));
 
@@ -243,57 +256,394 @@ export async function getAdminDashboardMetricsAction() {
 
     const [
       ordersToday,
-      revenueData,
-      pendingCount,
+      paidOrders,
+      refundedOrders,
+      pendingOrdersCount,
+      processingOrdersCount,
+      shippedOrdersCount,
+      deliveredOrdersCount,
+      cancelledOrdersCount,
+      refundedOrdersCount,
+      failedPaymentOrdersCount,
+      pendingPaymentOrdersCount,
+      publishedProductsCount,
+      draftProductsCount,
+      archivedProductsCount,
       lowStockCount,
       outOfStockCount,
-      totalProducts,
       totalCustomers,
       recentOrders,
+      topProductsAgg,
+      recentActivityLogs,
     ] = await Promise.all([
-      OrderModel.countDocuments({ created_at: { $gte: todayStart }, status: { $ne: 'cancelled' } }),
-      OrderModel.find({ status: { $ne: 'cancelled' } }, 'total').lean(),
-      OrderModel.countDocuments({ status: { $in: ['pending', 'processing'] } }),
+      // Orders created today
+      OrderModel.countDocuments({ created_at: { $gte: todayStart } }),
+      // Orders with VERIFIED PAYMENT (the only source of real paid revenue)
+      OrderModel.find({ payment_status: 'paid' }, 'total subtotal tax_total shipping_total discount_total').lean(),
+      // Orders that have been refunded
+      OrderModel.find({ payment_status: 'refunded' }, 'total').lean(),
+      // Order status breakdown
+      OrderModel.countDocuments({ status: 'pending' }),
+      OrderModel.countDocuments({ status: 'processing' }),
+      OrderModel.countDocuments({ status: 'shipped' }),
+      OrderModel.countDocuments({ status: 'delivered' }),
+      OrderModel.countDocuments({ status: 'cancelled' }),
+      OrderModel.countDocuments({ status: 'refunded' }),
+      // Payment status breakdown
+      OrderModel.countDocuments({ payment_status: 'failed' }),
+      OrderModel.countDocuments({ payment_status: 'pending' }),
+      // Catalog status breakdown
+      ProductModel.countDocuments({ status: 'published', is_active: true }),
+      ProductModel.countDocuments({ status: 'draft' }),
+      ProductModel.countDocuments({ status: 'archived' }),
       ProductModel.countDocuments({ stock_quantity: { $gt: 0, $lte: 5 }, is_active: true }),
       ProductModel.countDocuments({ stock_quantity: 0, is_active: true }),
-      ProductModel.countDocuments({ is_active: true }),
       UserModel.countDocuments({ role: 'customer' }),
-      OrderModel.find().sort({ created_at: -1 }).limit(5).lean(),
+      OrderModel.find().sort({ created_at: -1 }).limit(8).lean(),
+      // Real Top Selling Products from verified completed sales
+      OrderModel.aggregate([
+        { $match: { payment_status: 'paid' } },
+        { $unwind: '$items' },
+        {
+          $group: {
+            _id: '$items.product_id',
+            name: { $first: '$items.product_name' },
+            sku: { $first: '$items.sku' },
+            total_qty: { $sum: '$items.quantity' },
+            price: { $first: '$items.unit_price' },
+          },
+        },
+        { $sort: { total_qty: -1 } },
+        { $limit: 5 },
+      ]),
+      // Recent Administrative Activity
+      AuditLogModel.find().sort({ created_at: -1 }).limit(6).lean(),
     ]);
 
-    const totalRevenuePaise = revenueData.reduce((sum, o) => sum + (o.total || 0), 0);
+    const paidRevenuePaise = paidOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+    const refundedPaise = refundedOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+    const netRevenuePaise = Math.max(0, paidRevenuePaise - refundedPaise);
 
     return {
       ordersToday,
-      totalRevenuePaise,
-      pendingCount,
+      totalRevenuePaise: paidRevenuePaise, // STRICT: only verified paid revenue
+      paidRevenuePaise,
+      refundedPaise,
+      netRevenuePaise,
+      paidOrdersCount: paidOrders.length,
+      pendingCount: pendingOrdersCount + processingOrdersCount,
+      pendingOrdersCount,
+      processingOrdersCount,
+      shippedOrdersCount,
+      deliveredOrdersCount,
+      cancelledOrdersCount,
+      refundedOrdersCount,
+      failedPaymentOrdersCount,
+      pendingPaymentOrdersCount,
+      publishedProductsCount,
+      draftProductsCount,
+      archivedProductsCount,
+      totalProducts: publishedProductsCount + draftProductsCount + archivedProductsCount,
       lowStockCount,
       outOfStockCount,
-      totalProducts,
       totalCustomers,
       recentOrders: recentOrders.map((o) => ({
         id: o._id.toString(),
         order_number: o.order_number,
         status: o.status,
         payment_method: o.payment_method,
+        payment_status: o.payment_status,
         total_paise: o.total,
         created_at: o.created_at.toISOString(),
       })),
-      topProducts: [] as Array<{ name: string; sku: string; total_qty: number; price: number }>,
+      topProducts: topProductsAgg.map((p) => ({
+        name: p.name || 'Unnamed Component',
+        sku: p.sku || 'SKU-N/A',
+        total_qty: p.total_qty || 0,
+        price: p.price || 0,
+      })),
+      recentActivity: recentActivityLogs.map((log) => ({
+        id: log._id.toString(),
+        actor_id: log.actor_id,
+        action: log.action,
+        entity: log.entity,
+        entity_id: log.entity_id,
+        metadata: log.metadata,
+        created_at: log.created_at.toISOString(),
+      })),
     };
   } catch (err) {
     console.error('[Admin Dashboard Metrics Error]', err);
     return {
       ordersToday: 0,
       totalRevenuePaise: 0,
+      paidRevenuePaise: 0,
+      refundedPaise: 0,
+      netRevenuePaise: 0,
+      paidOrdersCount: 0,
       pendingCount: 0,
+      pendingOrdersCount: 0,
+      processingOrdersCount: 0,
+      shippedOrdersCount: 0,
+      deliveredOrdersCount: 0,
+      cancelledOrdersCount: 0,
+      refundedOrdersCount: 0,
+      failedPaymentOrdersCount: 0,
+      pendingPaymentOrdersCount: 0,
+      publishedProductsCount: 0,
+      draftProductsCount: 0,
+      archivedProductsCount: 0,
+      totalProducts: 0,
       lowStockCount: 0,
       outOfStockCount: 0,
-      totalProducts: 0,
       totalCustomers: 0,
       recentOrders: [],
-      topProducts: [] as Array<{ name: string; sku: string; total_qty: number; price: number }>,
+      topProducts: [],
+      recentActivity: [],
     };
+  }
+}
+
+// ─── Admin Single Order Detail ────────────────────────────────────────────────
+
+export async function getAdminOrderDetailAction(orderId: string): Promise<{
+  order?: {
+    id: string;
+    order_number: string;
+    bill_number?: string;
+    status: string;
+    payment_status: string;
+    payment_method: string;
+    subtotal_paise: number;
+    discount_paise: number;
+    tax_total_paise: number;
+    shipping_total_paise: number;
+    total_paise: number;
+    shipping_address: Record<string, any>;
+    billing_address: Record<string, any>;
+    razorpay_order_id?: string;
+    razorpay_payment_id?: string;
+    razorpay_signature?: string;
+    tracking_number?: string;
+    tracking_url?: string;
+    notes?: string;
+    created_at: string;
+    updated_at: string;
+    customer?: {
+      id?: string;
+      email?: string;
+      full_name?: string;
+      phone?: string;
+    };
+    items: Array<{
+      product_id: string;
+      product_name: string;
+      sku: string;
+      unit_price: number;
+      mrp_price?: number;
+      bulk_tier_applied?: string;
+      quantity: number;
+      total_price: number;
+      gst_percent: number;
+      hsn_code: string;
+      is_spare_part: boolean;
+      image_url?: string;
+    }>;
+    auditLogs: Array<{
+      id: string;
+      action: string;
+      actor_id: string;
+      created_at: string;
+      metadata?: any;
+    }>;
+  };
+  error?: string;
+}> {
+  if (!orderId) return { error: 'Order ID is required' };
+
+  const auth = await requireAdmin();
+  if ('error' in auth) return { error: auth.error };
+
+  try {
+    await connectToDatabase();
+
+    const order = await OrderModel.findOne({
+      $or: [{ _id: orderId }, { order_number: orderId }],
+    }).lean();
+
+    if (!order) return { error: 'Order not found' };
+
+    let customerInfo: any = null;
+    if (order.user_id) {
+      const userDoc = await UserModel.findById(order.user_id).lean();
+      if (userDoc) {
+        customerInfo = {
+          id: userDoc._id.toString(),
+          email: userDoc.email,
+          full_name: userDoc.full_name,
+          phone: userDoc.phone,
+        };
+      }
+    }
+
+    if (!customerInfo && order.guest_email) {
+      customerInfo = {
+        email: order.guest_email,
+        full_name: order.shipping_address?.fullName || 'Guest Customer',
+        phone: order.shipping_address?.phone || '',
+      };
+    }
+
+    // Load audit logs relevant to this order
+    const relevantEntityIds = [order._id.toString(), order.order_number, order.razorpay_order_id].filter(
+      (id): id is string => Boolean(id)
+    );
+    const auditLogs = await AuditLogModel.find({
+      entity: { $in: ['order', 'payment'] },
+      entity_id: { $in: relevantEntityIds },
+    })
+      .sort({ created_at: -1 })
+      .lean();
+
+    return {
+      order: {
+        id: order._id.toString(),
+        order_number: order.order_number,
+        bill_number: order.bill_number,
+        status: order.status,
+        payment_status: order.payment_status,
+        payment_method: order.payment_method,
+        subtotal_paise: order.subtotal,
+        discount_paise: order.discount_total,
+        tax_total_paise: order.tax_total,
+        shipping_total_paise: order.shipping_total,
+        total_paise: order.total,
+        shipping_address: order.shipping_address,
+        billing_address: order.billing_address,
+        razorpay_order_id: order.razorpay_order_id,
+        razorpay_payment_id: order.razorpay_payment_id,
+        razorpay_signature: order.razorpay_signature,
+        tracking_number: order.tracking_number,
+        tracking_url: order.tracking_url,
+        notes: order.notes,
+        created_at: order.created_at.toISOString(),
+        updated_at: order.updated_at.toISOString(),
+        customer: customerInfo,
+        items: order.items.map((item) => ({
+          product_id: item.product_id,
+          product_name: item.product_name,
+          sku: item.sku,
+          unit_price: item.unit_price,
+          mrp_price: item.mrp_price,
+          bulk_tier_applied: item.bulk_tier_applied,
+          quantity: item.quantity,
+          total_price: item.total_price,
+          gst_percent: item.gst_percent,
+          hsn_code: item.hsn_code,
+          is_spare_part: item.is_spare_part,
+          image_url: item.image_url,
+        })),
+        auditLogs: auditLogs.map((log) => ({
+          id: log._id.toString(),
+          action: log.action,
+          actor_id: log.actor_id,
+          created_at: log.created_at.toISOString(),
+          metadata: log.metadata,
+        })),
+      },
+    };
+  } catch (err: any) {
+    return { error: err.message || 'Failed to fetch order detail' };
+  }
+}
+
+// ─── Admin Analytics Report Action ───────────────────────────────────────────
+
+export async function getAdminAnalyticsReportAction(period: 'today' | '7d' | '30d' | 'ytd' | 'all' = '30d') {
+  const auth = await requireAdmin();
+  if ('error' in auth) return { error: auth.error };
+
+  try {
+    await connectToDatabase();
+
+    const now = new Date();
+    let startDate: Date | null = new Date();
+
+    if (period === 'today') {
+      startDate.setUTCHours(0, 0, 0, 0);
+    } else if (period === '7d') {
+      startDate.setDate(startDate.getDate() - 7);
+    } else if (period === '30d') {
+      startDate.setDate(startDate.getDate() - 30);
+    } else if (period === 'ytd') {
+      startDate = new Date(now.getFullYear(), 0, 1);
+    } else {
+      startDate = null; // all time
+    }
+
+    const dateFilter = startDate ? { created_at: { $gte: startDate } } : {};
+
+    const [
+      allOrdersInPeriod,
+      paidOrdersInPeriod,
+      refundedOrdersInPeriod,
+      newCustomersCount,
+      couponsUsedAgg,
+      stockMovementLogs,
+    ] = await Promise.all([
+      OrderModel.find(dateFilter, 'status payment_status total created_at').lean(),
+      OrderModel.find({ ...dateFilter, payment_status: 'paid' }, 'total subtotal tax_total shipping_total created_at').lean(),
+      OrderModel.find({ ...dateFilter, payment_status: 'refunded' }, 'total').lean(),
+      UserModel.countDocuments({ ...dateFilter, role: 'customer' }),
+      OrderModel.aggregate([
+        { $match: { ...dateFilter, discount_total: { $gt: 0 } } },
+        { $group: { _id: null, totalDiscount: { $sum: '$discount_total' }, count: { $sum: 1 } } },
+      ]),
+      AuditLogModel.find({ ...dateFilter, action: 'inventory.adjusted' })
+        .sort({ created_at: -1 })
+        .limit(20)
+        .lean(),
+    ]);
+
+    const grossPaidRevenuePaise = paidOrdersInPeriod.reduce((sum, o) => sum + (o.total || 0), 0);
+    const refundTotalPaise = refundedOrdersInPeriod.reduce((sum, o) => sum + (o.total || 0), 0);
+    const netRevenuePaise = Math.max(0, grossPaidRevenuePaise - refundTotalPaise);
+    const paidOrdersCount = paidOrdersInPeriod.length;
+    const averageOrderValuePaise = paidOrdersCount > 0 ? Math.round(grossPaidRevenuePaise / paidOrdersCount) : 0;
+
+    // Status breakdown
+    const statusCounts: Record<string, number> = {};
+    for (const ord of allOrdersInPeriod) {
+      statusCounts[ord.status] = (statusCounts[ord.status] || 0) + 1;
+    }
+
+    return {
+      period,
+      startDate: startDate?.toISOString() || null,
+      endDate: now.toISOString(),
+      summary: {
+        grossPaidRevenuePaise,
+        refundTotalPaise,
+        netRevenuePaise,
+        paidOrdersCount,
+        averageOrderValuePaise,
+        totalOrdersPlaced: allOrdersInPeriod.length,
+        newCustomersCount,
+        discountGivenPaise: couponsUsedAgg[0]?.totalDiscount || 0,
+        ordersWithDiscountCount: couponsUsedAgg[0]?.count || 0,
+      },
+      statusDistribution: statusCounts,
+      inventoryMovements: stockMovementLogs.map((log) => ({
+        id: log._id.toString(),
+        productId: log.entity_id,
+        actor: log.actor_id,
+        created_at: log.created_at.toISOString(),
+        metadata: log.metadata,
+      })),
+    };
+  } catch (err: any) {
+    console.error('[Admin Analytics Report Error]', err);
+    return { error: err.message || 'Failed to generate analytics report' };
   }
 }
 
@@ -411,12 +761,10 @@ export async function getAdminCustomersAction(opts?: {
   }
 }
 
-export async function requestReturnAction(input: {
+export async function cancelMyOrderAction(input: {
   orderId: string;
-  orderItemId: string;
-  quantity: number;
-  reason: string;
-}) {
+  reason?: string;
+}): Promise<{ success?: boolean; message?: string; error?: string }> {
   const auth = await requireAuth();
   if ('error' in auth) return { error: auth.error };
 
@@ -428,26 +776,133 @@ export async function requestReturnAction(input: {
       user_id: auth.user.id,
     });
 
-    if (!order) return { error: 'Order not found.' };
+    if (!order) return { error: 'Order not found or access denied.' };
+
+    const cancellableStatuses = ['confirmed', 'processing', 'pending_payment'];
+    if (!cancellableStatuses.includes(order.status)) {
+      return {
+        error: `Order cannot be cancelled because it is already ${order.status.replace(/_/g, ' ')}. Please contact support@ttrc.store.`,
+      };
+    }
+
+    // 1. Restore product inventory
+    if (Array.isArray(order.items)) {
+      for (const item of order.items) {
+        if (item.product_id && item.quantity > 0) {
+          await ProductModel.updateOne(
+            { _id: item.product_id },
+            { $inc: { stock_quantity: item.quantity } }
+          );
+        }
+      }
+    }
+
+    // 2. Mark order as cancelled
+    const previousStatus = order.status;
+    order.status = 'cancelled';
+    const reasonText = input.reason?.trim() || 'Customer requested order cancellation';
+    order.notes = order.notes
+      ? `${order.notes} | Cancellation: ${reasonText}`
+      : `Cancellation: ${reasonText}`;
+
+    await order.save();
+
+    // 3. Record audit trail
+    await AuditLogModel.create({
+      action: 'order.cancelled_by_customer',
+      entity: 'order',
+      entity_id: order._id.toString(),
+      actor_id: auth.user.id,
+      metadata: {
+        order_number: order.order_number,
+        previous_status: previousStatus,
+        reason: reasonText,
+        actor_email: auth.user.email,
+        actor_role: 'customer',
+      },
+    });
+
+    revalidatePath('/account');
+    revalidatePath('/account/orders');
+    revalidatePath(`/orders/${order._id.toString()}`);
+
+    return {
+      success: true,
+      message: 'Your order has been cancelled successfully and reserved inventory has been released.',
+    };
+  } catch (err: any) {
+    console.error('[Cancel My Order Error]', err);
+    return { error: 'Failed to cancel order. Please try again or contact support.' };
+  }
+}
+
+export async function requestReturnAction(input: {
+  orderId: string;
+  orderItemId?: string;
+  quantity?: number;
+  reason: string;
+}): Promise<{ success?: boolean; message?: string; error?: string; returnId?: string }> {
+  const auth = await requireAuth();
+  if ('error' in auth) return { error: auth.error };
+
+  if (!input.reason?.trim()) {
+    return { error: 'Please provide a reason for the return / replacement request.' };
+  }
+
+  try {
+    await connectToDatabase();
+
+    const order = await OrderModel.findOne({
+      _id: input.orderId,
+      user_id: auth.user.id,
+    });
+
+    if (!order) return { error: 'Order not found or access denied.' };
 
     if (order.status !== 'delivered') {
       return { error: 'Return requests can only be submitted for delivered orders.' };
     }
 
-    // Append return request note rather than automatically executing financial refund
+    // Check delivery 7-day window
+    const deliveredDate = order.updated_at || order.created_at;
+    const diffDays = (Date.now() - new Date(deliveredDate).getTime()) / (1000 * 60 * 60 * 24);
+    if (diffDays > 7) {
+      return {
+        error:
+          'This order is outside the 7-day replacement window. For warranty support on defective parts, please contact support@ttrc.store.',
+      };
+    }
+
     const existingNotes = order.notes || '';
     order.notes = existingNotes
-      ? `${existingNotes} | Return request: ${input.reason}`
-      : `Return request: ${input.reason}`;
+      ? `${existingNotes} | Return request: ${input.reason.trim()}`
+      : `Return request: ${input.reason.trim()}`;
     await order.save();
 
-    revalidatePath(`/account/orders`);
+    await AuditLogModel.create({
+      action: 'order.return_requested_by_customer',
+      entity: 'order',
+      entity_id: order._id.toString(),
+      actor_id: auth.user.id,
+      metadata: {
+        order_number: order.order_number,
+        reason: input.reason.trim(),
+        actor_email: auth.user.email,
+        actor_role: 'customer',
+      },
+    });
+
+    revalidatePath('/account');
+    revalidatePath('/account/orders');
+    revalidatePath(`/orders/${order._id.toString()}`);
+
     return {
       success: true,
-      message: 'Return request submitted successfully. Our support team will review within 24-48 hours.',
+      message: 'Return / replacement request submitted. Our support team will inspect and review within 24-48 hours.',
       returnId: `${input.orderId}-return`,
     };
-  } catch {
+  } catch (err: any) {
+    console.error('[Request Return Error]', err);
     return { error: 'Failed to submit return request.' };
   }
 }

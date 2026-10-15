@@ -246,7 +246,7 @@ export default function Header({ user }: HeaderProps) {
             onMouseEnter={() => setIsAccountMenuOpen(true)}
             onMouseLeave={() => setIsAccountMenuOpen(false)}
           >
-            <Link href={user ? (user.role === 'admin' ? '/admin' : `/${user.id}`) : '/login'}>
+            <Link href={user ? (user.role === 'admin' ? '/admin' : '/account') : '/login'}>
               <Button
                 variant="ghost"
                 size="icon"
@@ -274,7 +274,7 @@ export default function Header({ user }: HeaderProps) {
                       </div>
 
                       <Link
-                        href={user.role === 'admin' ? '/admin' : `/${user.id}`}
+                        href={user.role === 'admin' ? '/admin' : '/account'}
                         className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:text-[#844AFB] hover:bg-purple-50 transition-colors font-medium"
                       >
                         <User size={15} /> My Account

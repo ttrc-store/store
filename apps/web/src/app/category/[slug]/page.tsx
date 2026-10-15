@@ -6,6 +6,7 @@ import { Metadata } from 'next';
 import { SlidersHorizontal, Package, Cpu } from 'lucide-react';
 import { getStoreProducts, toStoreProductCardProps } from '@/lib/mongodb/catalog';
 import { ProductCard } from '@/components/store/product-card';
+import { CatalogFilterBar } from '@/components/store/catalog-filter-bar';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator, BreadcrumbList } from '@/components/ui/breadcrumb';
 import { BreadcrumbJsonLd, ItemListJsonLd } from '@/components/seo/json-ld';
 import { CATEGORY_TREE } from '@ttrc/shared';
@@ -52,6 +53,13 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
 
   const typeFilter = typeof resolvedParams.type === 'string' ? resolvedParams.type : 'all';
   const sort = typeof resolvedParams.sort === 'string' ? resolvedParams.sort : 'featured';
+  const inStockOnly = resolvedParams.inStock === 'true';
+  const minPrice = typeof resolvedParams.minPrice === 'string' ? resolvedParams.minPrice : '';
+  const maxPrice = typeof resolvedParams.maxPrice === 'string' ? resolvedParams.maxPrice : '';
+  const brand = typeof resolvedParams.brand === 'string' ? resolvedParams.brand : 'all';
+
+  const minPricePaise = minPrice ? parseInt(minPrice, 10) * 100 : undefined;
+  const maxPricePaise = maxPrice ? parseInt(maxPrice, 10) * 100 : undefined;
 
   await connectToDatabase();
   const dbCat = await CategoryModel.findOne({ slug }).lean();
@@ -62,10 +70,14 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   }
 
   // Fetch real products from MongoDB
-  const { products } = await getStoreProducts({
+  const { products, total } = await getStoreProducts({
     categorySlug: slug,
     productType: typeFilter,
     sort,
+    minPricePaise,
+    maxPricePaise,
+    inStockOnly,
+    brand,
     limit: 60,
   });
 
@@ -160,85 +172,22 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
         {/* Main Content Layout: Sidebar Filters + Products Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Sidebar Filter */}
-          <aside className="lg:col-span-1 space-y-6">
-            <div className="p-5 rounded-xl bg-purple-50/40 border border-purple-100 space-y-6 sticky top-24">
-              <div className="flex items-center justify-between pb-4 border-b border-purple-100">
-                <h3 className="font-heading font-bold text-sm text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                  <SlidersHorizontal size={16} className="text-purple-700" />
-                  Filter Catalogue
-                </h3>
-                <Link href={`/category/${slug}`} className="text-xs text-slate-500 hover:text-purple-700 font-semibold">
-                  Reset
-                </Link>
-              </div>
-
-              {/* Product Type Filter */}
-              <div className="space-y-3">
-                <h4 className="text-xs font-bold text-slate-700 uppercase">Product Type</h4>
-                <div className="space-y-2 text-xs">
-                  <label className="flex items-center gap-2 text-slate-600 cursor-pointer hover:text-slate-900">
-                    <input type="radio" name="type" checked={typeFilter === 'all'} readOnly className="accent-purple-700" />
-                    <span>All Items</span>
-                  </label>
-                  <label className="flex items-center gap-2 text-slate-600 cursor-pointer hover:text-slate-900">
-                    <input type="radio" name="type" checked={typeFilter === 'kit'} readOnly className="accent-purple-700" />
-                    <span>Complete Competition Kits</span>
-                  </label>
-                  <label className="flex items-center gap-2 text-slate-600 cursor-pointer hover:text-slate-900">
-                    <input type="radio" name="type" checked={typeFilter === 'spare_part'} readOnly className="accent-purple-700" />
-                    <span>Replacement Spare Parts</span>
-                  </label>
-                </div>
-              </div>
-
-              {/* In-Stock Toggle */}
-              <div className="pt-4 border-t border-purple-100 space-y-2">
-                <label className="flex items-center justify-between text-xs text-slate-700 cursor-pointer font-semibold">
-                  <span>In Stock Only</span>
-                  <input type="checkbox" defaultChecked className="accent-purple-700 rounded" />
-                </label>
-              </div>
-
-              {/* Brand Filter */}
-              <div className="pt-4 border-t border-purple-100 space-y-3">
-                <h4 className="text-xs font-bold text-slate-700 uppercase">Brand</h4>
-                <div className="space-y-2 text-xs text-slate-600">
-                  <label className="flex items-center gap-2 cursor-pointer hover:text-slate-900">
-                    <input type="checkbox" defaultChecked className="accent-purple-700" />
-                    <span>Tamizh Tech</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer hover:text-slate-900">
-                    <input type="checkbox" defaultChecked className="accent-purple-700" />
-                    <span>TTRC Spares</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer hover:text-slate-900">
-                    <input type="checkbox" defaultChecked className="accent-purple-700" />
-                    <span>TTRC Power</span>
-                  </label>
-                </div>
-              </div>
+          <aside className="lg:col-span-1">
+            <div className="sticky top-24">
+              <CatalogFilterBar
+                totalCount={total}
+                currentType={typeFilter}
+                currentSort={sort}
+                inStockOnly={inStockOnly}
+                minPrice={minPrice}
+                maxPrice={maxPrice}
+                currentBrand={brand}
+              />
             </div>
           </aside>
 
           {/* Product Grid Area */}
           <main className="lg:col-span-3 space-y-6">
-            {/* Top Toolbar */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-xl bg-purple-50/40 border border-purple-100">
-              <p className="text-xs text-slate-600">
-                Showing <strong className="text-slate-900">{products.length}</strong> products in <span className="text-purple-700 font-bold">{category.name}</span>
-              </p>
-
-              <div className="flex items-center gap-2 text-xs">
-                <span className="text-slate-500 font-semibold">Sort by:</span>
-                <select className="bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-800 focus:ring-purple-600 focus:outline-none">
-                  <option value="featured">Featured / Recommended</option>
-                  <option value="price_asc">Price: Low to High</option>
-                  <option value="price_desc">Price: High to Low</option>
-                  <option value="rating">Highest Rated</option>
-                </select>
-              </div>
-            </div>
-
             {/* Products Grid */}
             {products.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

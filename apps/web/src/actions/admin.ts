@@ -338,6 +338,19 @@ export async function deleteProductAction(id: string) {
 
 // ─── Order Management ─────────────────────────────────────────────────────────
 
+// ─── Order Management ─────────────────────────────────────────────────────────
+
+const ALLOWED_ORDER_STATUSES = new Set([
+  'pending',
+  'processing',
+  'shipped',
+  'delivered',
+  'cancelled',
+  'refunded',
+  'return_requested',
+  'returned',
+]);
+
 export async function updateOrderStatusAction(
   orderId: string,
   newStatus: string,
@@ -349,28 +362,108 @@ export async function updateOrderStatusAction(
   const auth = await requireAdmin();
   if ('error' in auth) return { error: auth.error };
 
+  const targetStatus = newStatus.trim().toLowerCase();
+  if (!ALLOWED_ORDER_STATUSES.has(targetStatus)) {
+    return { error: `Invalid order status "${newStatus}". Allowed: ${Array.from(ALLOWED_ORDER_STATUSES).join(', ')}` };
+  }
+
   try {
     await connectToDatabase();
 
     const order = await OrderModel.findById(orderId);
-    if (!order) return { error: 'Order not found.' };
+    if (!order) return { error: 'Order not found in database.' };
 
-    order.status = newStatus as any;
-    if (trackingNumber) {
-      order.tracking_number = trackingNumber;
+    const oldStatus = order.status;
+
+    // Guard: Prevent arbitrary transitions on terminal orders
+    if (oldStatus === 'cancelled' && targetStatus !== 'cancelled') {
+      return { error: 'Cancelled orders are terminal and cannot be reopened. Please place a new order if needed.' };
     }
+    if (oldStatus === 'refunded' && targetStatus !== 'refunded') {
+      return { error: 'Refunded orders are terminal and cannot change status.' };
+    }
+
+    // Guard: Payment integrity enforcement (Section 6)
+    // Never allow an order to be marked as processing, shipped, or delivered if it's an unpaid online transaction
+    const isUnpaidOnline = order.payment_method !== 'cod' && order.payment_status !== 'paid';
+    if (isUnpaidOnline && (targetStatus === 'processing' || targetStatus === 'shipped' || targetStatus === 'delivered')) {
+      return {
+        error: `Cannot transition unpaid online order (${order.payment_status}) to "${targetStatus}". Payment must be authoritatively verified by Razorpay first.`,
+      };
+    }
+
+    // Shipping fulfillment requirement
+    if (targetStatus === 'shipped' && !trackingNumber && !order.tracking_number) {
+      console.warn(`[Order Fulfillment] Order ${order.order_number} marked as shipped without tracking reference.`);
+    }
+
+    // Automated inventory restocking on order cancellation
+    if (targetStatus === 'cancelled' && oldStatus !== 'cancelled') {
+      if (Array.isArray(order.items) && order.items.length > 0) {
+        for (const item of order.items) {
+          if (item.product_id && item.quantity > 0) {
+            await ProductModel.findByIdAndUpdate(item.product_id, {
+              $inc: { stock_quantity: item.quantity },
+            });
+            await AuditLogModel.create({
+              actor_id: auth.user.id,
+              action: 'inventory.restocked.order_cancelled',
+              entity: 'product',
+              entity_id: item.product_id,
+              metadata: {
+                orderNumber: order.order_number,
+                restockedQty: item.quantity,
+                reason: `Order ${order.order_number} was cancelled by administrator.`,
+              },
+            });
+          }
+        }
+      }
+    }
+
+    // Update order state
+    order.status = targetStatus as any;
+    if (trackingNumber) {
+      order.tracking_number = trackingNumber.trim();
+      order.tracking_url = `https://shiprocket.co/tracking/${encodeURIComponent(trackingNumber.trim())}`;
+    }
+
+    if (adminNote && adminNote.trim()) {
+      const timestamp = new Date().toLocaleString('en-IN');
+      const formattedNote = `[${timestamp} — ${auth.user.fullName || auth.user.email}]: ${adminNote.trim()}`;
+      order.notes = order.notes ? `${order.notes}\n${formattedNote}` : formattedNote;
+    }
+
     await order.save();
 
+    // Record audit log
+    await AuditLogModel.create({
+      actor_id: auth.user.id,
+      action: 'order.status_updated',
+      entity: 'order',
+      entity_id: orderId,
+      metadata: {
+        orderNumber: order.order_number,
+        oldStatus,
+        newStatus: targetStatus,
+        trackingNumber: trackingNumber || order.tracking_number,
+        adminNote: adminNote || undefined,
+        actorEmail: auth.user.email,
+      },
+    });
+
     revalidatePath('/admin/orders');
+    revalidatePath(`/admin/orders/${orderId}`);
     revalidatePath(`/orders/${orderId}`);
 
     return {
       success: true,
       orderNumber: order.order_number,
-      newStatus,
+      newStatus: targetStatus,
     };
-  } catch {
-    return { error: 'Failed to update order status.' };
+  } catch (err: any) {
+    console.error('[Admin updateOrderStatus error]', err);
+    return { error: err.message || 'Failed to update order status.' };
   }
 }
 
@@ -391,30 +484,105 @@ export async function disableCustomerAction(userId: string) {
 
 export async function adjustInventoryAction(
   productId: string,
-  delta: number
+  delta: number,
+  reason?: string
 ) {
   if (!productId) return { error: 'Product ID is required' };
+  if (typeof delta !== 'number' || isNaN(delta) || delta === 0) {
+    return { error: 'A non-zero stock adjustment quantity is required.' };
+  }
 
   const auth = await requireAdmin();
   if ('error' in auth) return { error: auth.error };
 
   try {
     await connectToDatabase();
+
     const product = await ProductModel.findById(productId);
     if (!product) return { error: 'Product not found.' };
 
-    const newQty = product.stock_quantity + delta;
+    const oldQty = product.stock_quantity;
+    const newQty = oldQty + delta;
     if (newQty < 0) {
-      return { error: `Cannot set stock below 0. Current: ${product.stock_quantity}, delta: ${delta}.` };
+      return { error: `Cannot reduce stock below 0. Current stock is ${oldQty}, requested decrement: ${Math.abs(delta)}.` };
     }
 
-    product.stock_quantity = newQty;
-    await product.save();
+    // Atomic conditional update to prevent race conditions
+    const updated = await ProductModel.findOneAndUpdate(
+      {
+        _id: productId,
+        stock_quantity: { $gte: delta < 0 ? Math.abs(delta) : 0 },
+      },
+      { $inc: { stock_quantity: delta } },
+      { new: true }
+    );
+
+    if (!updated) {
+      return { error: 'Concurrent inventory modification detected. Please refresh and try again.' };
+    }
+
+    const adjustmentReason = reason?.trim() || 'Manual stock adjustment by administrator';
+
+    // Record inventory audit history
+    await AuditLogModel.create({
+      actor_id: auth.user.id,
+      action: 'inventory.adjusted',
+      entity: 'product',
+      entity_id: productId,
+      metadata: {
+        productName: updated.name,
+        sku: updated.sku,
+        oldStock: oldQty,
+        newStock: updated.stock_quantity,
+        delta,
+        reason: adjustmentReason,
+        actorEmail: auth.user.email,
+        timestamp: new Date().toISOString(),
+      },
+    });
 
     revalidatePath('/admin/products');
-    return { success: true, newQty };
-  } catch {
-    return { error: 'Failed to adjust inventory.' };
+    revalidatePath(`/admin/products/${productId}/edit`);
+    revalidatePath(`/product/${updated.slug}`);
+
+    return {
+      success: true,
+      newQty: updated.stock_quantity,
+      message: `Stock updated for ${updated.name}: ${oldQty} → ${updated.stock_quantity} (${delta > 0 ? `+${delta}` : delta}).`,
+    };
+  } catch (err: any) {
+    console.error('[Admin adjustInventory error]', err);
+    return { error: err.message || 'Failed to adjust inventory.' };
+  }
+}
+
+export async function bulkArchiveProductsAction(productIds: string[]) {
+  if (!Array.isArray(productIds) || productIds.length === 0) {
+    return { error: 'No products selected.' };
+  }
+
+  const auth = await requireAdmin();
+  if ('error' in auth) return { error: auth.error };
+
+  try {
+    await connectToDatabase();
+    const result = await ProductModel.updateMany(
+      { _id: { $in: productIds } },
+      { $set: { status: 'archived', is_active: false } }
+    );
+
+    await AuditLogModel.create({
+      actor_id: auth.user.id,
+      action: 'product.bulk_archived',
+      entity: 'product',
+      entity_id: 'bulk',
+      metadata: { count: result.modifiedCount, productIds, actorEmail: auth.user.email },
+    });
+
+    revalidatePath('/admin/products');
+    return { success: true, count: result.modifiedCount };
+  } catch (err: any) {
+    return { error: err.message || 'Failed to archive selected products.' };
   }
 }
 

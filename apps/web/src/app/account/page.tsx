@@ -22,8 +22,8 @@ import { requireAuth } from '@/lib/auth-helpers';
 
 export default async function AccountOverviewPage() {
   const auth = await requireAuth();
-  if (!('error' in auth)) {
-    redirect(`/${auth.user.id}`);
+  if ('error' in auth) {
+    redirect('/login?redirectTo=/account');
   }
 
   const overview = await getAccountOverviewAction();
@@ -148,7 +148,7 @@ export default async function AccountOverviewPage() {
             <p className="text-xs text-slate-500 max-w-xs mx-auto">
               You haven&apos;t placed any orders yet. Start exploring our robotics kits &amp; components!
             </p>
-            <Link href="/categories">
+            <Link href="/category">
               <Button className="bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold text-xs rounded-full shadow-sm mt-1">
                 Explore Catalog
               </Button>

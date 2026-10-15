@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { ArrowLeft, Loader2, AlertCircle } from 'lucide-react';
 import { updateProductAction, getAdminProductByIdAction } from '@/actions/admin';
+import { getAdminCategoriesAction } from '@/actions/admin-categories';
 import { EnterpriseProductForm } from '../../_components/enterprise-product-form';
 
 export default function EditProductPage() {
@@ -13,17 +14,24 @@ export default function EditProductPage() {
 
   const [loading, setLoading] = React.useState(true);
   const [product, setProduct] = React.useState<any>(null);
+  const [categories, setCategories] = React.useState<Array<{ id: string; name: string; slug: string }>>([]);
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     let isMounted = true;
-    async function loadProduct() {
+    async function loadData() {
       try {
-        const res = await getAdminProductByIdAction(productId);
-        if (res.product && isMounted) {
-          setProduct(res.product);
-        } else if (res.error && isMounted) {
-          setErrorMsg(res.error);
+        const [prodRes, catRes] = await Promise.all([
+          getAdminProductByIdAction(productId),
+          getAdminCategoriesAction(),
+        ]);
+        if (catRes.categories && isMounted) {
+          setCategories(catRes.categories.map((c) => ({ id: c.id, name: c.name, slug: c.slug })));
+        }
+        if (prodRes.product && isMounted) {
+          setProduct(prodRes.product);
+        } else if (prodRes.error && isMounted) {
+          setErrorMsg(prodRes.error);
         }
       } catch (err: any) {
         if (isMounted) setErrorMsg('Failed to load product details');
@@ -31,7 +39,7 @@ export default function EditProductPage() {
         if (isMounted) setLoading(false);
       }
     }
-    loadProduct();
+    loadData();
     return () => {
       isMounted = false;
     };
@@ -44,7 +52,7 @@ export default function EditProductPage() {
   if (loading) {
     return (
       <div className="min-h-[50vh] flex flex-col items-center justify-center gap-3">
-        <Loader2 className="animate-spin text-purple-600" size={32} />
+        <Loader2 className="animate-spin text-[#E3132A]" size={32} />
         <p className="text-xs text-slate-500 font-semibold">Loading product configuration...</p>
       </div>
     );
@@ -72,6 +80,7 @@ export default function EditProductPage() {
         initialData={product}
         productId={productId}
         isEditMode={true}
+        availableCategories={categories}
         onSubmitAction={handleUpdate}
       />
     </div>

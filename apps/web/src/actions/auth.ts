@@ -95,7 +95,7 @@ export async function loginAction(formData: FormData) {
       redirect(redirectTo);
     }
 
-    redirect(isAdmin ? '/admin' : `/${userId}`);
+    redirect(isAdmin ? '/admin' : '/account');
   } catch (err: any) {
     if (err?.digest?.startsWith('NEXT_REDIRECT') || err?.message === 'NEXT_REDIRECT') {
       throw err;
@@ -185,7 +185,7 @@ export async function registerAction(formData: FormData) {
     const destination =
       redirectTo && redirectTo.startsWith('/') && !redirectTo.startsWith('//')
         ? redirectTo
-        : `/${userId}`;
+        : '/account';
 
     redirect(destination);
   } catch (err: any) {

@@ -35,22 +35,19 @@ export default function AccountAddressesPage() {
     loadAddresses();
   }, [loadAddresses]);
 
-  const handlePincodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value.replace(/\D/g, '');
+  const handlePincodeChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/\D/g, '').slice(0, 6);
     setPincode(val);
     if (val.length === 6) {
-      if (val.startsWith('60') || val.startsWith('64')) {
-        setCity('Coimbatore');
-        setState('Tamil Nadu');
-      } else if (val.startsWith('56')) {
-        setCity('Bengaluru');
-        setState('Karnataka');
-      } else if (val.startsWith('40')) {
-        setCity('Mumbai');
-        setState('Maharashtra');
-      } else if (val.startsWith('11')) {
-        setCity('New Delhi');
-        setState('Delhi');
+      try {
+        const res = await fetch(`/api/pincode/check?pincode=${val}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.city) setCity(data.city);
+          if (data.state) setState(data.state);
+        }
+      } catch {
+        // Fallback to manual entry
       }
     }
   };

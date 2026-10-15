@@ -17,8 +17,8 @@ const TYPE_LABEL: Record<string, string> = {
 };
 
 const TYPE_COLOR: Record<string, string> = {
-  kit: 'bg-purple-50 text-purple-700 border-purple-200',
-  spare_part: 'bg-blue-50 text-blue-600 border-blue-200',
+  kit: 'bg-[#FDECEE] text-[#E3132A] border-red-200',
+  spare_part: 'bg-slate-100 text-slate-700 border-slate-200',
   general: 'bg-slate-100 text-slate-600 border-slate-200',
   standard: 'bg-slate-100 text-slate-600 border-slate-200',
 };
@@ -53,7 +53,7 @@ export default async function AdminProductsPage({
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="font-heading text-2xl font-extrabold text-slate-900">
+          <h1 className="font-heading text-2xl font-extrabold text-[#14141A]">
             Product Catalog ({result.total ?? 0})
           </h1>
           <p className="text-xs text-slate-500 mt-1">
@@ -61,7 +61,7 @@ export default async function AdminProductsPage({
           </p>
         </div>
         <Link href="/admin/products/new">
-          <Button className="bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs rounded-xl flex items-center gap-2 shadow-md shadow-purple-900/20">
+          <Button className="bg-[#E3132A] hover:bg-[#B80F21] text-white font-bold text-xs rounded-xl flex items-center gap-2 shadow-sm shadow-red-900/10">
             <Plus size={16} /> Add New Product
           </Button>
         </Link>

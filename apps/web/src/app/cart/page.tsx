@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PriceTag } from '@/components/store/price-tag';
 import { QuantitySelector } from '@/components/store/quantity-selector';
+import { validateCouponAction } from '@/actions/checkout';
 
 export default function FullCartPage() {
   const {
@@ -16,21 +17,41 @@ export default function FullCartPage() {
     removeItem,
     updateQuantity,
     couponCode,
-    applyCoupon,
+    setCoupon,
     removeCoupon,
     getTotals,
   } = useCartStore();
 
   const [inputCoupon, setInputCoupon] = React.useState('');
+  const [isCheckingCoupon, setIsCheckingCoupon] = React.useState(false);
   const [couponMsg, setCouponMsg] = React.useState<{ success: boolean; message: string } | null>(null);
 
   const totals = getTotals();
 
-  const handleApplyCoupon = (e: React.FormEvent) => {
+  const handleApplyCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputCoupon) return;
-    const res = applyCoupon(inputCoupon);
-    setCouponMsg(res);
+    if (!inputCoupon.trim()) return;
+    setIsCheckingCoupon(true);
+    setCouponMsg(null);
+    try {
+      const res = await validateCouponAction(inputCoupon, totals.subtotalPaise);
+      if (res.success && res.discountPaise !== undefined) {
+        setCoupon(inputCoupon, res.discountPaise);
+        setCouponMsg({ success: true, message: res.message || 'Coupon applied!' });
+        setInputCoupon('');
+      } else {
+        setCouponMsg({ success: false, message: res.error || 'Invalid or expired coupon code.' });
+      }
+    } catch {
+      setCouponMsg({ success: false, message: 'Failed to check coupon code.' });
+    } finally {
+      setIsCheckingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    removeCoupon();
+    setCouponMsg(null);
   };
 
   return (
@@ -123,20 +144,26 @@ export default function FullCartPage() {
                 {couponCode ? (
                   <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-700">
                     <span className="font-bold font-mono">Coupon: {couponCode} Applied</span>
-                    <button onClick={removeCoupon} className="text-slate-500 hover:text-slate-900 font-bold">
+                    <button onClick={handleRemoveCoupon} className="text-slate-500 hover:text-slate-900 font-bold">
                       Remove
                     </button>
                   </div>
                 ) : (
                   <form onSubmit={handleApplyCoupon} className="flex gap-2">
                     <Input
-                      placeholder="Try TTRC10"
+                      placeholder="Enter promo coupon"
                       value={inputCoupon}
                       onChange={(e) => setInputCoupon(e.target.value)}
+                      disabled={isCheckingCoupon}
                       className="bg-white border-slate-200 text-xs h-10 uppercase focus:border-purple-600 focus:ring-purple-600"
                     />
-                    <Button type="submit" variant="outline" className="border-purple-600 text-purple-700 hover:bg-purple-50 text-xs font-bold h-10">
-                      Apply
+                    <Button
+                      type="submit"
+                      variant="outline"
+                      disabled={isCheckingCoupon}
+                      className="border-purple-600 text-purple-700 hover:bg-purple-50 text-xs font-bold h-10"
+                    >
+                      {isCheckingCoupon ? 'Checking...' : 'Apply'}
                     </Button>
                   </form>
                 )}

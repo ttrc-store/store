@@ -5,13 +5,44 @@ import { Mail, Phone, MapPin, Send } from 'lucide-react';
 import { WhatsAppIcon, InstagramIcon } from '@/components/ui/brand-icons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { submitEnquiryAction } from '@/actions/enquiries';
 
 export default function ContactPage() {
   const [submitted, setSubmitted] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
+  const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
+  const [formData, setFormData] = React.useState({
+    name: '',
+    email: '',
+    phone: '',
+    subject: '',
+    message: '',
+  });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setLoading(true);
+    setErrorMsg(null);
+    try {
+      const res = await submitEnquiryAction({
+        type: 'contact',
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone || undefined,
+        subject: formData.subject || undefined,
+        message: formData.message,
+      });
+
+      if (res.success) {
+        setSubmitted(true);
+      } else {
+        setErrorMsg(res.error || 'Failed to send message. Please try again.');
+      }
+    } catch {
+      setErrorMsg('Failed to send message. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -93,28 +124,67 @@ export default function ContactPage() {
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+                {errorMsg && (
+                  <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-xs">
+                    {errorMsg}
+                  </div>
+                )}
                 <div className="space-y-1">
                   <label className="font-bold text-slate-700">Your Full Name *</label>
-                  <Input required placeholder="Karthik Raja" className="bg-white border-slate-200 h-10 focus:border-purple-600 focus:ring-purple-600" />
+                  <Input
+                    required
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="Karthik Raja"
+                    className="bg-white border-slate-200 h-10 focus:border-purple-600 focus:ring-purple-600"
+                  />
                 </div>
                 <div className="space-y-1">
                   <label className="font-bold text-slate-700">Email Address *</label>
-                  <Input required type="email" placeholder="name@example.com" className="bg-white border-slate-200 h-10 focus:border-purple-600 focus:ring-purple-600" />
+                  <Input
+                    required
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    placeholder="name@example.com"
+                    className="bg-white border-slate-200 h-10 focus:border-purple-600 focus:ring-purple-600"
+                  />
                 </div>
                 <div className="space-y-1">
                   <label className="font-bold text-slate-700">Phone Number</label>
-                  <Input placeholder="+91 98765 43210" className="bg-white border-slate-200 h-10 focus:border-purple-600 focus:ring-purple-600" />
+                  <Input
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    placeholder="+91 98765 43210"
+                    className="bg-white border-slate-200 h-10 focus:border-purple-600 focus:ring-purple-600"
+                  />
                 </div>
                 <div className="space-y-1">
                   <label className="font-bold text-slate-700">Subject / Order ID</label>
-                  <Input placeholder="Inquiry about order TTRC/25-26/100001" className="bg-white border-slate-200 h-10 focus:border-purple-600 focus:ring-purple-600" />
+                  <Input
+                    value={formData.subject}
+                    onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                    placeholder="Inquiry about order TTRC/25-26/100001"
+                    className="bg-white border-slate-200 h-10 focus:border-purple-600 focus:ring-purple-600"
+                  />
                 </div>
                 <div className="space-y-1">
                   <label className="font-bold text-slate-700">Your Message *</label>
-                  <textarea required rows={4} placeholder="How can we help you?" className="w-full rounded-xl bg-white border border-slate-200 p-3 text-xs text-slate-900 focus:outline-none focus:border-purple-600 focus:ring-2 focus:ring-purple-200" />
+                  <textarea
+                    required
+                    rows={4}
+                    value={formData.message}
+                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                    placeholder="How can we help you?"
+                    className="w-full rounded-xl bg-white border border-slate-200 p-3 text-xs text-slate-900 focus:outline-none focus:border-purple-600 focus:ring-2 focus:ring-purple-200"
+                  />
                 </div>
-                <Button type="submit" className="w-full bg-purple-700 hover:bg-purple-800 text-white font-bold h-11 text-xs rounded-full glow-purple-sm">
-                  <Send size={14} className="mr-2" /> Send Message
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-purple-700 hover:bg-purple-800 text-white font-bold h-11 text-xs rounded-full glow-purple-sm disabled:opacity-50"
+                >
+                  <Send size={14} className="mr-2" /> {loading ? 'Sending...' : 'Send Message'}
                 </Button>
               </form>
             )}

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Package, Download, Truck, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PriceTag } from '@/components/store/price-tag';
+import { OrderActionsModal } from '@/components/account/order-actions-modal';
 import { getMyOrdersAction } from '@/actions/orders';
 import { ORDER_STATUS_LABELS } from '@ttrc/shared';
 
@@ -53,7 +54,7 @@ export default async function AccountOrdersPage() {
               You haven&apos;t placed any orders yet. Start exploring our robotics catalog!
             </p>
           </div>
-          <Link href="/categories">
+          <Link href="/category">
             <Button className="bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs rounded-full mt-2 shadow-sm glow-purple-sm">
               Shop Now
             </Button>
@@ -117,23 +118,14 @@ export default async function AccountOrdersPage() {
                     </strong>
                   </span>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 flex-wrap">
                   <PriceTag pricePaise={order.total_paise} size="default" />
-                  {['confirmed', 'processing'].includes(order.status) && (
-                    <Link href={`/account/orders/${order.id}/cancel`}>
-                      <Button size="sm" variant="outline" className="h-8 text-xs border-red-200 text-red-600 hover:bg-red-50">
-                        Cancel Order
-                      </Button>
-                    </Link>
-                  )}
-                  {order.status === 'delivered' && (
-                    <Link href={`/account/orders/${order.id}/return`}>
-                      <Button size="sm" variant="outline" className="h-8 text-xs border-slate-300 text-slate-700 hover:bg-slate-100">
-                        <RefreshCw size={12} className="mr-1" />
-                        Request Return
-                      </Button>
-                    </Link>
-                  )}
+                  <OrderActionsModal
+                    orderId={order.id}
+                    orderNumber={order.order_number ?? `#${order.id.slice(0, 8)}`}
+                    status={order.status}
+                    items={order.order_items || []}
+                  />
                 </div>
               </div>
             </div>

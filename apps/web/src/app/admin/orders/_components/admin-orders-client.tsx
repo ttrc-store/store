@@ -152,7 +152,7 @@ export default function AdminOrdersClient({
         {orders.length > 0 ? (
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-slate-200 bg-purple-50/50 text-slate-600 font-bold uppercase tracking-wider">
+              <tr className="border-b border-slate-200 bg-slate-50/80 text-slate-600 font-bold uppercase tracking-wider">
                 <th className="p-3 rounded-l-lg">Order</th>
                 <th className="p-3">Amount</th>
                 <th className="p-3">Payment</th>
@@ -162,11 +162,14 @@ export default function AdminOrdersClient({
             </thead>
             <tbody className="divide-y divide-slate-100">
               {orders.map((order) => (
-                <tr key={order.id} className="hover:bg-purple-50/50 transition-colors">
+                <tr key={order.id} className="hover:bg-slate-50/80 transition-colors">
                   <td className="py-3">
-                    <p className="font-mono font-bold text-slate-900">
+                    <Link
+                      href={`/admin/orders/${order.id}`}
+                      className="font-mono font-bold text-slate-900 hover:text-[#E3132A] transition-colors"
+                    >
                       {order.order_number ?? order.id.slice(0, 8)}
-                    </p>
+                    </Link>
                     <p className="text-[10px] text-slate-500">
                       {new Date(order.created_at).toLocaleDateString('en-IN', {
                         day: 'numeric', month: 'short', year: 'numeric',
@@ -177,7 +180,7 @@ export default function AdminOrdersClient({
                     <PriceTag pricePaise={order.total_paise} size="sm" />
                   </td>
                   <td className="py-3 text-slate-500 capitalize font-medium">
-                    {order.payment_method === 'cod' ? 'Cash on Delivery' : order.payment_method}
+                    {order.payment_method === 'cod' ? 'Cash on Delivery' : 'Razorpay (Online)'}
                   </td>
                   <td className="py-3">
                     <span
@@ -192,15 +195,14 @@ export default function AdminOrdersClient({
                     <div className="flex items-center justify-end gap-2">
                       <button
                         onClick={() => openEditModal(order)}
-                        className="px-2.5 py-1 rounded-lg bg-purple-50 text-purple-700 hover:bg-purple-100 text-[11px] font-bold transition-colors border border-purple-200"
+                        className="px-2.5 py-1 rounded-lg bg-[#FDECEE] text-[#E3132A] hover:bg-[#E3132A] hover:text-white text-[11px] font-bold transition-colors border border-red-200 cursor-pointer"
                       >
                         Update Status
                       </button>
                       <Link
-                        href={`/orders/${order.id}`}
-                        target="_blank"
-                        className="p-1.5 rounded-lg bg-slate-100 text-slate-500 hover:text-purple-700 transition-colors"
-                        title="View Order"
+                        href={`/admin/orders/${order.id}`}
+                        className="p-1.5 rounded-lg bg-slate-100 text-slate-600 hover:text-[#E3132A] hover:bg-[#FDECEE] transition-colors"
+                        title="Inspect Order Details"
                       >
                         <Eye size={14} />
                       </Link>
@@ -212,7 +214,7 @@ export default function AdminOrdersClient({
           </table>
         ) : (
           <div className="py-12 text-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-purple-50 border border-purple-200 flex items-center justify-center mx-auto text-purple-700">
+            <div className="w-16 h-16 rounded-full bg-red-50 border border-red-200 flex items-center justify-center mx-auto text-[#E3132A]">
               <Package size={28} />
             </div>
             <div className="space-y-1">
@@ -244,7 +246,7 @@ export default function AdminOrdersClient({
                 <select
                   value={newStatus}
                   onChange={(e) => setNewStatus(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 focus:outline-none focus:border-purple-600 focus:ring-purple-600"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 focus:outline-none focus:border-[#E3132A]"
                 >
                   {STATUS_OPTIONS.filter((s) => s !== 'all').map((s) => (
                     <option key={s} value={s}>
@@ -263,7 +265,7 @@ export default function AdminOrdersClient({
                   value={newAwb}
                   onChange={(e) => setNewAwb(e.target.value)}
                   placeholder="e.g. SR-84920412-IN"
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 font-mono placeholder-slate-400 focus:outline-none focus:border-purple-600 focus:ring-purple-600"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 font-mono placeholder-slate-400 focus:outline-none focus:border-[#E3132A]"
                 />
               </div>
 
@@ -274,7 +276,7 @@ export default function AdminOrdersClient({
                   value={adminNote}
                   onChange={(e) => setAdminNote(e.target.value)}
                   placeholder="e.g. Dispatched from Coimbatore warehouse"
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-purple-600 focus:ring-purple-600"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#E3132A]"
                 />
               </div>
             </div>
@@ -282,14 +284,14 @@ export default function AdminOrdersClient({
             <div className="flex justify-end gap-2 pt-2">
               <button
                 onClick={() => setEditingOrderId(null)}
-                className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold hover:bg-slate-200 border border-slate-200"
+                className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold hover:bg-slate-200 border border-slate-200 cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={handleUpdateStatus}
                 disabled={saving}
-                className="px-5 py-2 rounded-xl bg-purple-700 text-white text-xs font-bold hover:bg-purple-800 disabled:opacity-60 shadow-sm shadow-purple-900/20"
+                className="px-5 py-2 rounded-xl bg-[#E3132A] hover:bg-[#B80F21] text-white text-xs font-bold disabled:opacity-60 shadow-sm cursor-pointer"
               >
                 {saving ? 'Saving...' : 'Save Status'}
               </button>

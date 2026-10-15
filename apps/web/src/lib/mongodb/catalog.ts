@@ -233,6 +233,10 @@ export async function getStoreProducts(opts?: {
   isFeatured?: boolean;
   isBestseller?: boolean;
   isNewArrival?: boolean;
+  minPricePaise?: number;
+  maxPricePaise?: number;
+  inStockOnly?: boolean;
+  brand?: string;
   limit?: number;
   page?: number;
   sort?: string;
@@ -294,6 +298,20 @@ export async function getStoreProducts(opts?: {
 
     if (opts?.isNewArrival) {
       query.is_new_arrival = true;
+    }
+
+    if (opts?.minPricePaise != null || opts?.maxPricePaise != null) {
+      query.price = {};
+      if (opts.minPricePaise != null) query.price.$gte = opts.minPricePaise;
+      if (opts.maxPricePaise != null) query.price.$lte = opts.maxPricePaise;
+    }
+
+    if (opts?.inStockOnly) {
+      query.stock_quantity = { $gt: 0 };
+    }
+
+    if (opts?.brand && opts.brand !== 'all') {
+      query.brand = opts.brand;
     }
 
     const sortOption: Record<string, any> = {};

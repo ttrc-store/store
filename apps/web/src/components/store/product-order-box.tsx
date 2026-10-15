@@ -10,6 +10,7 @@ import { PriceTag } from '@/components/store/price-tag';
 import { useCartStore } from '@/store/use-cart';
 import { AddToCompareButton } from '@/components/store/add-to-compare-button';
 import { ProductShareButton } from '@/components/store/product-share-button';
+import { AddToWishlistButton } from '@/components/store/add-to-wishlist-button';
 
 export interface BulkPriceTier {
   minQuantity: number;
@@ -338,6 +339,13 @@ export function ProductOrderBox({
             <Zap size={18} className="mr-1 text-[#844AFB]" />
             Buy Now
           </Button>
+
+          <AddToWishlistButton
+            productId={id}
+            productName={name}
+            variant="button"
+            className="h-12"
+          />
 
           <AddToCompareButton
             variant="button"

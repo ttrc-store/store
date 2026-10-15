@@ -75,7 +75,7 @@ export default function AdminProductsClient({
             value={localSearch}
             onChange={(e) => setLocalSearch(e.target.value)}
             placeholder="Search by product name, SKU, or slug..."
-            className="pl-9 bg-slate-50 border-slate-200 h-10 text-xs text-slate-900 placeholder:text-slate-400 focus:border-purple-600 focus:ring-purple-600"
+            className="pl-9 bg-slate-50 border-slate-200 h-10 text-xs text-slate-900 placeholder:text-slate-400 focus:border-red-600 focus:ring-red-600"
           />
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -83,7 +83,7 @@ export default function AdminProductsClient({
           <select
             value={currentType}
             onChange={(e) => handleTypeFilter(e.target.value)}
-            className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-purple-600 focus:ring-purple-600"
+            className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-red-600 focus:ring-red-600"
           >
             <option value="all">All Types</option>
             <option value="kit">Kits Only</option>
@@ -98,7 +98,7 @@ export default function AdminProductsClient({
         {products.length > 0 ? (
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-slate-200 bg-purple-50/50 text-slate-600 font-bold uppercase tracking-wider">
+              <tr className="border-b border-slate-200 bg-slate-50 text-slate-600 font-bold uppercase tracking-wider">
                 <th className="p-3 rounded-l-lg">Product</th>
                 <th className="p-3">Type</th>
                 <th className="p-3">Price (Inc. GST)</th>
@@ -109,7 +109,7 @@ export default function AdminProductsClient({
             </thead>
             <tbody className="divide-y divide-slate-100">
               {products.map((p) => (
-                <tr key={p.id} className="hover:bg-purple-50/50 transition-colors">
+                <tr key={p.id} className="hover:bg-slate-50 transition-colors">
                   <td className="py-3">
                     <div className="flex items-center gap-3">
                       <div className="relative w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0">
@@ -145,14 +145,14 @@ export default function AdminProductsClient({
                       <Link
                         href={`/product/${p.slug}`}
                         target="_blank"
-                        className="p-1.5 rounded-lg bg-slate-100 text-slate-600 hover:text-purple-700 transition-colors"
+                        className="p-1.5 rounded-lg bg-slate-100 text-slate-600 hover:text-[#E3132A] transition-colors"
                         title="View on Storefront"
                       >
                         <ExternalLink size={14} />
                       </Link>
                       <Link
                         href={`/admin/products/${p.id}/edit`}
-                        className="p-1.5 rounded-lg bg-slate-100 text-slate-600 hover:text-purple-700 transition-colors"
+                        className="p-1.5 rounded-lg bg-slate-100 text-slate-600 hover:text-[#E3132A] transition-colors"
                         title="Edit Product"
                       >
                         <Edit size={14} />
@@ -165,7 +165,7 @@ export default function AdminProductsClient({
           </table>
         ) : (
           <div className="py-12 text-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-purple-50 border border-purple-200 flex items-center justify-center mx-auto text-purple-700">
+            <div className="w-16 h-16 rounded-full bg-[#FDECEE] border border-red-200 flex items-center justify-center mx-auto text-[#E3132A]">
               <Package size={28} />
             </div>
             <div className="space-y-1">
@@ -178,7 +178,7 @@ export default function AdminProductsClient({
             </div>
             {!currentSearch && (
               <Link href="/admin/products/new" className="inline-block">
-                <Button className="bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs rounded-xl px-6 py-2.5 flex items-center gap-2 mx-auto shadow-sm shadow-purple-900/20">
+                <Button className="bg-[#E3132A] hover:bg-[#B80F21] text-white font-bold text-xs rounded-xl px-6 py-2.5 flex items-center gap-2 mx-auto shadow-sm shadow-red-900/10">
                   <Plus size={16} /> Upload First Product
                 </Button>
               </Link>

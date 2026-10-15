@@ -15,6 +15,7 @@ import {
   ExternalLink,
   ShieldCheck,
   Ticket,
+  BarChart3,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -22,6 +23,7 @@ const NAV_ITEMS = [
   { name: 'Products', href: '/admin/products', icon: Package },
   { name: 'Categories', href: '/admin/categories', icon: FolderTree },
   { name: 'Orders', href: '/admin/orders', icon: ShoppingBag },
+  { name: 'Reports & Analytics', href: '/admin/reports', icon: BarChart3 },
   { name: 'Customers', href: '/admin/customers', icon: Users },
   { name: 'Coupons', href: '/admin/coupons', icon: Ticket },
   { name: 'Store Settings', href: '/admin/settings', icon: Settings },
@@ -47,7 +49,7 @@ export function AdminSidebar() {
               />
             </div>
           </Link>
-          <span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-md border border-purple-200 flex items-center gap-1">
+          <span className="text-[10px] font-bold text-[#E3132A] bg-[#FDECEE] px-2 py-0.5 rounded-md border border-red-200 flex items-center gap-1">
             <ShieldCheck size={12} /> ADMIN
           </span>
         </div>
@@ -67,8 +69,8 @@ export function AdminSidebar() {
                 href={item.href}
                 className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                   isActive
-                    ? 'bg-[#844AFB] text-white shadow-md shadow-purple-900/20'
-                    : 'text-slate-600 hover:text-[#6721F2] hover:bg-[#EEE8FA]/60'
+                    ? 'bg-[#E3132A] text-white shadow-sm shadow-red-900/20'
+                    : 'text-slate-600 hover:text-[#E3132A] hover:bg-[#FDECEE]/70'
                 }`}
               >
                 <Icon size={18} />

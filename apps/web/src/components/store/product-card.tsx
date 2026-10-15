@@ -10,6 +10,7 @@ import { ShoppingCart } from 'lucide-react';
 import { RatingStars } from './rating-stars';
 import { AddToCompareButton } from './add-to-compare-button';
 import { ProductShareButton } from './product-share-button';
+import { AddToWishlistButton } from './add-to-wishlist-button';
 import { formatRupees, calculateDiscount, cn } from '@/lib/utils';
 
 export interface ProductCardProps {
@@ -79,8 +80,13 @@ export function ProductCard({
         )}
       </div>
 
-      {/* Action Buttons: Compare + Share */}
+      {/* Action Buttons: Wishlist + Compare + Share */}
       <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1.5">
+        <AddToWishlistButton
+          productId={id}
+          productName={name}
+          className="w-7 h-7"
+        />
         <AddToCompareButton
           product={{
             id,

@@ -37,6 +37,7 @@ export interface EnterpriseProductFormProps {
   initialData?: any;
   productId?: string;
   isEditMode?: boolean;
+  availableCategories?: Array<{ id: string; name: string; slug: string }>;
   onSubmitAction: (data: any) => Promise<{ success?: boolean; error?: string; productId?: string; slug?: string }>;
 }
 
@@ -174,6 +175,7 @@ export function EnterpriseProductForm({
   initialData,
   productId,
   isEditMode = false,
+  availableCategories,
   onSubmitAction,
 }: EnterpriseProductFormProps) {
   const router = useRouter();
@@ -187,7 +189,9 @@ export function EnterpriseProductForm({
   // Classification & Status
   const [productType, setProductType] = React.useState(initialData?.productType || 'standard');
   const [status, setStatus] = React.useState(initialData?.status || 'published');
-  const [categoryId, setCategoryId] = React.useState(initialData?.categoryId || 'industrial-components');
+  const [categoryId, setCategoryId] = React.useState(
+    initialData?.categoryId || availableCategories?.[0]?.slug || 'gamified-robots'
+  );
 
   // Commercial Pricing & Bulk Tiers
   const [price, setPrice] = React.useState(
@@ -873,7 +877,7 @@ export function EnterpriseProductForm({
             <select
               value={productType}
               onChange={(e) => setProductType(e.target.value)}
-              className="w-full h-10 px-3 rounded-md border border-slate-200 text-xs bg-white focus:border-purple-600 focus:outline-none"
+              className="w-full h-10 px-3 rounded-md border border-slate-200 text-xs bg-white focus:border-red-600 focus:outline-none"
             >
               <option value="standard">Standard Component</option>
               <option value="kit">Complete Competition / Robot Kit</option>
@@ -886,17 +890,26 @@ export function EnterpriseProductForm({
             <select
               value={categoryId}
               onChange={(e) => setCategoryId(e.target.value)}
-              className="w-full h-10 px-3 rounded-md border border-slate-200 text-xs bg-white focus:border-purple-600 focus:outline-none"
+              className="w-full h-10 px-3 rounded-md border border-slate-200 text-xs bg-white focus:border-red-600 focus:outline-none"
             >
-              <option value="industrial-components">Industrial Components (Valves, Pumps, Solenoids)</option>
-              <option value="gamified-robots">Gamified Robots (Robo Race, Line Follower, Soccer)</option>
-              <option value="stem-kits">STEM Kits</option>
-              <option value="fasteners">Fasteners (Screws, Nuts, Standoffs)</option>
-              <option value="batteries">Batteries &amp; Chargers</option>
-              <option value="motors">Motors &amp; Drivers</option>
-              <option value="sensors">Sensors Array</option>
-              <option value="drones">Drone Parts &amp; Flight Controllers</option>
-              <option value="wires-connectors">Wires &amp; Connectors</option>
+              {availableCategories && availableCategories.length > 0 ? (
+                availableCategories.map((c) => (
+                  <option key={c.id || c.slug} value={c.slug}>
+                    {c.name}
+                  </option>
+                ))
+              ) : (
+                <>
+                  <option value="gamified-robots">Gamified Robots (Robo Race, Line Follower, Soccer)</option>
+                  <option value="stem-kits">STEM Kits</option>
+                  <option value="fasteners">Fasteners (Screws, Nuts, Standoffs)</option>
+                  <option value="batteries">Batteries &amp; Chargers</option>
+                  <option value="motors">Motors &amp; Drivers</option>
+                  <option value="sensors">Sensors Array</option>
+                  <option value="drones">Drone Parts &amp; Flight Controllers</option>
+                  <option value="wires-connectors">Wires &amp; Connectors</option>
+                </>
+              )}
             </select>
           </div>
         </div>
@@ -906,7 +919,7 @@ export function EnterpriseProductForm({
       <div className="p-6 rounded-2xl bg-white border border-slate-200 space-y-5 shadow-xs">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-            <DollarSign size={16} className="text-[#844AFB]" /> 2. Per-Piece &amp; Bulk Pricing Engine
+            <DollarSign size={16} className="text-[#E3132A]" /> 2. Per-Piece &amp; Bulk Pricing Engine
           </h2>
           {discountPct > 0 && (
             <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 font-bold">

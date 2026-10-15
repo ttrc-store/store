@@ -641,3 +641,52 @@ const MediaSchema = new Schema<IMedia>(
 export const MediaModel: Model<IMedia> =
   mongoose.models.Media || mongoose.model<IMedia>('Media', MediaSchema);
 
+// ---------------------------------------------------------------------------
+// 15. ENQUIRY SCHEMA & MODEL (Customer support & B2B bulk enquiries)
+// ---------------------------------------------------------------------------
+export interface IEnquiry extends Document {
+  type: 'contact' | 'bulk_enquiry' | 'bulk_orders';
+  name: string;
+  email: string;
+  phone?: string;
+  organization?: string;
+  subject?: string;
+  message: string;
+  product_details?: string;
+  quantity?: number;
+  status: 'new' | 'in_progress' | 'responded' | 'closed';
+  ip_address?: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+const EnquirySchema = new Schema<IEnquiry>(
+  {
+    type: {
+      type: String,
+      enum: ['contact', 'bulk_enquiry', 'bulk_orders'],
+      default: 'contact',
+      index: true,
+    },
+    name: { type: String, required: true, trim: true },
+    email: { type: String, required: true, lowercase: true, trim: true, index: true },
+    phone: { type: String, trim: true },
+    organization: { type: String, trim: true },
+    subject: { type: String, trim: true },
+    message: { type: String, required: true, trim: true },
+    product_details: { type: String, trim: true },
+    quantity: { type: Number },
+    status: {
+      type: String,
+      enum: ['new', 'in_progress', 'responded', 'closed'],
+      default: 'new',
+      index: true,
+    },
+    ip_address: { type: String },
+  },
+  { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } }
+);
+
+export const EnquiryModel: Model<IEnquiry> =
+  mongoose.models.Enquiry || mongoose.model<IEnquiry>('Enquiry', EnquirySchema);
+

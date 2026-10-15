@@ -97,7 +97,7 @@ export default async function AdminDashboardOverview() {
         </div>
         <div className="flex items-center gap-3">
           <Link href="/admin/products/new">
-            <Button className="bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold text-xs rounded-xl flex items-center gap-2 shadow-md shadow-purple-900/20">
+            <Button className="bg-[#E3132A] hover:bg-[#B80F21] text-white font-bold text-xs rounded-xl flex items-center gap-2 shadow-sm shadow-red-900/10">
               <Plus size={16} /> Add Product
             </Button>
           </Link>
@@ -123,19 +123,32 @@ export default async function AdminDashboardOverview() {
         ))}
       </div>
 
-      {/* Summary Stats Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {[
-          { label: 'Orders Today', value: metrics.ordersToday },
-          { label: 'Total Customers', value: metrics.totalCustomers },
-          { label: 'Low Stock Items', value: metrics.lowStockCount },
-          { label: 'Out of Stock', value: metrics.outOfStockCount },
-        ].map((item) => (
-          <div key={item.label} className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-center">
-            <p className="font-heading text-xl font-extrabold text-slate-900">{item.value}</p>
-            <p className="text-[11px] text-slate-500 mt-0.5">{item.label}</p>
-          </div>
-        ))}
+      {/* Summary Stats Breakdown Row */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
+        <div className="p-3.5 rounded-xl bg-white border border-slate-200 text-center shadow-xs">
+          <p className="font-heading text-lg font-extrabold text-slate-900">{metrics.publishedProductsCount}</p>
+          <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider mt-0.5">Published</p>
+        </div>
+        <div className="p-3.5 rounded-xl bg-white border border-slate-200 text-center shadow-xs">
+          <p className="font-heading text-lg font-extrabold text-slate-900">{metrics.draftProductsCount}</p>
+          <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider mt-0.5">Drafts</p>
+        </div>
+        <div className="p-3.5 rounded-xl bg-white border border-slate-200 text-center shadow-xs">
+          <p className="font-heading text-lg font-extrabold text-slate-900">{metrics.paidOrdersCount}</p>
+          <p className="text-[10px] uppercase font-bold text-emerald-600 tracking-wider mt-0.5">Paid Orders</p>
+        </div>
+        <div className="p-3.5 rounded-xl bg-white border border-slate-200 text-center shadow-xs">
+          <p className="font-heading text-lg font-extrabold text-slate-900">{metrics.pendingOrdersCount}</p>
+          <p className="text-[10px] uppercase font-bold text-amber-600 tracking-wider mt-0.5">Pending Pay</p>
+        </div>
+        <div className="p-3.5 rounded-xl bg-white border border-slate-200 text-center shadow-xs">
+          <p className="font-heading text-lg font-extrabold text-slate-900">{metrics.totalCustomers}</p>
+          <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider mt-0.5">Customers</p>
+        </div>
+        <div className="p-3.5 rounded-xl bg-white border border-slate-200 text-center shadow-xs">
+          <p className="font-heading text-lg font-extrabold text-slate-900">{metrics.recentActivity.length}</p>
+          <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider mt-0.5">Recent Actions</p>
+        </div>
       </div>
 
       {/* Grid Section: Recent Orders & Top Selling Products */}
@@ -143,10 +156,10 @@ export default async function AdminDashboardOverview() {
         {/* Recent Orders Table (2 Cols) */}
         <div className="lg:col-span-2 p-6 rounded-2xl bg-white border border-slate-200 space-y-4 shadow-sm">
           <div className="flex items-center justify-between border-b border-slate-200 pb-4">
-            <h2 className="font-heading font-bold text-base text-[#050507] flex items-center gap-2">
-              <ShoppingBag size={18} className="text-[#844AFB]" /> Recent Orders
+            <h2 className="font-heading font-bold text-base text-[#14141A] flex items-center gap-2">
+              <ShoppingBag size={18} className="text-[#E3132A]" /> Recent Orders
             </h2>
-            <Link href="/admin/orders" className="text-xs font-bold text-[#844AFB] hover:text-[#6721F2] hover:underline flex items-center gap-1">
+            <Link href="/admin/orders" className="text-xs font-bold text-[#E3132A] hover:text-[#B80F21] hover:underline flex items-center gap-1">
               View All <ArrowRight size={14} />
             </Link>
           </div>
@@ -165,7 +178,7 @@ export default async function AdminDashboardOverview() {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {metrics.recentOrders.map((order) => (
-                    <tr key={order.id} className="hover:bg-[#EEE8FA]/30 transition-colors">
+                    <tr key={order.id} className="hover:bg-[#FDECEE]/30 transition-colors">
                       <td className="py-3">
                         <p className="font-mono font-bold text-slate-900 text-[11px]">
                           {order.order_number ?? order.id.slice(0, 8)}
@@ -186,7 +199,7 @@ export default async function AdminDashboardOverview() {
                         <StatusBadge status={order.status} />
                       </td>
                       <td className="py-3 text-right">
-                        <Link href={`/admin/orders/${order.id}`} className="p-1 text-slate-400 hover:text-[#844AFB] inline-block">
+                        <Link href={`/admin/orders/${order.id}`} className="p-1 text-slate-400 hover:text-[#E3132A] inline-block">
                           <Eye size={16} />
                         </Link>
                       </td>
@@ -197,7 +210,7 @@ export default async function AdminDashboardOverview() {
             </div>
           ) : (
             <div className="py-8 text-center text-slate-400 text-sm">
-              <ShoppingBag size={32} className="mx-auto mb-2 opacity-40 text-[#844AFB]" />
+              <ShoppingBag size={32} className="mx-auto mb-2 opacity-40 text-[#E3132A]" />
               No orders yet. When customers place orders, they will appear here.
             </div>
           )}
@@ -206,10 +219,10 @@ export default async function AdminDashboardOverview() {
         {/* Top Selling Products */}
         <div className="p-6 rounded-2xl bg-white border border-slate-200 space-y-4 shadow-sm">
           <div className="flex items-center justify-between border-b border-slate-200 pb-4">
-            <h2 className="font-heading font-bold text-base text-[#050507] flex items-center gap-2">
-              <TrendingUp size={18} className="text-[#844AFB]" /> Top Products
+            <h2 className="font-heading font-bold text-base text-[#14141A] flex items-center gap-2">
+              <TrendingUp size={18} className="text-[#E3132A]" /> Top Products
             </h2>
-            <Link href="/admin/products" className="text-xs font-bold text-[#844AFB] hover:text-[#6721F2] hover:underline">
+            <Link href="/admin/products" className="text-xs font-bold text-[#E3132A] hover:text-[#B80F21] hover:underline">
               Manage
             </Link>
           </div>

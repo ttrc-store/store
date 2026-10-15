@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { Send, Building, ShieldCheck, FileCheck, PhoneCall, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { submitEnquiryAction } from '@/actions/enquiries';
 
 function BulkOrdersForm() {
   const searchParams = useSearchParams();
@@ -12,6 +13,8 @@ function BulkOrdersForm() {
   const initialProduct = searchParams.get('product') || '';
 
   const [submitted, setSubmitted] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
+  const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
   const [productName, setProductName] = React.useState(initialProduct);
   const [sku, setSku] = React.useState(initialSku);
   const [quantity, setQuantity] = React.useState('50');
@@ -23,9 +26,42 @@ function BulkOrdersForm() {
   const [phone, setPhone] = React.useState('');
   const [message, setMessage] = React.useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setLoading(true);
+    setErrorMsg(null);
+    try {
+      const fullMessage = [
+        message ? `Notes: ${message}` : '',
+        sku ? `SKU: ${sku}` : '',
+        requiredDate ? `Target Date: ${requiredDate}` : '',
+        gstin ? `GSTIN: ${gstin}` : '',
+      ]
+        .filter(Boolean)
+        .join(' | ') || `Quotation request for ${quantity}x ${productName}`;
+
+      const res = await submitEnquiryAction({
+        type: 'bulk_orders',
+        name,
+        organization: company,
+        email,
+        phone,
+        product_details: `${productName} (SKU: ${sku || 'N/A'})`,
+        quantity: parseInt(quantity, 10) || 50,
+        message: fullMessage,
+        subject: `Bulk Order Request: ${quantity}x ${productName} by ${company || name}`,
+      });
+
+      if (res.success) {
+        setSubmitted(true);
+      } else {
+        setErrorMsg(res.error || 'Failed to submit request.');
+      }
+    } catch {
+      setErrorMsg('Failed to submit request. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -72,6 +108,11 @@ function BulkOrdersForm() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+              {errorMsg && (
+                <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-xs">
+                  {errorMsg}
+                </div>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="font-bold text-slate-700">Product / Component Name *</label>
@@ -180,10 +221,11 @@ function BulkOrdersForm() {
               <div className="pt-2">
                 <Button
                   type="submit"
-                  className="w-full bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold h-11 text-xs rounded-xl glow-purple-sm transition-all shadow-md"
+                  disabled={loading}
+                  className="w-full bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold h-11 text-xs rounded-xl glow-purple-sm transition-all shadow-md disabled:opacity-50"
                 >
                   <Send size={14} className="mr-2" />
-                  Submit Formal Quotation Request
+                  {loading ? 'Submitting Request...' : 'Submit Formal Quotation Request'}
                 </Button>
               </div>
             </form>
