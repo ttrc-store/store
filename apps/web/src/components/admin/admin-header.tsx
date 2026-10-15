@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Bell, Search, UserCheck } from 'lucide-react';
+import { Bell, Search, UserCheck, Store, ExternalLink } from 'lucide-react';
 
 export function AdminHeader() {
   return (
@@ -17,7 +17,19 @@ export function AdminHeader() {
       </div>
 
       {/* Admin Right Actions */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
+        <a
+          href="/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-[#FDECEE] text-slate-700 hover:text-[#E3132A] text-xs font-bold border border-slate-200 hover:border-red-200 transition-colors shadow-2xs"
+          title="Open live storefront in new tab"
+        >
+          <Store size={14} className="text-[#E3132A]" />
+          <span className="hidden sm:inline">Storefront</span>
+          <ExternalLink size={12} className="text-slate-400" />
+        </a>
+
         <button className="relative p-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition-colors border border-slate-200">
           <Bell size={18} />
           <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-600" />

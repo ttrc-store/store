@@ -429,20 +429,21 @@ export default function Header({ user, categories }: HeaderProps) {
               <Link
                 key={item.href}
                 href={item.href}
-                className="whitespace-nowrap px-3 py-2 hover:text-[#844AFB] hover:bg-[#EEE8FA]/60 rounded-lg transition-colors flex items-center gap-1.5"
+                className="whitespace-nowrap px-3 py-2 hover:text-[#E3132A] hover:bg-[#FDECEE]/60 rounded-lg transition-colors flex items-center gap-1.5"
               >
                 <span>{item.label}</span>
                 {item.productCount !== undefined && item.productCount > 0 && (
-                  <span className="text-[10px] text-purple-600 bg-purple-50 font-bold px-1.5 py-0.2 rounded-full border border-purple-100">
+                  <span className="text-[10px] text-[#E3132A] bg-red-50 font-bold px-1.5 py-0.2 rounded-full border border-red-100">
                     {item.productCount}
                   </span>
                 )}
               </Link>
             ))}
           </nav>
-          <Link href="/bulk-enquiry" className="ml-4 text-[#6721F2] hover:text-[#844AFB] font-bold flex items-center gap-1 whitespace-nowrap text-[11px] flex-shrink-0">
-            Bulk / Institutional Orders →
-          </Link>
+          <div className="ml-4 flex items-center gap-2 whitespace-nowrap text-[11px] flex-shrink-0 text-slate-600 font-mono tracking-wide">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#E3132A] animate-pulse" />
+            <span className="font-bold text-slate-800">Think It. Build It. Make It Move</span>
+          </div>
         </div>
       </div>
 

@@ -3,20 +3,16 @@ import { headers } from 'next/headers';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
 import { StorefrontFloating } from './storefront-floating';
+import { StorefrontClientShell } from './storefront-client-shell';
 import { getAuthenticatedUser } from '@/lib/auth-helpers';
 import { getStoreCategories } from '@/lib/mongodb/catalog';
 
-// SERVER COMPONENT — no 'use client' here.
-// Only the interactive floating elements (WhatsApp btn, Cookie banner, Mobile nav)
-// are deferred to a tiny client boundary via StorefrontFloating.
+// SERVER COMPONENT — prepares authenticated session & dynamic categories,
+// while StorefrontClientShell dynamically manages visibility across admin/storefront route transitions.
 export async function StorefrontShell({ children }: { children: React.ReactNode }) {
   const headersList = await headers();
   const pathname = headersList.get('x-pathname') || headersList.get('next-url') || '';
-  const isAdmin = pathname.startsWith('/admin');
-
-  if (isAdmin) {
-    return <>{children}</>;
-  }
+  const initialIsAdmin = pathname.startsWith('/admin');
 
   const auth = await getAuthenticatedUser();
   const user = 'user' in auth ? auth.user : null;
@@ -38,16 +34,14 @@ export async function StorefrontShell({ children }: { children: React.ReactNode 
   }
 
   return (
-    <div className="relative min-h-screen flex flex-col bg-[#FDFDFD]">
-      {/* Centralized subtle ambient gradient */}
-      <div
-        aria-hidden="true"
-        className="fixed inset-0 pointer-events-none -z-10 bg-[#FDFDFD] [background:radial-gradient(120%_120%_at_50%_0%,#FDFDFD_50%,#EEE8FA_100%)] opacity-80"
-      />
-      <Header user={user} categories={activeCategories.length > 0 ? activeCategories : undefined} />
-      <main className="flex-1 pb-16 md:pb-0">{children}</main>
-      <Footer />
-      <StorefrontFloating />
-    </div>
+    <StorefrontClientShell
+      initialIsAdmin={initialIsAdmin}
+      header={<Header user={user} categories={activeCategories.length > 0 ? activeCategories : undefined} />}
+      footer={<Footer />}
+      floating={<StorefrontFloating />}
+    >
+      {children}
+    </StorefrontClientShell>
   );
 }
+

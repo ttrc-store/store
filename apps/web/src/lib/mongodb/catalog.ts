@@ -484,18 +484,21 @@ export async function getStoreProducts(opts?: {
   }
 }
 
-export async function getProductBySlug(slug: string): Promise<StoreProductItem | null> {
+export async function getProductBySlug(slug: string, allowInactive = false): Promise<StoreProductItem | null> {
   try {
     await connectToDatabase();
     await ensureDatabaseSeeded();
 
     const query: Record<string, any> = {
-      is_active: true,
       $or: [
         { slug },
         { slug: slug.toLowerCase() },
       ],
     };
+
+    if (!allowInactive) {
+      query.is_active = true;
+    }
 
     if (mongoose.Types.ObjectId.isValid(slug) && slug.length === 24) {
       query.$or.push({ _id: slug });

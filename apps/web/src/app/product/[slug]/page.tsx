@@ -28,6 +28,7 @@ import {
   getStoreProducts,
   toStoreProductCardProps,
 } from '@/lib/mongodb/catalog';
+import { getAuthenticatedUser } from '@/lib/auth-helpers';
 import { ReviewModel } from '@/lib/mongodb/models';
 import { PriceTag } from '@/components/store/price-tag';
 import { RatingStars } from '@/components/store/rating-stars';
@@ -103,7 +104,9 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 
 export default async function ProductDetailPage({ params }: ProductPageProps) {
   const { slug } = await params;
-  const product = await getProductBySlug(slug);
+  const auth = await getAuthenticatedUser();
+  const isAdminOrStaff = 'user' in auth && (auth.user?.role === 'admin' || auth.user?.role === 'staff');
+  const product = await getProductBySlug(slug, isAdminOrStaff);
 
   if (!product) {
     notFound();
@@ -174,6 +177,25 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
 
   return (
     <div className="min-h-screen bg-white text-slate-900 pb-24 pt-6">
+      {isAdminOrStaff && product.status !== 'published' && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-xs text-amber-900 font-bold flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+            <div className="flex items-center gap-2.5">
+              <span className="px-2.5 py-1 rounded-lg bg-amber-200 text-amber-950 text-[10px] uppercase tracking-wider font-extrabold">
+                Admin Preview Mode
+              </span>
+              <span>This product is currently in <strong>{product.status || 'draft'}</strong> status. Only store administrators can preview it.</span>
+            </div>
+            <Link
+              href={`/admin/products/${product.id}/edit`}
+              className="text-amber-900 hover:text-amber-950 font-bold underline flex items-center gap-1 shrink-0"
+            >
+              <span>Edit Product in Admin</span>
+              <ChevronRight size={14} />
+            </Link>
+          </div>
+        </div>
+      )}
       <ProductJsonLd
         name={product.name}
         description={product.longDescription || product.shortDescription}

@@ -28,6 +28,7 @@ import {
   RefreshCw,
   AlertTriangle,
   Loader2,
+  ExternalLink,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -1022,7 +1023,20 @@ export function EnterpriseProductForm({
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center flex-wrap gap-2.5">
+          {slug && (
+            <a
+              href={`/product/${slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-3.5 h-10 rounded-xl bg-slate-50 hover:bg-[#FDECEE] text-slate-700 hover:text-[#E3132A] text-xs font-bold border border-slate-200 hover:border-red-200 transition-colors shadow-2xs"
+              title="View this product on live storefront in new tab"
+            >
+              <ExternalLink size={14} className="text-[#E3132A]" />
+              <span className="hidden sm:inline">View on Storefront</span>
+            </a>
+          )}
+
           {isEditMode && productId && (
             <Button
               type="button"
@@ -1042,7 +1056,7 @@ export function EnterpriseProductForm({
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value as any)}
-            className="h-10 px-3 rounded-xl border border-slate-200 text-xs font-bold bg-slate-50 focus:border-purple-600 focus:outline-none"
+            className="h-10 px-3 rounded-xl border border-slate-200 text-xs font-bold bg-slate-50 focus:border-red-600 focus:outline-none"
           >
             <option value="published">🟢 Published (Live)</option>
             <option value="draft">🟡 Draft (Admin Only)</option>
@@ -1052,7 +1066,7 @@ export function EnterpriseProductForm({
           <Button
             type="submit"
             disabled={saving || deletingProduct}
-            className="bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold text-xs h-10 px-5 gap-2 rounded-xl shadow-md shadow-purple-900/20"
+            className="bg-[#E3132A] hover:bg-[#B80F21] text-white font-bold text-xs h-10 px-5 gap-2 rounded-xl shadow-md shadow-red-900/20"
           >
             <Save size={16} />
             {saving ? 'Committing to DB...' : isEditMode ? 'Save & Sync' : 'Publish Product'}
@@ -1368,30 +1382,66 @@ export function EnterpriseProductForm({
             </div>
 
             {/* Live Storefront Placement & Breadcrumb Preview */}
-            <div className="p-3.5 rounded-xl bg-purple-50/70 border border-purple-200 text-xs space-y-1.5">
-              <div className="flex items-center justify-between text-purple-950 font-bold">
+            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1.5">
+              <div className="flex items-center justify-between text-slate-900 font-bold">
                 <span className="flex items-center gap-1.5">
-                  <Eye size={13} className="text-[#844AFB]" />
+                  <Eye size={13} className="text-[#E3132A]" />
                   <span>Storefront Shown &amp; Navigation Preview:</span>
                 </span>
-                <span className="text-[10px] text-purple-700 font-mono font-semibold">
+                <span className="text-[10px] text-slate-500 font-mono font-semibold">
                   Active in {1 + (subCategoryId ? 1 : 0) + additionalCategoryIds.length} location(s)
                 </span>
               </div>
               <div className="flex flex-wrap items-center gap-2 text-slate-700 font-medium">
                 <span className="text-slate-500 font-semibold">Breadcrumb:</span>
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-white border border-purple-200 font-mono text-[11px] text-slate-800 shadow-2xs">
-                  <span>Home</span>
-                  <span className="text-purple-400">›</span>
-                  <strong className="text-slate-900">{selectedMainCategory?.name || categoryId}</strong>
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white border border-slate-200 font-mono text-[11px] text-slate-800 shadow-2xs">
+                  <a
+                    href="/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-[#E3132A] hover:underline"
+                    title="View storefront homepage (Opens in new tab)"
+                  >
+                    Home
+                  </a>
+                  <span className="text-slate-400">›</span>
+                  <a
+                    href={selectedMainCategory?.slug ? `/category/${selectedMainCategory.slug}` : '/category'}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-slate-900 hover:text-[#E3132A] hover:underline font-bold"
+                    title={`View ${selectedMainCategory?.name || categoryId} category page`}
+                  >
+                    {selectedMainCategory?.name || categoryId}
+                  </a>
                   {selectedSubCategory && (
                     <>
-                      <span className="text-purple-400">›</span>
-                      <strong className="text-[#E3132A]">{selectedSubCategory.name}</strong>
+                      <span className="text-slate-400">›</span>
+                      <a
+                        href={`/category/${selectedSubCategory.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[#E3132A] hover:underline font-bold"
+                        title={`View ${selectedSubCategory.name} subcategory page`}
+                      >
+                        {selectedSubCategory.name}
+                      </a>
                     </>
                   )}
-                  <span className="text-purple-400">›</span>
-                  <span className="text-slate-500 truncate max-w-[150px]">{name || 'Product Title'}</span>
+                  <span className="text-slate-400">›</span>
+                  {slug ? (
+                    <a
+                      href={`/product/${slug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-slate-600 hover:text-[#E3132A] hover:underline truncate max-w-[180px]"
+                      title="View product detail page (Opens in new tab)"
+                    >
+                      {name || 'Product Title'}
+                    </a>
+                  ) : (
+                    <span className="text-slate-500 truncate max-w-[180px]">{name || 'Product Title'}</span>
+                  )}
                 </span>
               </div>
             </div>

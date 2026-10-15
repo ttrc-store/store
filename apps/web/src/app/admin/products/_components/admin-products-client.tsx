@@ -191,14 +191,15 @@ export default function AdminProductsClient({
                   <td className="py-3 text-slate-500 font-mono">{p.gst_percent}% GST</td>
                   <td className="py-3 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <Link
+                      <a
                         href={`/product/${p.slug}`}
                         target="_blank"
+                        rel="noopener noreferrer"
                         className="p-1.5 rounded-lg bg-slate-100 text-slate-600 hover:text-[#E3132A] transition-colors"
-                        title="View on Storefront"
+                        title="View on Storefront (Opens in new tab)"
                       >
                         <ExternalLink size={14} />
-                      </Link>
+                      </a>
                       <Link
                         href={`/admin/products/${p.id}/edit`}
                         className="p-1.5 rounded-lg bg-slate-100 text-slate-600 hover:text-[#E3132A] transition-colors"
