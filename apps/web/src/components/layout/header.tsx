@@ -421,29 +421,21 @@ export default function Header({ user, categories }: HeaderProps) {
         </form>
       </div>
 
-      {/* Category Navigation Subbar - Data-driven based on categories with products */}
+      {/* Navigation Subbar - Brand Tagline & Institutional Orders */}
       <div className="bg-white border-t border-slate-100 hidden md:block">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center h-9 text-xs font-semibold text-[#1E0D45] overflow-x-auto scrollbar-hide">
-          <nav className="flex items-center gap-1 flex-1" aria-label="Product categories">
-            {(categories && categories.length > 0 ? categories : DEFAULT_HEADER_CATEGORIES).map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="whitespace-nowrap px-3 py-2 hover:text-[#E3132A] hover:bg-[#FDECEE]/60 rounded-lg transition-colors flex items-center gap-1.5"
-              >
-                <span>{item.label}</span>
-                {item.productCount !== undefined && item.productCount > 0 && (
-                  <span className="text-[10px] text-[#E3132A] bg-red-50 font-bold px-1.5 py-0.2 rounded-full border border-red-100">
-                    {item.productCount}
-                  </span>
-                )}
-              </Link>
-            ))}
-          </nav>
-          <div className="ml-4 flex items-center gap-2 whitespace-nowrap text-[11px] flex-shrink-0 text-slate-600 font-mono tracking-wide">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#E3132A] animate-pulse" />
-            <span className="font-bold text-slate-800">Think It. Build It. Make It Move</span>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-9 text-xs font-semibold text-[#1E0D45]">
+          <div className="flex items-center gap-2.5 text-slate-700 font-mono tracking-wide text-[11px]">
+            <span className="w-2 h-2 rounded-full bg-[#E3132A] animate-pulse" />
+            <span className="font-bold text-slate-900 tracking-wider text-[11px]">
+              Think It. Build It. Make It Move
+            </span>
           </div>
+          <Link
+            href="/bulk-enquiry"
+            className="text-[#E3132A] hover:text-[#B80F21] font-bold flex items-center gap-1 whitespace-nowrap text-[11px] transition-colors"
+          >
+            <span>Bulk / Institutional Orders →</span>
+          </Link>
         </div>
       </div>
 
