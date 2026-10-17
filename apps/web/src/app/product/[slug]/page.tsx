@@ -224,9 +224,9 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
             <li>
               <Link
                 href="/"
-                className="group inline-flex items-center gap-1.5 py-1 px-2.5 rounded-lg text-slate-600 hover:text-[#E3132A] hover:bg-red-50/70 border border-transparent hover:border-red-100 transition-all font-semibold"
+                className="group inline-flex items-center gap-1.5 py-1 px-2.5 rounded-lg text-slate-600 hover:text-[#844AFB] hover:bg-purple-50/70 border border-transparent hover:border-purple-100 transition-all font-semibold"
               >
-                <Home size={13} className="text-slate-400 group-hover:text-[#E3132A] transition-colors" />
+                <Home size={13} className="text-slate-400 group-hover:text-[#844AFB] transition-colors" />
                 <span>Home</span>
               </Link>
             </li>
@@ -238,7 +238,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
             <li>
               <Link
                 href={`/category/${categorySlug}`}
-                className="inline-flex items-center py-1 px-2.5 rounded-lg text-slate-700 hover:text-[#E3132A] bg-slate-50 hover:bg-red-50/70 border border-slate-200/80 hover:border-red-200 font-bold transition-all shadow-2xs"
+                className="inline-flex items-center py-1 px-2.5 rounded-lg text-slate-700 hover:text-[#844AFB] bg-slate-50 hover:bg-purple-50/70 border border-slate-200/80 hover:border-purple-200 font-bold transition-all shadow-2xs"
               >
                 {categoryName}
               </Link>
@@ -252,7 +252,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
                 <li>
                   <Link
                     href={`/category/${categorySlug}?sub=${subCategorySlug}`}
-                    className="inline-flex items-center py-1 px-2 rounded-lg text-slate-600 hover:text-[#E3132A] hover:bg-red-50/70 transition-all font-medium"
+                    className="inline-flex items-center py-1 px-2 rounded-lg text-slate-600 hover:text-[#844AFB] hover:bg-purple-50/70 transition-all font-medium"
                   >
                     {subCategoryName}
                   </Link>
@@ -307,17 +307,17 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
 
                 <Link
                   href={`/category/${categorySlug}`}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-800 hover:text-[#E3132A] text-xs font-semibold border border-slate-200 transition-colors"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 hover:bg-purple-50 text-slate-800 hover:text-[#844AFB] text-xs font-semibold border border-slate-200 hover:border-purple-200 transition-colors"
                   title={`Browse all ${categoryName}`}
                 >
-                  <Layers size={13} className="text-[#E3132A]" />
+                  <Layers size={13} className="text-[#844AFB]" />
                   <span>Category: <strong>{categoryName}</strong></span>
                 </Link>
 
                 {subCategoryName && (
                   <Link
                     href={`/category/${categorySlug}?sub=${subCategorySlug}`}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#FDECEE] hover:bg-red-100/70 text-[#E3132A] text-xs font-bold border border-red-200 transition-colors"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#EEE8FA] hover:bg-purple-100/70 text-[#844AFB] text-xs font-bold border border-purple-200 transition-colors"
                     title={`Browse ${subCategoryName}`}
                   >
                     <span>Subcategory: <strong>{subCategoryName}</strong></span>
@@ -639,7 +639,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-start gap-3">
-                          <div className="w-9 h-9 rounded-lg bg-red-100/80 text-[#E3132A] flex items-center justify-center font-bold text-xs shrink-0">
+                          <div className="w-9 h-9 rounded-lg bg-purple-100/80 text-[#844AFB] flex items-center justify-center font-bold text-xs shrink-0">
                             PDF
                           </div>
                           <div>

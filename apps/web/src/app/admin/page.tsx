@@ -97,7 +97,7 @@ export default async function AdminDashboardOverview() {
         </div>
         <div className="flex items-center gap-3">
           <Link href="/admin/products/new">
-            <Button className="bg-[#E3132A] hover:bg-[#B80F21] text-white font-bold text-xs rounded-xl flex items-center gap-2 shadow-sm shadow-red-900/10">
+            <Button className="bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold text-xs rounded-xl flex items-center gap-2 shadow-sm shadow-purple-900/10">
               <Plus size={16} /> Add Product
             </Button>
           </Link>
@@ -157,9 +157,9 @@ export default async function AdminDashboardOverview() {
         <div className="lg:col-span-2 p-6 rounded-2xl bg-white border border-slate-200 space-y-4 shadow-sm">
           <div className="flex items-center justify-between border-b border-slate-200 pb-4">
             <h2 className="font-heading font-bold text-base text-[#14141A] flex items-center gap-2">
-              <ShoppingBag size={18} className="text-[#E3132A]" /> Recent Orders
+              <ShoppingBag size={18} className="text-[#844AFB]" /> Recent Orders
             </h2>
-            <Link href="/admin/orders" className="text-xs font-bold text-[#E3132A] hover:text-[#B80F21] hover:underline flex items-center gap-1">
+            <Link href="/admin/orders" className="text-xs font-bold text-[#844AFB] hover:text-[#6721F2] hover:underline flex items-center gap-1">
               View All <ArrowRight size={14} />
             </Link>
           </div>
@@ -199,7 +199,7 @@ export default async function AdminDashboardOverview() {
                         <StatusBadge status={order.status} />
                       </td>
                       <td className="py-3 text-right">
-                        <Link href={`/admin/orders/${order.id}`} className="p-1 text-slate-400 hover:text-[#E3132A] inline-block">
+                        <Link href={`/admin/orders/${order.id}`} className="p-1 text-slate-400 hover:text-[#844AFB] inline-block">
                           <Eye size={16} />
                         </Link>
                       </td>
@@ -210,7 +210,7 @@ export default async function AdminDashboardOverview() {
             </div>
           ) : (
             <div className="py-8 text-center text-slate-400 text-sm">
-              <ShoppingBag size={32} className="mx-auto mb-2 opacity-40 text-[#E3132A]" />
+              <ShoppingBag size={32} className="mx-auto mb-2 opacity-40 text-[#844AFB]" />
               No orders yet. When customers place orders, they will appear here.
             </div>
           )}
@@ -220,9 +220,9 @@ export default async function AdminDashboardOverview() {
         <div className="p-6 rounded-2xl bg-white border border-slate-200 space-y-4 shadow-sm">
           <div className="flex items-center justify-between border-b border-slate-200 pb-4">
             <h2 className="font-heading font-bold text-base text-[#14141A] flex items-center gap-2">
-              <TrendingUp size={18} className="text-[#E3132A]" /> Top Products
+              <TrendingUp size={18} className="text-[#844AFB]" /> Top Products
             </h2>
-            <Link href="/admin/products" className="text-xs font-bold text-[#E3132A] hover:text-[#B80F21] hover:underline">
+            <Link href="/admin/products" className="text-xs font-bold text-[#844AFB] hover:text-[#6721F2] hover:underline">
               Manage
             </Link>
           </div>

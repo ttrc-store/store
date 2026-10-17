@@ -17,7 +17,7 @@ const TYPE_LABEL: Record<string, string> = {
 };
 
 const TYPE_COLOR: Record<string, string> = {
-  kit: 'bg-[#FDECEE] text-[#E3132A] border-red-200',
+  kit: 'bg-[#EEE8FA] text-[#844AFB] border-purple-200',
   spare_part: 'bg-slate-100 text-slate-700 border-slate-200',
   general: 'bg-slate-100 text-slate-600 border-slate-200',
   standard: 'bg-slate-100 text-slate-600 border-slate-200',
@@ -61,7 +61,7 @@ export default async function AdminProductsPage({
           </p>
         </div>
         <Link href="/admin/products/new">
-          <Button className="bg-[#E3132A] hover:bg-[#B80F21] text-white font-bold text-xs rounded-xl flex items-center gap-2 shadow-sm shadow-red-900/10">
+          <Button className="bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold text-xs rounded-xl flex items-center gap-2 shadow-sm shadow-purple-900/10">
             <Plus size={16} /> Add New Product
           </Button>
         </Link>

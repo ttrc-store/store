@@ -1115,10 +1115,10 @@ export function EnterpriseProductForm({
               href={`/product/${slug}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-3.5 h-10 rounded-xl bg-slate-50 hover:bg-[#FDECEE] text-slate-700 hover:text-[#E3132A] text-xs font-bold border border-slate-200 hover:border-red-200 transition-colors shadow-2xs"
+              className="flex items-center gap-1.5 px-3.5 h-10 rounded-xl bg-slate-50 hover:bg-[#EEE8FA] text-slate-700 hover:text-[#844AFB] text-xs font-bold border border-slate-200 hover:border-purple-200 transition-colors shadow-2xs"
               title="View this product on live storefront in new tab"
             >
-              <ExternalLink size={14} className="text-[#E3132A]" />
+              <ExternalLink size={14} className="text-[#844AFB]" />
               <span className="hidden sm:inline">View on Storefront</span>
             </a>
           )}
@@ -1152,7 +1152,7 @@ export function EnterpriseProductForm({
           <Button
             type="submit"
             disabled={saving || deletingProduct}
-            className="bg-[#E3132A] hover:bg-[#B80F21] text-white font-bold text-xs h-10 px-5 gap-2 rounded-xl shadow-md shadow-red-900/20"
+            className="bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold text-xs h-10 px-5 gap-2 rounded-xl shadow-md shadow-purple-900/20"
           >
             <Save size={16} />
             {saving ? 'Committing to DB...' : isEditMode ? 'Save & Sync' : 'Publish Product'}
@@ -1306,7 +1306,7 @@ export function EnterpriseProductForm({
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div>
                 <label className="font-bold text-slate-800 text-sm flex items-center gap-1.5">
-                  <Layers size={16} className="text-[#E3132A]" />
+                  <Layers size={16} className="text-[#844AFB]" />
                   <span>Category &amp; Subcategory Architecture *</span>
                 </label>
                 <p className="text-[11px] text-slate-500">
@@ -1318,7 +1318,7 @@ export function EnterpriseProductForm({
                 <button
                   type="button"
                   onClick={() => setIsAddCatOpen(true)}
-                  className="text-xs font-bold text-[#E3132A] hover:text-[#B80F21] flex items-center gap-1 hover:underline"
+                  className="text-xs font-bold text-[#844AFB] hover:text-[#6721F2] flex items-center gap-1 hover:underline"
                 >
                   <Plus size={13} />
                   <span>Add New Category / Subcategory</span>
@@ -1404,7 +1404,7 @@ export function EnterpriseProductForm({
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <div>
                   <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                    <Tag size={13} className="text-[#E3132A]" />
+                    <Tag size={13} className="text-[#844AFB]" />
                     <span>3. Multiple Category Placements (Also Display Under...)</span>
                   </span>
                   <p className="text-[11px] text-slate-500">
@@ -1433,12 +1433,12 @@ export function EnterpriseProductForm({
                     return (
                       <span
                         key={cat.id || cat.slug}
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-red-100/70 text-[#E3132A] text-xs font-bold border border-red-200 cursor-default"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-purple-100/70 text-[#844AFB] text-xs font-bold border border-purple-200 cursor-default"
                         title={isPrimaryMain ? 'Primary Main Category' : 'Primary Subcategory'}
                       >
                         <CheckCircle2 size={12} />
                         <span>{cat.name}</span>
-                        <span className="text-[9px] uppercase tracking-wider bg-white px-1.5 py-0.5 rounded font-extrabold text-[#E3132A]">
+                        <span className="text-[9px] uppercase tracking-wider bg-white px-1.5 py-0.5 rounded font-extrabold text-[#844AFB]">
                           {isPrimaryMain ? 'Main' : 'Sub'}
                         </span>
                       </span>
@@ -1471,7 +1471,7 @@ export function EnterpriseProductForm({
             <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1.5">
               <div className="flex items-center justify-between text-slate-900 font-bold">
                 <span className="flex items-center gap-1.5">
-                  <Eye size={13} className="text-[#E3132A]" />
+                  <Eye size={13} className="text-[#844AFB]" />
                   <span>Storefront Shown &amp; Navigation Preview:</span>
                 </span>
                 <span className="text-[10px] text-slate-500 font-mono font-semibold">
@@ -1485,7 +1485,7 @@ export function EnterpriseProductForm({
                     href="/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hover:text-[#E3132A] hover:underline"
+                    className="hover:text-[#844AFB] hover:underline"
                     title="View storefront homepage (Opens in new tab)"
                   >
                     Home
@@ -1495,7 +1495,7 @@ export function EnterpriseProductForm({
                     href={selectedMainCategory?.slug ? `/category/${selectedMainCategory.slug}` : '/category'}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-slate-900 hover:text-[#E3132A] hover:underline font-bold"
+                    className="text-slate-900 hover:text-[#844AFB] hover:underline font-bold"
                     title={`View ${selectedMainCategory?.name || categoryId} category page`}
                   >
                     {selectedMainCategory?.name || categoryId}
@@ -1507,7 +1507,7 @@ export function EnterpriseProductForm({
                         href={`/category/${selectedSubCategory.slug}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-[#E3132A] hover:underline font-bold"
+                        className="text-[#844AFB] hover:underline font-bold"
                         title={`View ${selectedSubCategory.name} subcategory page`}
                       >
                         {selectedSubCategory.name}
@@ -1520,7 +1520,7 @@ export function EnterpriseProductForm({
                       href={`/product/${slug}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-slate-600 hover:text-[#E3132A] hover:underline truncate max-w-[180px]"
+                      className="text-slate-600 hover:text-[#844AFB] hover:underline truncate max-w-[180px]"
                       title="View product detail page (Opens in new tab)"
                     >
                       {name || 'Product Title'}
@@ -1539,7 +1539,7 @@ export function EnterpriseProductForm({
       <div className="p-6 rounded-2xl bg-white border border-slate-200 space-y-5 shadow-xs">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-            <DollarSign size={16} className="text-[#E3132A]" /> 2. Per-Piece &amp; Bulk Pricing Engine
+            <DollarSign size={16} className="text-[#844AFB]" /> 2. Per-Piece &amp; Bulk Pricing Engine
           </h2>
           {discountPct > 0 && (
             <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 font-bold">
@@ -2706,7 +2706,7 @@ export function EnterpriseProductForm({
                 <Button
                   type="submit"
                   disabled={creatingCategory || !newCatName.trim()}
-                  className="h-9 text-xs font-bold bg-[#E3132A] hover:bg-[#B80F21] text-white"
+                  className="h-9 text-xs font-bold bg-[#844AFB] hover:bg-[#6721F2] text-white"
                 >
                   {creatingCategory ? 'Creating...' : 'Create & Select Category'}
                 </Button>

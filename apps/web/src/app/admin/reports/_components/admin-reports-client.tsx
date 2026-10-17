@@ -121,7 +121,7 @@ export function AdminReportsClient({ initialReport }: ReportsClientProps) {
                 disabled={loading}
                 className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
                   period === p.id
-                    ? 'bg-white text-[#E3132A] shadow-xs'
+                    ? 'bg-white text-[#844AFB] shadow-xs'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
@@ -152,7 +152,7 @@ export function AdminReportsClient({ initialReport }: ReportsClientProps) {
         <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs relative overflow-hidden">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500">Net Revenue</span>
-            <div className="p-2 rounded-xl bg-[#FDECEE] text-[#E3132A]">
+            <div className="p-2 rounded-xl bg-[#EEE8FA] text-[#844AFB]">
               <IndianRupee size={18} />
             </div>
           </div>
@@ -261,7 +261,7 @@ export function AdminReportsClient({ initialReport }: ReportsClientProps) {
         {/* Status Distribution */}
         <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
           <h2 className="font-heading font-bold text-base text-[#14141A] flex items-center gap-2">
-            <Layers size={18} className="text-[#E3132A]" /> Order Status Distribution
+            <Layers size={18} className="text-[#844AFB]" /> Order Status Distribution
           </h2>
           <div className="space-y-2">
             {Object.keys(report?.statusDistribution || {}).length > 0 ? (
@@ -287,7 +287,7 @@ export function AdminReportsClient({ initialReport }: ReportsClientProps) {
         {/* Recent Inventory Movements */}
         <div className="lg:col-span-2 p-6 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
           <h2 className="font-heading font-bold text-base text-[#14141A] flex items-center gap-2">
-            <History size={18} className="text-[#E3132A]" /> Recent Inventory Movements
+            <History size={18} className="text-[#844AFB]" /> Recent Inventory Movements
           </h2>
           {report?.inventoryMovements?.length > 0 ? (
             <div className="overflow-x-auto">

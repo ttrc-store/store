@@ -82,7 +82,7 @@ export default function ForgotPasswordPage() {
     <div className="min-h-[85vh] bg-[#F7F7F8] text-[#14141A] flex items-center justify-center py-12 px-4">
       <div className="w-full max-w-md space-y-6 p-8 sm:p-10 rounded-3xl bg-white border border-[#E5E7EB] shadow-xl relative overflow-hidden">
         <div className="text-center space-y-3">
-          <Link href="/" className="inline-block p-2 rounded-2xl bg-white border border-[#E5E7EB] hover:border-[#E3132A] transition-all">
+          <Link href="/" className="inline-block p-2 rounded-2xl bg-white border border-[#E5E7EB] hover:border-[#844AFB] transition-all">
             <Image
               src="/brand/ttrc-logo.png"
               alt="TTRC Store Logo"
@@ -92,7 +92,7 @@ export default function ForgotPasswordPage() {
               className="h-8 w-auto mx-auto object-contain"
             />
           </Link>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FDECEE] text-[#E3132A] text-xs font-bold">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EEE8FA] text-[#844AFB] text-xs font-bold">
             <ShieldCheck size={14} /> Account Recovery
           </div>
           <h1 className="font-heading text-2xl font-bold text-[#14141A] tracking-tight">
@@ -130,7 +130,7 @@ export default function ForgotPasswordPage() {
                   type="email"
                   required
                   placeholder="name@example.com"
-                  className="pl-10 bg-[#F7F7F8] border-[#E5E7EB] text-sm h-11 focus:border-[#E3132A] focus:ring-[#E3132A]"
+                  className="pl-10 bg-[#F7F7F8] border-[#E5E7EB] text-sm h-11 focus:border-[#844AFB] focus:ring-[#844AFB]"
                 />
               </div>
             </div>
@@ -138,7 +138,7 @@ export default function ForgotPasswordPage() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full h-11 bg-[#E3132A] hover:bg-[#B80F21] text-white font-bold text-sm rounded-xl shadow-md transition-colors cursor-pointer"
+              className="w-full h-11 bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold text-sm rounded-xl shadow-md transition-colors cursor-pointer"
             >
               {loading ? 'Sending Code...' : 'Send Verification Code'}
             </Button>
@@ -148,7 +148,7 @@ export default function ForgotPasswordPage() {
             <div className="space-y-1">
               <div className="flex justify-between items-center">
                 <label className="text-xs font-bold text-[#14141A]">6-Digit Code</label>
-                <span className="text-[11px] font-mono text-[#E3132A] inline-flex items-center gap-1">
+                <span className="text-[11px] font-mono text-[#844AFB] inline-flex items-center gap-1">
                   <Clock size={12} /> {Math.floor(countdown / 60)}:{(countdown % 60).toString().padStart(2, '0')}
                 </span>
               </div>
@@ -160,7 +160,7 @@ export default function ForgotPasswordPage() {
                 maxLength={6}
                 required
                 placeholder="123456"
-                className="font-mono text-center tracking-widest text-lg font-bold bg-[#F7F7F8] border-[#E5E7EB] h-12 focus:border-[#E3132A] focus:ring-[#E3132A]"
+                className="font-mono text-center tracking-widest text-lg font-bold bg-[#F7F7F8] border-[#E5E7EB] h-12 focus:border-[#844AFB] focus:ring-[#844AFB]"
                 autoFocus
               />
             </div>
@@ -174,7 +174,7 @@ export default function ForgotPasswordPage() {
                   type="password"
                   required
                   placeholder="At least 6 characters"
-                  className="pl-10 bg-[#F7F7F8] border-[#E5E7EB] text-sm h-11 focus:border-[#E3132A] focus:ring-[#E3132A]"
+                  className="pl-10 bg-[#F7F7F8] border-[#E5E7EB] text-sm h-11 focus:border-[#844AFB] focus:ring-[#844AFB]"
                 />
               </div>
             </div>
@@ -188,7 +188,7 @@ export default function ForgotPasswordPage() {
                   type="password"
                   required
                   placeholder="Re-enter new password"
-                  className="pl-10 bg-[#F7F7F8] border-[#E5E7EB] text-sm h-11 focus:border-[#E3132A] focus:ring-[#E3132A]"
+                  className="pl-10 bg-[#F7F7F8] border-[#E5E7EB] text-sm h-11 focus:border-[#844AFB] focus:ring-[#844AFB]"
                 />
               </div>
             </div>
@@ -196,7 +196,7 @@ export default function ForgotPasswordPage() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full h-11 bg-[#E3132A] hover:bg-[#B80F21] text-white font-bold text-sm rounded-xl shadow-md transition-colors cursor-pointer"
+              className="w-full h-11 bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold text-sm rounded-xl shadow-md transition-colors cursor-pointer"
             >
               {loading ? 'Updating Password...' : 'Save New Password & Sign In'}
             </Button>
@@ -204,7 +204,7 @@ export default function ForgotPasswordPage() {
         )}
 
         <p className="text-center text-xs text-[#6B7280] pt-4 border-t border-[#E5E7EB]">
-          <Link href="/login" className="text-[#E3132A] font-bold hover:underline inline-flex items-center gap-1">
+          <Link href="/login" className="text-[#844AFB] font-bold hover:underline inline-flex items-center gap-1">
             <ArrowLeft size={14} /> Back to Sign In
           </Link>
         </p>

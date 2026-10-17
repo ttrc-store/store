@@ -22,10 +22,10 @@ export function AdminHeader() {
           href="/"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-[#FDECEE] text-slate-700 hover:text-[#E3132A] text-xs font-bold border border-slate-200 hover:border-red-200 transition-colors shadow-2xs"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-[#EEE8FA] text-slate-700 hover:text-[#844AFB] text-xs font-bold border border-slate-200 hover:border-purple-200 transition-colors shadow-2xs"
           title="Open live storefront in new tab"
         >
-          <Store size={14} className="text-[#E3132A]" />
+          <Store size={14} className="text-[#844AFB]" />
           <span className="hidden sm:inline">Storefront</span>
           <ExternalLink size={12} className="text-slate-400" />
         </a>

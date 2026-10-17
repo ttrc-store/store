@@ -173,7 +173,7 @@ function VerifyEmailContent() {
       <div className="w-full max-w-md bg-white border border-[#E5E7EB] rounded-3xl p-8 sm:p-10 shadow-xl space-y-6 relative overflow-hidden">
         {/* Brand Accent */}
         <div className="text-center space-y-3">
-          <Link href="/" className="inline-block p-2 rounded-2xl bg-white border border-[#E5E7EB] hover:border-[#E3132A] transition-all">
+          <Link href="/" className="inline-block p-2 rounded-2xl bg-white border border-[#E5E7EB] hover:border-[#844AFB] transition-all">
             <Image
               src="/brand/ttrc-logo.png"
               alt="TTRC Store"
@@ -183,7 +183,7 @@ function VerifyEmailContent() {
               className="h-8 w-auto mx-auto object-contain"
             />
           </Link>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FDECEE] text-[#E3132A] text-xs font-bold">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EEE8FA] text-[#844AFB] text-xs font-bold">
             <ShieldCheck size={14} /> Security Verification
           </div>
           <h1 className="font-heading text-2xl font-bold text-[#14141A] tracking-tight">
@@ -222,7 +222,7 @@ function VerifyEmailContent() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   placeholder="name@example.com"
-                  className="w-full pl-10 pr-3 h-11 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:border-[#E3132A] focus:ring-1 focus:ring-[#E3132A] outline-none"
+                  className="w-full pl-10 pr-3 h-11 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:border-[#844AFB] focus:ring-1 focus:ring-[#844AFB] outline-none"
                 />
               </div>
             </div>
@@ -248,7 +248,7 @@ function VerifyEmailContent() {
                   onChange={(e) => handleDigitChange(idx, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(idx, e)}
                   aria-label={`Digit ${idx + 1}`}
-                  className="w-11 h-13 sm:w-12 sm:h-14 text-center font-mono text-2xl font-bold bg-[#F7F7F8] border border-[#E5E7EB] rounded-xl text-[#14141A] focus:border-[#E3132A] focus:ring-2 focus:ring-[#E3132A]/20 focus:bg-white outline-none transition-all"
+                  className="w-11 h-13 sm:w-12 sm:h-14 text-center font-mono text-2xl font-bold bg-[#F7F7F8] border border-[#E5E7EB] rounded-xl text-[#14141A] focus:border-[#844AFB] focus:ring-2 focus:ring-[#844AFB]/20 focus:bg-white outline-none transition-all"
                   autoFocus={idx === 0}
                 />
               ))}
@@ -258,9 +258,9 @@ function VerifyEmailContent() {
           {/* 120-Second Countdown Indicator */}
           <div className="flex items-center justify-between text-xs text-[#6B7280] px-1">
             <span className="inline-flex items-center gap-1">
-              <Clock size={13} className={countdown < 30 ? 'text-[#E3132A] animate-pulse' : ''} />
+              <Clock size={13} className={countdown < 30 ? 'text-[#844AFB] animate-pulse' : ''} />
               Expires in:{' '}
-              <strong className={countdown < 30 ? 'text-[#E3132A] font-mono' : 'text-[#14141A] font-mono'}>
+              <strong className={countdown < 30 ? 'text-[#844AFB] font-mono' : 'text-[#14141A] font-mono'}>
                 {timeFormatted}
               </strong>
             </span>
@@ -272,7 +272,7 @@ function VerifyEmailContent() {
               className={`inline-flex items-center gap-1 font-bold cursor-pointer transition-colors ${
                 resendCooldown > 0 || resending
                   ? 'text-slate-400 cursor-not-allowed'
-                  : 'text-[#E3132A] hover:underline'
+                  : 'text-[#844AFB] hover:underline'
               }`}
             >
               <RotateCw size={12} className={resending ? 'animate-spin' : ''} />
@@ -283,7 +283,7 @@ function VerifyEmailContent() {
           <Button
             type="submit"
             disabled={loading || otpDigits.join('').length !== 6}
-            className="w-full h-12 bg-[#E3132A] hover:bg-[#B80F21] text-white font-bold text-sm rounded-xl shadow-md transition-colors cursor-pointer"
+            className="w-full h-12 bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold text-sm rounded-xl shadow-md transition-colors cursor-pointer"
           >
             {loading ? 'Verifying...' : 'Verify & Continue'} <ArrowRight size={16} className="ml-1.5" />
           </Button>
@@ -291,7 +291,7 @@ function VerifyEmailContent() {
 
         <p className="text-center text-xs text-[#6B7280] pt-4 border-t border-[#E5E7EB]">
           Wrong email or need to sign in?{' '}
-          <Link href="/login" className="text-[#E3132A] font-bold hover:underline">
+          <Link href="/login" className="text-[#844AFB] font-bold hover:underline">
             Return to Sign In
           </Link>
         </p>

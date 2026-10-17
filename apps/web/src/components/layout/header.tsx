@@ -462,14 +462,14 @@ export default function Header({ user, categories }: HeaderProps) {
       <div className="bg-white border-t border-slate-100 hidden md:block">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-9 text-xs font-semibold text-[#1E0D45]">
           <div className="flex items-center gap-2.5 text-slate-700 font-mono tracking-wide text-[11px]">
-            <span className="w-2 h-2 rounded-full bg-[#E3132A] animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-[#844AFB] animate-pulse" />
             <span className="font-bold text-slate-900 tracking-wider text-[11px]">
               Think it. Build it. Make it. Move it.
             </span>
           </div>
           <Link
             href="/bulk-enquiry"
-            className="text-[#E3132A] hover:text-[#B80F21] font-bold flex items-center gap-1 whitespace-nowrap text-[11px] transition-colors"
+            className="text-[#844AFB] hover:text-[#6721F2] font-bold flex items-center gap-1 whitespace-nowrap text-[11px] transition-colors"
           >
             <span>Bulk / Institutional Orders →</span>
           </Link>

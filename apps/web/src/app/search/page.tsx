@@ -137,10 +137,10 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         {/* Search Page Header */}
         <div className="p-6 sm:p-8 rounded-2xl bg-[#F7F7F8] border border-slate-200 space-y-2">
           <h1 className="font-heading text-2xl sm:text-3xl font-extrabold text-[#14141A] flex items-center gap-3">
-            <Search className="text-[#E3132A]" size={28} />
+            <Search className="text-[#844AFB]" size={28} />
             {query ? (
               <span>
-                Search results for <span className="text-[#E3132A]">&quot;{query}&quot;</span>
+                Search results for <span className="text-[#844AFB]">&quot;{query}&quot;</span>
               </span>
             ) : (
               'All Store Catalog Products'

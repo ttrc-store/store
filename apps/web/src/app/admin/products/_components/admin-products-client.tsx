@@ -195,14 +195,14 @@ export default function AdminProductsClient({
                         href={`/product/${p.slug}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="p-1.5 rounded-lg bg-slate-100 text-slate-600 hover:text-[#E3132A] transition-colors"
+                        className="p-1.5 rounded-lg bg-slate-100 text-slate-600 hover:text-[#844AFB] transition-colors"
                         title="View on Storefront (Opens in new tab)"
                       >
                         <ExternalLink size={14} />
                       </a>
                       <Link
                         href={`/admin/products/${p.id}/edit`}
-                        className="p-1.5 rounded-lg bg-slate-100 text-slate-600 hover:text-[#E3132A] transition-colors"
+                        className="p-1.5 rounded-lg bg-slate-100 text-slate-600 hover:text-[#844AFB] transition-colors"
                         title="Edit Product"
                       >
                         <Edit size={14} />
@@ -227,7 +227,7 @@ export default function AdminProductsClient({
           </table>
         ) : (
           <div className="py-12 text-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-[#FDECEE] border border-red-200 flex items-center justify-center mx-auto text-[#E3132A]">
+            <div className="w-16 h-16 rounded-full bg-[#EEE8FA] border border-purple-200 flex items-center justify-center mx-auto text-[#844AFB]">
               <Package size={28} />
             </div>
             <div className="space-y-1">
@@ -240,7 +240,7 @@ export default function AdminProductsClient({
             </div>
             {!currentSearch && (
               <Link href="/admin/products/new" className="inline-block">
-                <Button className="bg-[#E3132A] hover:bg-[#B80F21] text-white font-bold text-xs rounded-xl px-6 py-2.5 flex items-center gap-2 mx-auto shadow-sm shadow-red-900/10">
+                <Button className="bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold text-xs rounded-xl px-6 py-2.5 flex items-center gap-2 mx-auto shadow-sm shadow-purple-900/10">
                   <Plus size={16} /> Upload First Product
                 </Button>
               </Link>

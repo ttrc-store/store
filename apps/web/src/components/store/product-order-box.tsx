@@ -337,9 +337,9 @@ export function ProductOrderBox({
 
       {/* Back-In-Stock Alert Card when out of stock */}
       {stockQty <= 0 && (
-        <div className="p-4 rounded-xl bg-[#FDECEE] border border-red-200 space-y-2.5">
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-900">
-            <Bell size={16} className="text-[#E3132A] shrink-0" />
+        <div className="p-4 rounded-xl bg-[#EEE8FA]/70 border border-purple-200 space-y-2.5">
+          <div className="flex items-center gap-2 text-xs font-bold text-[#1E0D45]">
+            <Bell size={16} className="text-[#844AFB] shrink-0" />
             <span>Notify Me When Back in Stock</span>
           </div>
           <p className="text-[11px] text-slate-600 leading-normal">
@@ -358,13 +358,13 @@ export function ProductOrderBox({
                 value={subEmail}
                 onChange={(e) => setSubEmail(e.target.value)}
                 required
-                className="flex-1 h-9 px-3 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-[#E3132A]"
+                className="flex-1 h-9 px-3 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-[#844AFB]"
               />
               <Button
                 type="submit"
                 size="sm"
                 disabled={submittingSub || !subEmail.trim()}
-                className="h-9 px-4 text-xs font-bold bg-[#E3132A] hover:bg-[#B80F21] text-white rounded-lg shrink-0"
+                className="h-9 px-4 text-xs font-bold bg-[#844AFB] hover:bg-[#6721F2] text-white rounded-lg shrink-0 shadow-sm"
               >
                 {submittingSub ? 'Subscribing...' : 'Alert Me'}
               </Button>
