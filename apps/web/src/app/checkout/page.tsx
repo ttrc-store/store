@@ -29,7 +29,7 @@ import { useCartStore } from '@/store/use-cart';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PriceTag } from '@/components/store/price-tag';
-import { createOrderAction, validateCouponAction } from '@/actions/checkout';
+import { createOrderAction, validateCouponAction, releasePendingOrderAction } from '@/actions/checkout';
 import { getSiteSettingsAction } from '@/actions/settings';
 import { getAccountOverviewAction, getAddressesAction } from '@/actions/account';
 import { launchRazorpayModal, loadRazorpayScript } from '@/lib/razorpay-client';
@@ -136,6 +136,18 @@ export default function CheckoutPage() {
   const [couponInput, setCouponInput] = React.useState('');
   const [couponLoading, setCouponLoading] = React.useState(false);
   const [couponMessage, setCouponMessage] = React.useState<{ text: string; isError: boolean } | null>(null);
+
+  // Active Pending Order ID for safe payment retries without duplicate stock deductions
+  const [activePendingOrderId, setActivePendingOrderId] = React.useState<string | null>(null);
+
+  const handleCancelPendingAttempt = async () => {
+    if (!activePendingOrderId) return;
+    setLoading(true);
+    await releasePendingOrderAction(activePendingOrderId, !isAuthenticated ? email : undefined);
+    setActivePendingOrderId(null);
+    setError('Previous payment attempt was cancelled and reserved stock was restored.');
+    setLoading(false);
+  };
 
   // Real-time Pincode Verification via Server API
   const verifyPincode = React.useCallback(async (code: string) => {
@@ -431,6 +443,7 @@ export default function CheckoutPage() {
               gstin: gstin.toUpperCase().trim(),
             }
           : undefined,
+      existingPendingOrderId: activePendingOrderId || undefined,
     };
 
     const res = await createOrderAction(orderPayload);
@@ -439,6 +452,10 @@ export default function CheckoutPage() {
       setError(res.error);
       setLoading(false);
       return;
+    }
+
+    if (res.orderId) {
+      setActivePendingOrderId(res.orderId);
     }
 
     const orderNum = res.orderNumber || 'TTRC/25-26/100001';
@@ -515,6 +532,7 @@ export default function CheckoutPage() {
               }
 
               clearCart();
+              setActivePendingOrderId(null);
               router.push(`/checkout/success?orderNumber=${encodeURIComponent(orderNum)}`);
             } catch (err: any) {
               setError(err.message || 'Error communicating with payment verification service.');
@@ -523,11 +541,11 @@ export default function CheckoutPage() {
           },
           onDismiss: () => {
             setLoading(false);
-            setError('Payment window was closed. You can retry paying with Razorpay at any time.');
+            setError('Payment window was closed. Your items remain safely reserved. You can retry paying now or cancel.');
           },
           onFailure: (failedRes) => {
             setLoading(false);
-            setError(failedRes.error.description || 'Payment was declined by payment gateway.');
+            setError(failedRes.error.description || 'Payment was declined by payment gateway. You can retry paying or cancel.');
           },
         });
       } catch (payInitErr: any) {
@@ -1558,6 +1576,15 @@ export default function CheckoutPage() {
                         <div className="flex-1">
                           <p className="font-bold text-red-800">Payment Notice</p>
                           <p className="text-red-700 mt-0.5">{error}</p>
+                          {activePendingOrderId && (
+                            <button
+                              type="button"
+                              onClick={handleCancelPendingAttempt}
+                              className="mt-2 text-[11px] font-bold text-red-700 underline hover:text-red-900 block"
+                            >
+                              Cancel this payment attempt &amp; release reserved items
+                            </button>
+                          )}
                         </div>
                       </div>
                     )}

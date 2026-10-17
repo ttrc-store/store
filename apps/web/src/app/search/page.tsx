@@ -20,6 +20,7 @@ interface SearchPageProps {
     q?: string;
     category?: string;
     type?: string;
+    voltage?: string;
     sort?: string;
     inStock?: string;
     minPrice?: string;
@@ -45,6 +46,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   const resolved = await searchParams;
   const query = (resolved.q || '').trim();
   const typeFilter = resolved.type || 'all';
+  const voltageFilter = resolved.voltage || 'all';
   const sort = resolved.sort || 'featured';
   const inStockOnly = resolved.inStock === 'true';
   const minPrice = resolved.minPrice || '';
@@ -56,7 +58,16 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
   let products = [];
   if (query) {
-    products = await searchStoreProducts(query, { limit: 100 });
+    products = await searchStoreProducts(query, {
+      limit: 100,
+      productType: typeFilter !== 'all' ? typeFilter : undefined,
+      voltage: voltageFilter !== 'all' ? voltageFilter : undefined,
+      inStockOnly,
+      minPricePaise,
+      maxPricePaise,
+      brand: brand !== 'all' ? brand : undefined,
+      sort,
+    });
   } else {
     const res = await getStoreProducts({
       productType: typeFilter,
@@ -68,6 +79,9 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       limit: 60,
     });
     products = res.products;
+    if (voltageFilter !== 'all') {
+      products = products.filter((p) => (p.voltage || '').toLowerCase().includes(voltageFilter.toLowerCase()));
+    }
   }
 
   // Filter in memory for search results if query was provided
@@ -115,25 +129,29 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>Search</BreadcrumbPage>
+              <BreadcrumbPage>{query ? 'Search' : 'All Products'}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
 
         {/* Search Page Header */}
-        <div className="p-6 sm:p-8 rounded-2xl bg-purple-50/60 border border-purple-200 space-y-2">
-          <h1 className="font-heading text-2xl sm:text-3xl font-extrabold text-foreground flex items-center gap-3">
-            <Search className="text-purple-700" size={28} />
+        <div className="p-6 sm:p-8 rounded-2xl bg-[#F7F7F8] border border-slate-200 space-y-2">
+          <h1 className="font-heading text-2xl sm:text-3xl font-extrabold text-[#14141A] flex items-center gap-3">
+            <Search className="text-[#E3132A]" size={28} />
             {query ? (
               <span>
-                Search results for <span className="text-purple-700">&quot;{query}&quot;</span>
+                Search results for <span className="text-[#E3132A]">&quot;{query}&quot;</span>
               </span>
             ) : (
               'All Store Catalog Products'
             )}
           </h1>
           <p className="text-xs text-muted-foreground">
-            Found <strong className="text-foreground">{results.length}</strong> matching robotics components &amp; competition kits.
+            {query ? (
+              <>Found <strong className="text-foreground">{results.length}</strong> matching robotics components &amp; competition kits.</>
+            ) : (
+              <>Browse our complete collection of <strong className="text-foreground">{results.length}</strong> robotics components, competition kits, and spare parts.</>
+            )}
           </p>
         </div>
 
@@ -149,6 +167,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                 minPrice={minPrice}
                 maxPrice={maxPrice}
                 currentBrand={brand}
+                currentVoltage={voltageFilter}
               />
             </div>
           </aside>

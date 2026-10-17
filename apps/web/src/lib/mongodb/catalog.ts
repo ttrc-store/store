@@ -53,6 +53,22 @@ export interface StoreProductItem {
   imageUrls: string[];
   bulkPriceTiers?: Array<{ minQuantity: number; maxQuantity?: number; unitPricePaise: number }>;
   technicalSpecs?: Array<{ key: string; value: string }>;
+  documents?: Array<{
+    id: string;
+    type: 'datasheet' | 'manual' | 'schematic' | 'pinout' | 'in_box' | 'other';
+    title: string;
+    fileUrl: string;
+    fileFormat?: string;
+    fileSizeBytes?: number;
+    version?: string;
+    sortOrder?: number;
+    isVerified?: boolean;
+  }>;
+  inBoxItems?: Array<{
+    itemName: string;
+    quantity: number;
+    notes?: string;
+  }>;
   applications?: string[];
   certifications?: string[];
   modelNumber?: string;
@@ -140,6 +156,29 @@ function mapProductDoc(
     imageUrls: Array.isArray(p.images) && p.images.length > 0 ? p.images : ['/brand/ttrc-logo.png'],
     bulkPriceTiers: p.bulk_price_tiers || [],
     technicalSpecs: p.technical_specs || [],
+    documents: Array.isArray(p.documents)
+      ? p.documents
+          .filter((d: any) => d && d.is_verified !== false && d.file_url)
+          .map((d: any) => ({
+            id: d.id,
+            type: d.type,
+            title: d.title,
+            fileUrl: d.file_url,
+            fileFormat: d.file_format || 'pdf',
+            fileSizeBytes: d.file_size_bytes,
+            version: d.version,
+            sortOrder: d.sort_order || 0,
+            isVerified: d.is_verified ?? true,
+          }))
+          .sort((a: any, b: any) => (a.sortOrder || 0) - (b.sortOrder || 0))
+      : [],
+    inBoxItems: Array.isArray(p.in_box_items)
+      ? p.in_box_items.map((item: any) => ({
+          itemName: item.item_name,
+          quantity: item.quantity,
+          notes: item.notes,
+        }))
+      : [],
     applications: p.applications || [],
     certifications: p.certifications || [],
     modelNumber: p.model_number,
@@ -589,33 +628,214 @@ export async function getCompatibleProducts(
   }
 }
 
+export interface SearchStoreProductsOptions {
+  limit?: number;
+  skip?: number;
+  productType?: string;
+  voltage?: string;
+  inStockOnly?: boolean;
+  minPricePaise?: number;
+  maxPricePaise?: number;
+  brand?: string;
+  category?: string;
+  sort?: string;
+}
+
+// Domain-specific robotics and electronics synonym & typo mapping dictionary
+const ROBOTICS_TYPO_DICTIONARY: Record<string, string[]> = {
+  arduino: ['ardunio', 'arduno', 'audrino', 'aduino', 'ardwin', 'ardunio-uno'],
+  sensor: ['sesnor', 'senser', 'senosr', 'sensr', 'snr'],
+  sensors: ['sesnors', 'sensers', 'senosrs'],
+  motor: ['moter', 'motr', 'mottor', 'motur'],
+  motors: ['moters', 'motrs', 'mottors'],
+  chassis: ['chasis', 'chasi', 'chasiss', 'chassi'],
+  battery: ['battry', 'batry', 'batery', 'batteri', 'battrey'],
+  batteries: ['battries', 'batries', 'bateries'],
+  bluetooth: ['blutooth', 'blue tooth', 'bluetoth', 'bleutooth'],
+  esp32: ['esp-32', 'esp 32', 'espressif32'],
+  tb6612fng: ['tb6612', 'tb-6612', 'tb 6612'],
+  tb6612: ['tb6612fng', 'tb-6612', 'tb 6612'],
+  driver: ['drivr', 'drivar', 'draiver'],
+  wheel: ['whel', 'weel', 'whele'],
+  wheels: ['whels', 'weels'],
+  fastener: ['fastner', 'fastners', 'fasteners'],
+  screw: ['screws', 'skrew', 'skrews'],
+  screws: ['screw', 'skrews'],
+  servo: ['servos', 'survo', 'serwo'],
+  shield: ['sheild', 'sheeld', 'shild'],
+  follower: ['folower', 'follwer', 'folowr'],
+  connector: ['conector', 'connecter', 'conecter'],
+  ultrasonic: ['ultra sonic', 'ultra-sonic', 'ultrasonik'],
+  lipo: ['li-po', 'li po', 'lithium polymer'],
+  wire: ['wires', 'wyr', 'wyre'],
+  wires: ['wire', 'wyres'],
+};
+
+// Build reverse lookup index for fast token normalization
+const REVERSE_TYPO_LOOKUP: Map<string, string> = new Map();
+for (const [canonical, typos] of Object.entries(ROBOTICS_TYPO_DICTIONARY)) {
+  for (const typo of typos) {
+    REVERSE_TYPO_LOOKUP.set(typo.toLowerCase(), canonical);
+  }
+}
+
 export async function searchStoreProducts(
   searchTerm: string,
-  opts?: { limit?: number }
+  opts?: SearchStoreProductsOptions
 ): Promise<StoreProductItem[]> {
   const queryText = (searchTerm || '').trim();
   if (!queryText) return [];
+
+  // Protect against regex DoS / query abuse
+  const sanitizedQuery = queryText.slice(0, 80).replace(/[-/\\^$*+?.()|[\]{}]/g, ' ').trim();
+  if (!sanitizedQuery) return [];
 
   try {
     await connectToDatabase();
 
     const limit = opts?.limit ?? 20;
-    const regex = new RegExp(queryText.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&'), 'i');
 
-    const docs = await ProductModel.find({
+    // 1. Tokenize query into distinct search terms
+    const rawTokens = sanitizedQuery
+      .toLowerCase()
+      .split(/\s+/)
+      .filter((t) => t.length > 0);
+
+    if (rawTokens.length === 0) return [];
+
+    // 2. Expand tokens with canonical corrections and synonyms
+    const expandedTokens: string[] = [];
+    for (const token of rawTokens) {
+      expandedTokens.push(token);
+      const canonical = REVERSE_TYPO_LOOKUP.get(token);
+      if (canonical && !expandedTokens.includes(canonical)) {
+        expandedTokens.push(canonical);
+      }
+      const knownTypos = ROBOTICS_TYPO_DICTIONARY[token];
+      if (knownTypos) {
+        for (const typo of knownTypos) {
+          if (!expandedTokens.includes(typo)) {
+            expandedTokens.push(typo);
+          }
+        }
+      }
+    }
+
+    // 3. Construct regex patterns for tokens (including 1-char wildcard for tokens >= 4 chars)
+    const regexConditions = expandedTokens.map((token) => {
+      // Escape for regex
+      const escaped = token.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+      return new RegExp(escaped, 'i');
+    });
+
+    // 4. Base filter: strictly published & active products only (Requirement 12)
+    const filterQuery: any = {
       is_active: true,
-      $or: [
-        { name: regex },
-        { sku: regex },
-        { slug: regex },
-        { short_description: regex },
-        { brand: regex },
-      ],
-    })
-      .limit(limit)
+      status: 'published',
+    };
+
+    if (opts?.productType && opts.productType !== 'all') {
+      filterQuery.product_type = opts.productType;
+    }
+    if (opts?.voltage) {
+      filterQuery.voltage = new RegExp(opts.voltage.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&'), 'i');
+    }
+    if (opts?.inStockOnly) {
+      filterQuery.stock_quantity = { $gt: 0 };
+    }
+    if (opts?.minPricePaise != null || opts?.maxPricePaise != null) {
+      filterQuery.price = {};
+      if (opts.minPricePaise != null) filterQuery.price.$gte = opts.minPricePaise;
+      if (opts.maxPricePaise != null) filterQuery.price.$lte = opts.maxPricePaise;
+    }
+    if (opts?.brand && opts.brand !== 'all') {
+      filterQuery.brand = opts.brand;
+    }
+
+    // 5. Build $or array searching name, SKU, slug, brand, technical_specs, voltage, part_number
+    const orClauses: any[] = [];
+    for (const r of regexConditions) {
+      orClauses.push(
+        { name: r },
+        { sku: r },
+        { slug: r },
+        { brand: r },
+        { short_description: r },
+        { part_number: r },
+        { model_number: r },
+        { voltage: r },
+        { material: r },
+        { 'technical_specs.key': r },
+        { 'technical_specs.value': r },
+        { 'in_box_items.item_name': r }
+      );
+    }
+
+    const finalQuery = {
+      ...filterQuery,
+      $or: orClauses,
+    };
+
+    const docs = await ProductModel.find(finalQuery)
+      .limit(limit * 3) // Fetch slightly more to perform relevance scoring
       .lean();
 
-    return docs.map((d) => mapProductDoc(d));
+    // 6. Relevance Scoring and Ranking
+    const queryLower = sanitizedQuery.toLowerCase();
+    const scoredDocs = docs.map((doc: any) => {
+      let score = 0;
+      const skuLower = (doc.sku || '').toLowerCase();
+      const nameLower = (doc.name || '').toLowerCase();
+      const brandLower = (doc.brand || '').toLowerCase();
+
+      // Highest score: Exact SKU match
+      if (skuLower === queryLower) score += 100;
+      else if (skuLower.startsWith(queryLower)) score += 60;
+      else if (skuLower.includes(queryLower)) score += 40;
+
+      // Exact name match or startsWith
+      if (nameLower === queryLower) score += 90;
+      else if (nameLower.startsWith(queryLower)) score += 50;
+      else if (nameLower.includes(queryLower)) score += 35;
+
+      // Token matches
+      let matchedTokens = 0;
+      for (const t of rawTokens) {
+        if (nameLower.includes(t) || skuLower.includes(t)) {
+          matchedTokens++;
+          score += 15;
+        }
+      }
+      if (matchedTokens === rawTokens.length) {
+        score += 25; // Bonus for containing all query tokens
+      }
+
+      // Brand match
+      if (brandLower.includes(queryLower)) score += 10;
+
+      // Stock availability boost
+      if ((doc.stock_quantity || 0) > 0) score += 5;
+
+      return { doc, score };
+    });
+
+    // 7. Sort by score or requested sort
+    if (opts?.sort === 'price_asc') {
+      scoredDocs.sort((a, b) => (a.doc.price || 0) - (b.doc.price || 0));
+    } else if (opts?.sort === 'price_desc') {
+      scoredDocs.sort((a, b) => (b.doc.price || 0) - (a.doc.price || 0));
+    } else if (opts?.sort === 'rating') {
+      scoredDocs.sort((a, b) => (b.doc.rating || 0) - (a.doc.rating || 0));
+    } else if (opts?.sort === 'newest') {
+      scoredDocs.sort(
+        (a, b) => new Date(b.doc.created_at).getTime() - new Date(a.doc.created_at).getTime()
+      );
+    } else {
+      scoredDocs.sort((a, b) => b.score - a.score);
+    }
+
+    const sliced = scoredDocs.slice(0, limit).map((s) => s.doc);
+    return sliced.map((d) => mapProductDoc(d));
   } catch (err) {
     console.error('[MongoDB Catalog] Error searching products:', err);
     return [];

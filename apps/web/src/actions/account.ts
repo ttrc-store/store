@@ -9,9 +9,11 @@ import {
   AuditLogModel,
   IUserAddress,
 } from '@/lib/mongodb/models';
-import { requireAuth } from '@/lib/auth-helpers';
+import { requireAuth, createSessionCookie } from '@/lib/auth-helpers';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { createOtpChallenge, verifyOtpChallenge, normalizeEmail } from '@/lib/security/otp-service';
+import { sendEmailChangeOtp, sendSecurityNotification } from '@/lib/email/resend';
 
 const ProfileSchema = z.object({
   fullName: z.string().min(2, 'Full name is required'),
@@ -433,6 +435,143 @@ export async function updateProfileAction(formData: FormData) {
     return { success: 'Profile updated successfully!' };
   } catch {
     return { error: 'Failed to update profile.' };
+  }
+}
+
+/**
+ * Request OTP verification before updating account email address.
+ * Preserves old verified email until new address is verified.
+ */
+export async function requestEmailChangeOtpAction(newEmailRaw: string) {
+  const auth = await requireAuth();
+  if ('error' in auth) return { error: auth.error };
+
+  const newEmail = normalizeEmail(newEmailRaw);
+  if (!newEmail || !newEmail.includes('@')) {
+    return { error: 'Please enter a valid email address.' };
+  }
+
+  if (newEmail === auth.user.email.toLowerCase()) {
+    return { error: 'New email address cannot be the same as your current email.' };
+  }
+
+  try {
+    await connectToDatabase();
+
+    const existing = await UserModel.findOne({ email: newEmail });
+    if (existing) {
+      return { error: 'An account with this email address already exists.' };
+    }
+
+    const challenge = await createOtpChallenge({
+      email: newEmail,
+      purpose: 'email_change',
+      metadata: { userId: auth.user.id, oldEmail: auth.user.email },
+    });
+
+    if (!challenge.success) {
+      return { error: challenge.error, cooldownSeconds: challenge.cooldownSeconds };
+    }
+
+    if (challenge.otpForSending) {
+      await sendEmailChangeOtp({
+        toEmail: newEmail,
+        otp: challenge.otpForSending,
+        expiresSeconds: challenge.expiresInSeconds,
+      });
+    }
+
+    return {
+      success: true,
+      message: `A 6-digit verification code has been dispatched to ${newEmail}.`,
+      challengeId: challenge.challengeId,
+      cooldownSeconds: challenge.cooldownSeconds,
+    };
+  } catch (err: any) {
+    console.error('[Request Email Change Error]', err);
+    return { error: 'Failed to initiate email change request.' };
+  }
+}
+
+/**
+ * Verify OTP and atomically activate the new email address.
+ */
+export async function verifyEmailChangeOtpAction(params: {
+  newEmail: string;
+  otp: string;
+  challengeId?: string;
+}) {
+  const auth = await requireAuth();
+  if ('error' in auth) return { error: auth.error };
+
+  const newEmail = normalizeEmail(params.newEmail);
+  const { otp, challengeId } = params;
+
+  try {
+    const verifyResult = await verifyOtpChallenge({
+      email: newEmail,
+      purpose: 'email_change',
+      otp,
+      challengeId,
+    });
+
+    if (!verifyResult.success) {
+      return { error: verifyResult.error };
+    }
+
+    await connectToDatabase();
+
+    const oldEmail = auth.user.email;
+    const user = await UserModel.findByIdAndUpdate(
+      auth.user.id,
+      {
+        $set: {
+          email: newEmail,
+          email_verified: true,
+          email_verified_at: new Date(),
+        },
+      },
+      { new: true }
+    );
+
+    if (user) {
+      // Re-issue session cookie with updated email
+      await createSessionCookie(user);
+
+      // Send security alert notifications to both old and new addresses
+      await sendSecurityNotification({
+        toEmail: oldEmail,
+        customerName: user.full_name || 'Customer',
+        actionTitle: 'Account Email Changed',
+        description: `Your TTRC Store account email was changed to ${newEmail}.`,
+        timestamp: new Date().toLocaleString('en-IN'),
+      });
+
+      await sendSecurityNotification({
+        toEmail: newEmail,
+        customerName: user.full_name || 'Customer',
+        actionTitle: 'Email Address Verified',
+        description: 'This email address is now verified and active for your TTRC Store account.',
+        timestamp: new Date().toLocaleString('en-IN'),
+      });
+
+      await AuditLogModel.create({
+        actor_id: auth.user.id,
+        action: 'user.email_changed',
+        entity: 'user',
+        entity_id: auth.user.id,
+        metadata: { oldEmail, newEmail, changedAt: new Date().toISOString() },
+      });
+    }
+
+    revalidatePath('/account');
+    return {
+      success: true,
+      message: 'Your account email address has been updated and verified successfully!',
+    };
+  } catch (err: any) {
+    console.error('[Verify Email Change Error]', err);
+    return { error: 'Failed to verify and update email address.' };
   }
 }
 

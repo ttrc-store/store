@@ -3,29 +3,93 @@ import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { Package, Truck, CheckCircle, MapPin, ArrowLeft, Download } from 'lucide-react';
 import { PriceTag } from '@/components/store/price-tag';
-import { getMyOrderAction } from '@/actions/orders';
+import { getMyOrderAction, getGuestOrderAction } from '@/actions/orders';
 import { getAuthenticatedUser } from '@/lib/auth-helpers';
 import { ORDER_STATUS_LABELS } from '@ttrc/shared';
 
 interface OrderTrackingPageProps {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ email?: string; phone?: string }>;
 }
 
-export default async function OrderTrackingPage({ params }: OrderTrackingPageProps) {
-  const auth = await getAuthenticatedUser();
-  if ('error' in auth) {
-    redirect('/login?redirectTo=/account/orders');
-  }
-
+export default async function OrderTrackingPage({ params, searchParams }: OrderTrackingPageProps) {
   const { id } = await params;
+  const resolvedSearchParams = await searchParams;
   const decodedId = decodeURIComponent(id);
 
-  const res = await getMyOrderAction(decodedId);
-  if (res.error || !res.order) {
+  const auth = await getAuthenticatedUser();
+  const isAuthenticated = !('error' in auth);
+
+  let order: any = null;
+  let errorMsg = '';
+
+  if (isAuthenticated) {
+    const res = await getMyOrderAction(decodedId);
+    if (res.order) {
+      order = res.order;
+    } else {
+      errorMsg = res.error || 'Order not found.';
+    }
+  } else {
+    // Guest customer tracking
+    const contact = (resolvedSearchParams.email || resolvedSearchParams.phone || '').trim();
+    if (contact) {
+      const guestRes = await getGuestOrderAction(decodedId, contact);
+      if (guestRes.order) {
+        order = guestRes.order;
+      } else {
+        errorMsg = guestRes.error || 'No matching order found for provided contact details.';
+      }
+    }
+  }
+
+  // If order is still not found and user is not authenticated and didn't provide contact info:
+  if (!order && !isAuthenticated && !resolvedSearchParams.email && !resolvedSearchParams.phone) {
+    return (
+      <div className="min-h-[70vh] bg-white text-slate-900 pb-24 pt-12">
+        <div className="max-w-md mx-auto px-4 text-center space-y-6">
+          <div className="w-16 h-16 rounded-full bg-purple-50 text-[#844AFB] flex items-center justify-center mx-auto">
+            <Truck size={30} />
+          </div>
+          <div className="space-y-2">
+            <h1 className="font-heading text-2xl font-bold text-slate-900">Track Order #{decodedId}</h1>
+            <p className="text-xs text-slate-500">
+              Please enter the email address or phone number you provided during checkout to securely view this order.
+            </p>
+          </div>
+          <form method="GET" className="space-y-4 text-left">
+            <div>
+              <label className="text-xs font-bold text-slate-700 block mb-1">Email or Phone Number</label>
+              <input
+                type="text"
+                name="email"
+                placeholder="name@example.com or 9876543210"
+                required
+                className="w-full h-11 px-3.5 rounded-xl border border-slate-300 text-xs focus:outline-none focus:border-[#844AFB] focus:ring-1 focus:ring-[#844AFB]"
+              />
+            </div>
+            <button
+              type="submit"
+              className="w-full h-11 bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold text-xs rounded-xl shadow-md transition-colors"
+            >
+              Verify &amp; View Order Tracking
+            </button>
+            <p className="text-center text-[11px] text-slate-400">
+              Already have an account?{' '}
+              <Link href={`/login?redirectTo=/orders/${encodeURIComponent(decodedId)}`} className="text-[#844AFB] font-bold underline">
+                Sign in
+              </Link>
+            </p>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  if (!order) {
     notFound();
   }
 
-  const order = res.order;
   const statusLabel = ORDER_STATUS_LABELS[order.status as keyof typeof ORDER_STATUS_LABELS] || order.status;
   const address = order.shipping_address_snap || {};
 
@@ -71,9 +135,21 @@ export default async function OrderTrackingPage({ params }: OrderTrackingPagePro
               <Truck size={18} className="text-[#844AFB]" /> Order Tracking & Status
             </h2>
             {order.shipments?.[0]?.tracking_number ? (
-              <span className="text-xs font-mono text-slate-500">
-                AWB: <strong className="text-slate-900">{order.shipments[0].tracking_number}</strong>
-              </span>
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-mono text-slate-500">
+                  AWB: <strong className="text-slate-900">{order.shipments[0].tracking_number}</strong>
+                </span>
+                {order.shipments[0].tracking_url && (
+                  <a
+                    href={order.shipments[0].tracking_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-xs font-bold text-[#844AFB] hover:underline"
+                  >
+                    Track Shipment &rarr;
+                  </a>
+                )}
+              </div>
             ) : (
               <span className="text-xs text-slate-500">Processing in Warehouse</span>
             )}
@@ -100,7 +176,9 @@ export default async function OrderTrackingPage({ params }: OrderTrackingPagePro
               <MapPin size={16} className="text-[#844AFB]" /> Shipping Address
             </h3>
             <div className="text-xs text-slate-700 space-y-1">
-              <p className="font-bold text-slate-900">{address.fullName || auth.user.fullName || 'Customer'}</p>
+              <p className="font-bold text-slate-900">
+                {address.fullName || (isAuthenticated && 'user' in auth ? auth.user.fullName : 'Customer')}
+              </p>
               <p>{address.line1}</p>
               {address.line2 && <p>{address.line2}</p>}
               <p>{address.city}, {address.state} — {address.pincode}</p>
@@ -114,7 +192,7 @@ export default async function OrderTrackingPage({ params }: OrderTrackingPagePro
               <Package size={16} className="text-[#844AFB]" /> Ordered Items ({order.items.length})
             </h3>
             <div className="space-y-2 text-xs divide-y divide-slate-100">
-              {order.items.map((item) => (
+              {order.items.map((item: any) => (
                 <div key={item.id} className="pt-2 flex items-center justify-between">
                   <div>
                     <p className="font-bold text-slate-900">{item.snapshot_name}</p>

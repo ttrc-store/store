@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { connectToDatabase } from '@/lib/mongodb/client';
-import { OrderModel, AuditLogModel } from '@/lib/mongodb/models';
+import { OrderModel, ProductModel, AuditLogModel } from '@/lib/mongodb/models';
 import { generateBillNumber } from '@/lib/id-generator';
+import { sendOrderConfirmation, sendPaymentConfirmation } from '@/lib/email/resend';
 
 /**
  * Razorpay Webhook Handler.
@@ -88,6 +89,11 @@ export async function POST(request: Request) {
               break;
             }
 
+            if (order.payment_status === 'paid') {
+              console.log(`[Razorpay Webhook] ℹ️ Order ${order.order_number} is already marked as paid. Idempotent duplicate event handled safely.`);
+              break;
+            }
+
             order.payment_status = 'paid';
             order.status = 'processing';
             order.razorpay_payment_id = rpPaymentId;
@@ -96,6 +102,45 @@ export async function POST(request: Request) {
             }
             await order.save();
             console.log(`[Razorpay Webhook] ✅ Payment captured for order ${order.order_number} (Bill: ${order.bill_number})`);
+
+            // Idempotent transactional email dispatch
+            if (!order.confirmation_email_sent) {
+              const recipientEmail = order.shipping_address?.email || order.guest_email;
+              if (recipientEmail) {
+                try {
+                  await sendOrderConfirmation({
+                    toEmail: recipientEmail,
+                    customerName: order.shipping_address?.fullName || 'Customer',
+                    orderNumber: order.order_number,
+                    billNumber: order.bill_number,
+                    totalAmountPaise: order.total,
+                    paymentMethod: 'razorpay',
+                    shippingAddress: order.shipping_address || {},
+                    items: (order.items || []).map((i: any) => ({
+                      name: i.product_name,
+                      quantity: i.quantity,
+                      pricePaise: i.unit_price,
+                    })),
+                  });
+
+                  await sendPaymentConfirmation({
+                    toEmail: recipientEmail,
+                    customerName: order.shipping_address?.fullName || 'Customer',
+                    orderNumber: order.order_number,
+                    billNumber: order.bill_number,
+                    paymentId: rpPaymentId,
+                    amountPaise: amountPaise || order.total,
+                    paymentMethod: 'razorpay',
+                  });
+
+                  order.confirmation_email_sent = true;
+                  order.confirmation_email_sent_at = new Date();
+                  await order.save();
+                } catch (emailErr) {
+                  console.warn('[Razorpay Webhook] Email dispatch failed (order remains paid):', emailErr);
+                }
+              }
+            }
           } else {
             console.warn(`[Razorpay Webhook] No matching order found for ${rpOrderId}`);
           }
@@ -106,13 +151,40 @@ export async function POST(request: Request) {
       case 'payment.failed': {
         const rpOrderId = paymentEntity?.order_id;
         if (rpOrderId) {
-          const order = await OrderModel.findOne({
-            $or: [{ razorpay_order_id: rpOrderId }, { order_number: rpOrderId }],
-          });
+          // Atomic transition: only transition if status is 'pending' and payment_status is 'pending'
+          // This guarantees that delayed failure webhooks cannot reverse an already paid order,
+          // and duplicate failure webhooks cannot double-restock inventory.
+          const order = await OrderModel.findOneAndUpdate(
+            {
+              $or: [{ razorpay_order_id: rpOrderId }, { order_number: rpOrderId }],
+              status: 'pending',
+              payment_status: 'pending',
+            },
+            {
+              $set: {
+                status: 'cancelled',
+                payment_status: 'failed',
+              },
+              $push: {
+                // If notes was a string or array, maintain notes trace safely
+              },
+            },
+            { new: false }
+          );
+
           if (order) {
-            order.payment_status = 'failed';
+            order.notes = (order.notes ? order.notes + ' | ' : '') + 'Payment failed at gateway. Inventory automatically restocked.';
             await order.save();
-            console.warn(`[Razorpay Webhook] ❌ Payment failed for order ${order.order_number}`);
+
+            console.warn(`[Razorpay Webhook] ❌ Payment failed for pending order ${order.order_number}. Releasing reserved stock.`);
+            for (const item of order.items) {
+              await ProductModel.findByIdAndUpdate(item.product_id, {
+                $inc: { stock_quantity: item.quantity },
+              });
+            }
+            console.log(`[Razorpay Webhook] 🔄 Restocked inventory for order ${order.order_number} following failed payment.`);
+          } else {
+            console.log(`[Razorpay Webhook] Payment failed event received for ${rpOrderId}, but order is not in pending state (already paid, cancelled, or completed). Ignoring restock.`);
           }
         }
         break;

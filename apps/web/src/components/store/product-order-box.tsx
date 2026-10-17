@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ShoppingBag, Zap, Layers, CheckCircle2, FileText, ArrowRight } from 'lucide-react';
+import { ShoppingBag, Zap, Layers, CheckCircle2, FileText, ArrowRight, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { QuantitySelector } from '@/components/store/quantity-selector';
 import { PriceTag } from '@/components/store/price-tag';
@@ -11,6 +11,7 @@ import { useCartStore } from '@/store/use-cart';
 import { AddToCompareButton } from '@/components/store/add-to-compare-button';
 import { ProductShareButton } from '@/components/store/product-share-button';
 import { AddToWishlistButton } from '@/components/store/add-to-wishlist-button';
+import { subscribeBackInStockAction } from '@/actions/stock-subscriptions';
 
 export interface BulkPriceTier {
   minQuantity: number;
@@ -62,6 +63,34 @@ export function ProductOrderBox({
   const { addItem, openDrawer } = useCartStore();
   const [quantity, setQuantity] = React.useState(1);
   const [added, setAdded] = React.useState(false);
+  const [subEmail, setSubEmail] = React.useState('');
+  const [submittingSub, setSubmittingSub] = React.useState(false);
+  const [subSuccessMsg, setSubSuccessMsg] = React.useState<string | null>(null);
+  const [subErrorMsg, setSubErrorMsg] = React.useState<string | null>(null);
+
+  const handleSubscribeStock = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!subEmail.trim()) return;
+    setSubmittingSub(true);
+    setSubErrorMsg(null);
+    try {
+      const res = await subscribeBackInStockAction({
+        productId: id,
+        email: subEmail.trim(),
+        variantId: activeConfig?.name || undefined,
+      });
+      if (res.error) {
+        setSubErrorMsg(res.error);
+      } else {
+        setSubSuccessMsg(res.message || "You're registered for alerts!");
+        setSubEmail('');
+      }
+    } catch {
+      setSubErrorMsg('Failed to subscribe. Please try again.');
+    } finally {
+      setSubmittingSub(false);
+    }
+  };
 
   // Configuration variant selection
   const [selectedConfigIdx, setSelectedConfigIdx] = React.useState(() => {
@@ -305,6 +334,47 @@ export function ProductOrderBox({
           {stockQty > 0 ? 'In Stock' : 'Currently Out of Stock'}
         </span>
       </div>
+
+      {/* Back-In-Stock Alert Card when out of stock */}
+      {stockQty <= 0 && (
+        <div className="p-4 rounded-xl bg-[#FDECEE] border border-red-200 space-y-2.5">
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-900">
+            <Bell size={16} className="text-[#E3132A] shrink-0" />
+            <span>Notify Me When Back in Stock</span>
+          </div>
+          <p className="text-[11px] text-slate-600 leading-normal">
+            Be the first to know when this robotics item is restocked. Stock is allocated on a first-come, first-served basis and is not reserved.
+          </p>
+          {subSuccessMsg ? (
+            <div className="p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-semibold flex items-center gap-2">
+              <CheckCircle2 size={14} className="text-emerald-600 shrink-0" />
+              <span>{subSuccessMsg}</span>
+            </div>
+          ) : (
+            <form onSubmit={handleSubscribeStock} className="flex gap-2">
+              <input
+                type="email"
+                placeholder="Enter your email"
+                value={subEmail}
+                onChange={(e) => setSubEmail(e.target.value)}
+                required
+                className="flex-1 h-9 px-3 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-[#E3132A]"
+              />
+              <Button
+                type="submit"
+                size="sm"
+                disabled={submittingSub || !subEmail.trim()}
+                className="h-9 px-4 text-xs font-bold bg-[#E3132A] hover:bg-[#B80F21] text-white rounded-lg shrink-0"
+              >
+                {submittingSub ? 'Subscribing...' : 'Alert Me'}
+              </Button>
+            </form>
+          )}
+          {subErrorMsg && (
+            <p className="text-[11px] text-red-600 font-semibold">{subErrorMsg}</p>
+          )}
+        </div>
+      )}
 
       {/* Quantity & CTA Buttons */}
       <div className="space-y-3">

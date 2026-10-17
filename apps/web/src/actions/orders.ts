@@ -131,13 +131,114 @@ export async function getMyOrderAction(orderId: string): Promise<{
 
   try {
     await connectToDatabase();
+    const isObjectId = /^[0-9a-fA-F]{24}$/.test(orderId);
 
     const order = await OrderModel.findOne({
-      _id: orderId,
-      user_id: auth.user.id,
+      $and: [
+        {
+          $or: [
+            ...(isObjectId ? [{ _id: orderId }] : []),
+            { order_number: orderId },
+          ],
+        },
+        { user_id: auth.user.id },
+      ],
     }).lean();
 
     if (!order) return { error: 'Order not found.' };
+
+    const formattedDetail: OrderDetail = {
+      id: order._id.toString(),
+      order_number: order.order_number,
+      status: order.status,
+      payment_method: order.payment_method,
+      total_paise: order.total,
+      subtotal_paise: order.subtotal,
+      discount_paise: order.discount_total,
+      taxable_paise: order.subtotal - order.discount_total,
+      cgst_paise: Math.round(order.tax_total / 2),
+      sgst_paise: Math.round(order.tax_total / 2),
+      igst_paise: 0,
+      total_gst_paise: order.tax_total,
+      shipping_address_snap: order.shipping_address,
+      razorpay_order_id: order.razorpay_order_id,
+      razorpay_payment_id: order.razorpay_payment_id,
+      created_at: order.created_at.toISOString(),
+      items: order.items.map((item, idx) => ({
+        id: `${order._id.toString()}-${idx}`,
+        snapshot_name: item.product_name,
+        snapshot_sku: item.sku,
+        snapshot_image_url: item.image_url,
+        quantity: item.quantity,
+        unit_price_paise: item.unit_price,
+        gst_percent: item.gst_percent,
+        hsn_code: item.hsn_code,
+      })),
+      events: [
+        {
+          id: `${order._id.toString()}-event-1`,
+          event_type: `order_${order.status}`,
+          actor_role: 'system',
+          created_at: order.created_at.toISOString(),
+        },
+      ],
+      shipments: order.tracking_number
+        ? [
+            {
+              id: `${order._id.toString()}-shipment-1`,
+              provider: 'manual',
+              tracking_number: order.tracking_number,
+              tracking_url: order.tracking_url,
+            },
+          ]
+        : [],
+    };
+
+    return { order: formattedDetail };
+  } catch {
+    return { error: 'Order not found.' };
+  }
+}
+
+// ─── Guest: Get single order by order number + email / phone ───────────────
+
+export async function getGuestOrderAction(
+  orderIdentifier: string,
+  guestContact: string
+): Promise<{
+  order?: OrderDetail;
+  error?: string;
+}> {
+  if (!orderIdentifier?.trim() || !guestContact?.trim()) {
+    return { error: 'Order number and email/phone are required.' };
+  }
+
+  try {
+    await connectToDatabase();
+    const isObjectId = /^[0-9a-fA-F]{24}$/.test(orderIdentifier.trim());
+    const cleanContact = guestContact.trim().toLowerCase();
+    const cleanPhoneDigits = guestContact.replace(/\D/g, '');
+
+    const order = await OrderModel.findOne({
+      $and: [
+        {
+          $or: [
+            ...(isObjectId ? [{ _id: orderIdentifier.trim() }] : []),
+            { order_number: orderIdentifier.trim() },
+          ],
+        },
+        {
+          $or: [
+            { guest_email: cleanContact },
+            ...(cleanPhoneDigits.length >= 10
+              ? [{ 'shipping_address.phone': { $regex: cleanPhoneDigits } }]
+              : []),
+          ],
+        },
+      ],
+    }).lean();
+
+    if (!order) return { error: 'Order not found. Please verify your order number and email/phone.' };
 
     const formattedDetail: OrderDetail = {
       id: order._id.toString(),

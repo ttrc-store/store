@@ -38,5 +38,5 @@ This dictionary lists all required and optional environment variables for TTRC S
 | Variable Name | Required | Default / Description |
 |---|---|---|
 | `RESEND_API_KEY` | Optional (Server-only) | Resend API key for order confirmation & shipping emails |
-| `RESEND_FROM_EMAIL` | Optional | `orders@ttrc.store` |
+| `RESEND_FROM_EMAIL` | Optional | `admin@ttrc.store` |
 | `NEXT_PUBLIC_GA_MEASUREMENT_ID` | Optional | Google Analytics 4 ID (`G-XXXXXXXXXX`) |

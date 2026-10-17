@@ -105,22 +105,46 @@ export function MegaMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
         if (res.ok) {
           const data = await res.json();
           if (Array.isArray(data.categories) && data.categories.length > 0) {
-            // Map or augment with subcategories
-            const merged = data.categories.map((c: any) => {
-              const matchedStatic = CATEGORIES.find((sc) => sc.slug === c.slug);
-              return {
-                name: c.name,
-                slug: c.slug,
-                subcategories: matchedStatic?.subcategories || [
-                  { name: `All ${c.name}`, slug: c.slug },
-                  { name: 'Kits & Assemblies', slug: `${c.slug}?type=kit` },
-                  { name: 'Spare Parts & Hardware', slug: `${c.slug}?type=spare_part` },
-                ],
-              };
-            });
-            if (isMounted) {
-              setCategories(merged);
-              setActiveCat(merged[0]);
+            // Strictly separate parent categories from child subcategories
+            const parentCats = data.categories.filter((c: any) => !c.parentId);
+            const childCats = data.categories.filter((c: any) => !!c.parentId);
+
+            if (parentCats.length > 0) {
+              const merged = parentCats.map((c: any) => {
+                const matchedStatic = CATEGORIES.find((sc) => sc.slug === c.slug);
+                // Collect any DB subcategories belonging to this parent category
+                const dbChildren = childCats
+                  .filter((child: any) => child.parentId === c.id || child.parentId === c.slug || child.parentId === c._id)
+                  .map((child: any) => ({
+                    name: child.name,
+                    slug: child.slug,
+                  }));
+
+                // Combine DB children with static subcategories, avoiding duplicate slugs
+                const combinedSubcategories = dbChildren.length > 0
+                  ? [
+                      ...dbChildren,
+                      ...(matchedStatic?.subcategories || []).filter(
+                        (sc) => !dbChildren.some((dc: { slug: string }) => dc.slug === sc.slug)
+                      ),
+                    ]
+                  : matchedStatic?.subcategories || [
+                      { name: `All ${c.name}`, slug: c.slug },
+                      { name: 'Kits & Assemblies', slug: `${c.slug}?type=kit` },
+                      { name: 'Spare Parts & Hardware', slug: `${c.slug}?type=spare_part` },
+                    ];
+
+                return {
+                  name: c.name,
+                  slug: c.slug,
+                  subcategories: combinedSubcategories,
+                };
+              });
+
+              if (isMounted) {
+                setCategories(merged);
+                setActiveCat((prev: CategoryItem) => merged.find((m: CategoryItem) => m.slug === prev.slug) || merged[0]);
+              }
             }
           }
         }

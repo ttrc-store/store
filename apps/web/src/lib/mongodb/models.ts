@@ -25,6 +25,8 @@ export interface IUser extends Document {
   avatar_url?: string;
   addresses?: IUserAddress[];
   wishlist?: string[];
+  email_verified: boolean;
+  email_verified_at?: Date;
   created_at: Date;
   updated_at: Date;
 }
@@ -40,6 +42,8 @@ const UserSchema = new Schema<IUser>(
     avatar_url: { type: String },
     addresses: { type: Array, default: [] },
     wishlist: { type: [String], default: [] },
+    email_verified: { type: Boolean, default: false },
+    email_verified_at: { type: Date },
   },
   { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } }
 );
@@ -90,6 +94,24 @@ export interface IProductMedia {
   type?: 'image' | 'video';
 }
 
+export interface IProductDocument {
+  id: string;
+  type: 'datasheet' | 'manual' | 'schematic' | 'pinout' | 'in_box' | 'other';
+  title: string;
+  file_url: string;
+  file_format?: string;
+  file_size_bytes?: number;
+  version?: string;
+  sort_order?: number;
+  is_verified?: boolean;
+}
+
+export interface IInBoxItem {
+  item_name: string;
+  quantity: number;
+  notes?: string;
+}
+
 export interface IProduct extends Document {
   name: string;
   slug: string;
@@ -121,6 +143,8 @@ export interface IProduct extends Document {
   show_supplier_publicly: boolean;
   bulk_price_tiers?: IBulkPriceTier[];
   technical_specs?: Array<{ key: string; value: string }>;
+  documents?: IProductDocument[];
+  in_box_items?: IInBoxItem[];
   applications?: string[];
   certifications?: string[];
   model_number?: string;
@@ -176,6 +200,34 @@ const ProductMediaSchema = new Schema<IProductMedia>(
   { _id: false }
 );
 
+const ProductDocumentSchema = new Schema(
+  {
+    id: { type: String, required: true },
+    type: {
+      type: String,
+      enum: ['datasheet', 'manual', 'schematic', 'pinout', 'in_box', 'other'],
+      default: 'datasheet',
+    },
+    title: { type: String, required: true },
+    file_url: { type: String, required: true },
+    file_format: { type: String, default: 'pdf' },
+    file_size_bytes: { type: Number },
+    version: { type: String },
+    sort_order: { type: Number, default: 0 },
+    is_verified: { type: Boolean, default: true },
+  },
+  { _id: false }
+);
+
+const InBoxItemSchema = new Schema(
+  {
+    item_name: { type: String, required: true },
+    quantity: { type: Number, required: true, default: 1 },
+    notes: { type: String },
+  },
+  { _id: false }
+);
+
 const ProductSchema = new Schema<IProduct>(
   {
     name: { type: String, required: true },
@@ -208,6 +260,8 @@ const ProductSchema = new Schema<IProduct>(
     show_supplier_publicly: { type: Boolean, default: false },
     bulk_price_tiers: [BulkPriceTierSchema],
     technical_specs: [TechnicalSpecSchema],
+    documents: [ProductDocumentSchema],
+    in_box_items: [InBoxItemSchema],
     applications: [{ type: String }],
     certifications: [{ type: String }],
     model_number: { type: String },
@@ -297,6 +351,10 @@ export interface IOrder extends Document {
   tracking_url?: string;
   notes?: string;
   items: IOrderItem[];
+  confirmation_email_sent?: boolean;
+  confirmation_email_sent_at?: Date;
+  shipment_email_sent?: boolean;
+  shipment_email_sent_at?: Date;
   created_at: Date;
   updated_at: Date;
 }
@@ -348,6 +406,10 @@ const OrderSchema = new Schema<IOrder>(
     tracking_url: { type: String },
     notes: { type: String },
     items: [OrderItemSchema],
+    confirmation_email_sent: { type: Boolean, default: false },
+    confirmation_email_sent_at: { type: Date },
+    shipment_email_sent: { type: Boolean, default: false },
+    shipment_email_sent_at: { type: Date },
   },
   { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } }
 );
@@ -693,4 +755,141 @@ const EnquirySchema = new Schema<IEnquiry>(
 
 export const EnquiryModel: Model<IEnquiry> =
   mongoose.models.Enquiry || mongoose.model<IEnquiry>('Enquiry', EnquirySchema);
+
+// ---------------------------------------------------------------------------
+// 16. STOCK SUBSCRIPTION SCHEMA & MODEL (Back-in-Stock Notifications)
+// ---------------------------------------------------------------------------
+export interface IStockSubscription extends Document {
+  product_id: string;
+  variant_id?: string;
+  sku?: string;
+  email: string;
+  user_id?: string;
+  status: 'active' | 'notified' | 'unsubscribed';
+  unsubscribe_token: string;
+  notified_at?: Date;
+  created_at: Date;
+  updated_at: Date;
+}
+
+const StockSubscriptionSchema = new Schema<IStockSubscription>(
+  {
+    product_id: { type: String, required: true, index: true },
+    variant_id: { type: String },
+    sku: { type: String },
+    email: { type: String, required: true, lowercase: true, trim: true, index: true },
+    user_id: { type: String },
+    status: {
+      type: String,
+      enum: ['active', 'notified', 'unsubscribed'],
+      default: 'active',
+      index: true,
+    },
+    unsubscribe_token: { type: String, required: true, index: true },
+    notified_at: { type: Date },
+  },
+  { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } }
+);
+
+StockSubscriptionSchema.index({ product_id: 1, email: 1, status: 1 });
+
+export const StockSubscriptionModel: Model<IStockSubscription> =
+  mongoose.models.StockSubscription ||
+  mongoose.model<IStockSubscription>('StockSubscription', StockSubscriptionSchema);
+
+// ---------------------------------------------------------------------------
+// 17. OTP CHALLENGE SCHEMA & MODEL (Secure 120s Email Verification)
+// ---------------------------------------------------------------------------
+export interface IOtpChallenge extends Document {
+  challenge_id: string;
+  email: string;
+  purpose: 'registration' | 'password_reset' | 'email_change';
+  otp_hash: string;
+  expires_at: Date;
+  attempts: number;
+  max_attempts: number;
+  is_consumed: boolean;
+  is_invalidated: boolean;
+  consumed_at?: Date;
+  ip_address?: string;
+  metadata?: Record<string, any>;
+  resend_count: number;
+  last_sent_at: Date;
+  created_at: Date;
+  updated_at: Date;
+}
+
+const OtpChallengeSchema = new Schema<IOtpChallenge>(
+  {
+    challenge_id: { type: String, required: true, unique: true, index: true },
+    email: { type: String, required: true, lowercase: true, trim: true, index: true },
+    purpose: {
+      type: String,
+      enum: ['registration', 'password_reset', 'email_change'],
+      required: true,
+      index: true,
+    },
+    otp_hash: { type: String, required: true },
+    expires_at: { type: Date, required: true },
+    attempts: { type: Number, default: 0 },
+    max_attempts: { type: Number, default: 5 },
+    is_consumed: { type: Boolean, default: false, index: true },
+    is_invalidated: { type: Boolean, default: false, index: true },
+    consumed_at: { type: Date },
+    ip_address: { type: String },
+    metadata: { type: Schema.Types.Mixed },
+    resend_count: { type: Number, default: 0 },
+    last_sent_at: { type: Date, default: Date.now },
+  },
+  { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } }
+);
+
+// TTL index for automatic Mongo background cleanup (keeps records 2 hours after expires_at)
+// Security note: Application logic strictly enforces authoritative 120-second validity
+OtpChallengeSchema.index({ expires_at: 1 }, { expireAfterSeconds: 7200 });
+OtpChallengeSchema.index({ email: 1, purpose: 1, is_consumed: 1, is_invalidated: 1 });
+
+export const OtpChallengeModel: Model<IOtpChallenge> =
+  mongoose.models.OtpChallenge ||
+  mongoose.model<IOtpChallenge>('OtpChallenge', OtpChallengeSchema);
+
+// ---------------------------------------------------------------------------
+// 18. EMAIL QUOTA LEDGER SCHEMA & MODEL (Resend Free-Tier Protection)
+// ---------------------------------------------------------------------------
+export interface IEmailQuotaLedger extends Document {
+  date_key: string; // YYYY-MM-DD
+  month_key: string; // YYYY-MM
+  category: 'P0' | 'P1' | 'P2' | 'P3';
+  attempt_count: number;
+  accepted_count: number;
+  failed_count: number;
+  suppressed_count: number;
+  updated_at: Date;
+}
+
+const EmailQuotaLedgerSchema = new Schema<IEmailQuotaLedger>(
+  {
+    date_key: { type: String, required: true, index: true },
+    month_key: { type: String, required: true, index: true },
+    category: {
+      type: String,
+      enum: ['P0', 'P1', 'P2', 'P3'],
+      required: true,
+      index: true,
+    },
+    attempt_count: { type: Number, default: 0 },
+    accepted_count: { type: Number, default: 0 },
+    failed_count: { type: Number, default: 0 },
+    suppressed_count: { type: Number, default: 0 },
+  },
+  { timestamps: { createdAt: false, updatedAt: 'updated_at' } }
+);
+
+EmailQuotaLedgerSchema.index({ date_key: 1, category: 1 }, { unique: true });
+
+export const EmailQuotaLedgerModel: Model<IEmailQuotaLedger> =
+  mongoose.models.EmailQuotaLedger ||
+  mongoose.model<IEmailQuotaLedger>('EmailQuotaLedger', EmailQuotaLedgerSchema);
+
+
 

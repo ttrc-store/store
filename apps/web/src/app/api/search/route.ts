@@ -28,7 +28,16 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ results: [] });
     }
 
-    const products = await searchStoreProducts(query, { limit: 8 });
+    const voltage = searchParams.get('voltage') || undefined;
+    const type = searchParams.get('type') || undefined;
+    const inStock = searchParams.get('inStock') === 'true';
+
+    const products = await searchStoreProducts(query, {
+      limit: 8,
+      voltage,
+      productType: type,
+      inStockOnly: inStock || undefined,
+    });
 
     return NextResponse.json({
       results: products.map((p) => ({

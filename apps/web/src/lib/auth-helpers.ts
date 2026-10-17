@@ -28,6 +28,7 @@ export interface AuthenticatedUser {
   email: string;
   role: UserRole;
   fullName?: string;
+  emailVerified?: boolean;
 }
 
 interface JWTPayload {
@@ -80,6 +81,7 @@ export async function getAuthenticatedUser(): Promise<
         email: 'admin@ttrc.store',
         role: 'admin',
         fullName: 'Store Admin',
+        emailVerified: true,
       },
     };
   }
@@ -102,17 +104,39 @@ export async function getAuthenticatedUser(): Promise<
       return { error: 'Unauthenticated', status: 401 };
     }
 
+    const isVerified =
+      dbUser.role === 'admin' ||
+      dbUser.role === 'staff' ||
+      dbUser.email_verified === true;
+
     return {
       user: {
         id: dbUser._id.toString(),
         email: dbUser.email,
         role: dbUser.role,
         fullName: dbUser.full_name,
+        emailVerified: isVerified,
       },
     };
   } catch {
     return { error: 'Unauthenticated', status: 401 };
   }
+}
+
+export async function requireVerifiedEmail(): Promise<
+  { user: AuthenticatedUser } | { error: string; status: number }
+> {
+  const result = await getAuthenticatedUser();
+  if ('error' in result) {
+    return result;
+  }
+  if (!result.user.emailVerified) {
+    return {
+      error: 'Email verification required. Please verify your email address to access this feature.',
+      status: 403,
+    };
+  }
+  return result;
 }
 
 export async function requireAdmin(): Promise<
@@ -126,6 +150,7 @@ export async function requireAdmin(): Promise<
         email: 'admin@tamizhtech.in',
         role: 'admin',
         fullName: 'Store Admin',
+        emailVerified: true,
       },
     };
   }

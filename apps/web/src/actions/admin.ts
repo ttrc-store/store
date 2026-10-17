@@ -7,6 +7,8 @@ import { ProductModel, CategoryModel, OrderModel, UserModel, CouponModel, AuditL
 import { requireAdmin } from '@/lib/auth-helpers';
 import { ProductSchema, sanitizeVideoEmbedUrl } from '@/lib/video-utils';
 import { revalidatePath } from 'next/cache';
+import { notifySubscribersOnRestock } from '@/actions/stock-subscriptions';
+import { sendOrderStatusUpdate } from '@/lib/email/resend';
 
 function revalidateCatalog(slug?: string, oldSlug?: string) {
   try {
@@ -193,6 +195,8 @@ export async function createProductAction(input: z.infer<typeof ProductSchema>) 
       warranty: data.warranty,
       bulk_price_tiers: data.bulkPriceTiers || [],
       technical_specs: data.specs || [],
+      documents: data.documents || [],
+      in_box_items: data.in_box_items || [],
       applications: data.applications || [],
       certifications: data.certifications || [],
       images,
@@ -303,6 +307,8 @@ export async function updateProductAction(
           warranty: data.warranty,
           bulk_price_tiers: data.bulkPriceTiers || [],
           technical_specs: data.specs || [],
+          documents: data.documents || [],
+          in_box_items: data.in_box_items || [],
           applications: data.applications || [],
           certifications: data.certifications || [],
           images,
@@ -317,6 +323,13 @@ export async function updateProductAction(
 
     if (!updated) {
       return { error: 'Product not found.' };
+    }
+
+    // Trigger back-in-stock notifications if item transitioned from <= 0 to > 0 stock
+    if ((existing.stock_quantity ?? 0) <= 0 && data.stockQty > 0) {
+      notifySubscribersOnRestock(id, updated.name, updated.slug, updated.price).catch((err) => {
+        console.error('[Stock Alert Dispatch Warning]', err);
+      });
     }
 
     // Record administrative audit log
@@ -401,6 +414,21 @@ export async function getAdminProductByIdAction(id: string) {
         media: doc.media || [],
         bulkPriceTiers: doc.bulk_price_tiers || [],
         specs: doc.technical_specs || [],
+        documents: (doc.documents || []).map((d: any) => ({
+          id: d.id,
+          type: d.type,
+          title: d.title,
+          fileUrl: d.file_url,
+          fileFormat: d.file_format,
+          fileSizeBytes: d.file_size_bytes,
+          version: d.version,
+          isVerified: d.is_verified,
+        })),
+        inBoxItems: (doc.in_box_items || []).map((item: any) => ({
+          itemName: item.item_name,
+          quantity: item.quantity,
+          notes: item.notes,
+        })),
         applications: doc.applications || [],
         certifications: doc.certifications || [],
         modelNumber: doc.model_number,
@@ -591,6 +619,29 @@ export async function updateOrderStatusAction(
     }
 
     await order.save();
+
+    // Send shipment notification email if transition to shipped
+    if (targetStatus === 'shipped' && !order.shipment_email_sent) {
+      const recipientEmail = order.shipping_address?.email || order.guest_email;
+      if (recipientEmail) {
+        try {
+          await sendOrderStatusUpdate({
+            toEmail: recipientEmail,
+            customerName: order.shipping_address?.fullName || 'Customer',
+            orderNumber: order.order_number,
+            status: 'shipped',
+            courierName: 'Shiprocket',
+            trackingNumber: trackingNumber || order.tracking_number,
+            trackingUrl: order.tracking_url,
+          });
+          order.shipment_email_sent = true;
+          order.shipment_email_sent_at = new Date();
+          await order.save();
+        } catch (emailErr) {
+          console.warn('[updateOrderStatusAction] Shipment email dispatch failed:', emailErr);
+        }
+      }
+    }
 
     // Record audit log
     await AuditLogModel.create({

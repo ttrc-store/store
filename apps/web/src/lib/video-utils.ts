@@ -85,6 +85,30 @@ export const ProductSchema = z
     seoTitle: z.string().optional(),
     seoDescription: z.string().optional(),
     specs: z.array(z.object({ key: z.string(), value: z.string() })).optional(),
+    documents: z
+      .array(
+        z.object({
+          id: z.string().optional(),
+          type: z.enum(['datasheet', 'manual', 'schematic', 'pinout', 'in_box', 'other']).default('datasheet'),
+          title: z.string().min(1, 'Document title is required'),
+          file_url: z.string().min(1, 'Document file URL is required'),
+          file_format: z.string().optional(),
+          file_size_bytes: z.number().optional(),
+          version: z.string().optional(),
+          sort_order: z.number().optional(),
+          is_verified: z.boolean().default(true),
+        })
+      )
+      .optional(),
+    in_box_items: z
+      .array(
+        z.object({
+          item_name: z.string().min(1, 'Item name is required'),
+          quantity: z.number().int().positive().default(1),
+          notes: z.string().optional(),
+        })
+      )
+      .optional(),
   })
   .superRefine((val, ctx) => {
     const imagesCount = val.imageUrls?.length || 0;

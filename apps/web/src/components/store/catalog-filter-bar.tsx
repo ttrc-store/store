@@ -15,6 +15,7 @@ interface CatalogFilterBarProps {
   maxPrice?: string;
   availableBrands?: string[];
   currentBrand?: string;
+  currentVoltage?: string;
 }
 
 export function CatalogFilterBar({
@@ -26,6 +27,7 @@ export function CatalogFilterBar({
   maxPrice = '',
   availableBrands = ['Tamizh Tech', 'TTRC Spares', 'TTRC Power'],
   currentBrand = 'all',
+  currentVoltage = 'all',
 }: CatalogFilterBarProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -77,20 +79,20 @@ export function CatalogFilterBar({
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Top Toolbar: Count + Sort Selection */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl bg-purple-50/50 border border-purple-100 shadow-xs">
+      <div className="flex flex-col gap-2.5 p-3.5 sm:p-4 rounded-2xl bg-purple-50/50 border border-purple-100 shadow-xs">
         <p className="text-xs text-slate-700">
           Showing <strong className="text-slate-900 font-bold">{totalCount}</strong> matching components
         </p>
 
-        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end">
-          <label htmlFor="catalog-sort" className="text-xs font-bold text-slate-600 whitespace-nowrap">
+        <div className="flex items-center gap-2 w-full justify-between">
+          <label htmlFor="catalog-sort" className="text-xs font-bold text-slate-600 whitespace-nowrap shrink-0">
             Sort by:
           </label>
           <select
             id="catalog-sort"
             value={currentSort}
             onChange={(e) => updateParam('sort', e.target.value)}
-            className="bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-slate-800 font-semibold focus:ring-2 focus:ring-[#844AFB] focus:border-[#844AFB] shadow-xs cursor-pointer"
+            className="flex-1 min-w-0 bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs text-slate-800 font-semibold focus:ring-2 focus:ring-[#844AFB] focus:border-[#844AFB] shadow-xs cursor-pointer truncate"
           >
             <option value="featured">Featured / Recommended</option>
             <option value="newest">Newest Arrivals</option>
@@ -239,6 +241,34 @@ export function CatalogFilterBar({
             </div>
           </div>
         )}
+
+        {/* Operating Voltage Technical Spec Filter */}
+        <div className="pt-4 border-t border-slate-100 space-y-2.5">
+          <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Operating Voltage</h4>
+          <div className="space-y-1.5 text-xs">
+            {[
+              { id: 'all', label: 'All Voltages' },
+              { id: '3.3V', label: '3.3V Logic' },
+              { id: '5V', label: '5V Standard' },
+              { id: '7', label: '7–12V DC (Robo Race / LFR)' },
+              { id: '12V', label: '12V Power Motors' },
+            ].map((v) => (
+              <label
+                key={v.id}
+                className="flex items-center gap-2 text-slate-700 cursor-pointer hover:text-[#844AFB]"
+              >
+                <input
+                  type="radio"
+                  name="voltageFilter"
+                  checked={currentVoltage === v.id}
+                  onChange={() => updateParam('voltage', v.id)}
+                  className="accent-[#844AFB]"
+                />
+                <span>{v.label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
         </div>
       </div>
     </div>

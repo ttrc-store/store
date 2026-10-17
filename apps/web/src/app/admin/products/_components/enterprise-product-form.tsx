@@ -529,6 +529,35 @@ export function EnterpriseProductForm({
   );
   const [newCertInput, setNewCertInput] = React.useState('');
 
+  // Documents & Manuals
+  const [documents, setDocuments] = React.useState<
+    Array<{
+      id: string;
+      type: 'datasheet' | 'manual' | 'schematic' | 'pinout' | 'in_box' | 'other';
+      title: string;
+      fileUrl: string;
+      fileFormat?: string;
+      version?: string;
+      isVerified?: boolean;
+    }>
+  >(initialData?.documents || []);
+
+  const [newDocType, setNewDocType] = React.useState<
+    'datasheet' | 'manual' | 'schematic' | 'pinout' | 'in_box' | 'other'
+  >('datasheet');
+  const [newDocTitle, setNewDocTitle] = React.useState('');
+  const [newDocUrl, setNewDocUrl] = React.useState('');
+  const [newDocVersion, setNewDocVersion] = React.useState('');
+
+  // In-Box Package Checklist
+  const [inBoxItems, setInBoxItems] = React.useState<
+    Array<{ itemName: string; quantity: number; notes?: string }>
+  >(initialData?.inBoxItems || []);
+
+  const [newInBoxName, setNewInBoxName] = React.useState('');
+  const [newInBoxQty, setNewInBoxQty] = React.useState('1');
+  const [newInBoxNotes, setNewInBoxNotes] = React.useState('');
+
   // SEO
   const [seoTitle, setSeoTitle] = React.useState(initialData?.seoTitle || '');
   const [seoDescription, setSeoDescription] = React.useState(initialData?.seoDescription || '');
@@ -890,6 +919,49 @@ export function EnterpriseProductForm({
     setCertifications(certifications.filter((_, i) => i !== index));
   };
 
+  const handleAddDocument = () => {
+    if (!newDocTitle.trim() || !newDocUrl.trim()) return;
+    const format = newDocUrl.toLowerCase().endsWith('.pdf') ? 'pdf' : 'png';
+    setDocuments([
+      ...documents,
+      {
+        id: `doc-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+        type: newDocType,
+        title: newDocTitle.trim(),
+        fileUrl: newDocUrl.trim(),
+        fileFormat: format,
+        version: newDocVersion.trim() || undefined,
+        isVerified: true,
+      },
+    ]);
+    setNewDocTitle('');
+    setNewDocUrl('');
+    setNewDocVersion('');
+  };
+
+  const handleRemoveDocument = (index: number) => {
+    setDocuments(documents.filter((_, i) => i !== index));
+  };
+
+  const handleAddInBoxItem = () => {
+    if (!newInBoxName.trim()) return;
+    setInBoxItems([
+      ...inBoxItems,
+      {
+        itemName: newInBoxName.trim(),
+        quantity: parseInt(newInBoxQty, 10) || 1,
+        notes: newInBoxNotes.trim() || undefined,
+      },
+    ]);
+    setNewInBoxName('');
+    setNewInBoxQty('1');
+    setNewInBoxNotes('');
+  };
+
+  const handleRemoveInBoxItem = (index: number) => {
+    setInBoxItems(inBoxItems.filter((_, i) => i !== index));
+  };
+
   // Form Submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -980,6 +1052,20 @@ export function EnterpriseProductForm({
       videoUrl: videoUrl.trim() || undefined,
       bulkPriceTiers: formattedBulkTiers,
       specs: specs.filter((s) => s.key.trim() && s.value.trim()),
+      documents: documents.map((d) => ({
+        id: d.id,
+        type: d.type,
+        title: d.title,
+        file_url: d.fileUrl,
+        file_format: d.fileFormat || 'pdf',
+        version: d.version,
+        is_verified: d.isVerified ?? true,
+      })),
+      in_box_items: inBoxItems.map((item) => ({
+        item_name: item.itemName,
+        quantity: item.quantity,
+        notes: item.notes,
+      })),
       seoTitle: seoTitle.trim() || `${name} | TTRC Store`,
       seoDescription: seoDescription.trim() || shortDescription,
     };
@@ -2318,6 +2404,192 @@ export function EnterpriseProductForm({
               className="w-full p-2.5 rounded-md border border-slate-200 text-xs bg-white focus:border-purple-600 focus:outline-none"
             />
           </div>
+        </div>
+      </div>
+
+      {/* SECTION 11: Product Documentation & In-Box Checklist */}
+      <div className="p-6 rounded-2xl bg-white border border-slate-200 space-y-6 shadow-xs">
+        <div>
+          <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
+            <FileText size={16} className="text-[#844AFB]" /> 11. Engineering Documentation &amp; In-Box Checklist
+          </h2>
+          <p className="text-xs text-slate-500 mt-2">
+            Upload or link verified engineering manuals, datasheets, wiring schematics, and pinouts. Configure package checklist items.
+          </p>
+        </div>
+
+        {/* Sub-section A: Product Documents */}
+        <div className="space-y-3">
+          <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+            Technical Documents &amp; Manuals ({documents.length})
+          </h3>
+
+          <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 grid grid-cols-1 sm:grid-cols-4 gap-2.5 text-xs">
+            <div>
+              <label className="font-semibold text-slate-600 block mb-1">Doc Type</label>
+              <select
+                value={newDocType}
+                onChange={(e: any) => setNewDocType(e.target.value)}
+                className="w-full h-8 px-2 rounded-md border border-slate-300 text-xs bg-white"
+              >
+                <option value="datasheet">Datasheet (PDF)</option>
+                <option value="manual">User Manual / Guide</option>
+                <option value="schematic">Wiring Schematic</option>
+                <option value="pinout">Pinout Diagram</option>
+                <option value="in_box">In-Box Checklist</option>
+                <option value="other">Other Technical Document</option>
+              </select>
+            </div>
+            <div>
+              <label className="font-semibold text-slate-600 block mb-1">Display Title *</label>
+              <Input
+                placeholder="e.g. Hardware Datasheet v2.1"
+                value={newDocTitle}
+                onChange={(e) => setNewDocTitle(e.target.value)}
+                className="h-8 text-xs bg-white"
+              />
+            </div>
+            <div>
+              <label className="font-semibold text-slate-600 block mb-1">File URL / Storage Link *</label>
+              <Input
+                placeholder="https://... or /docs/..."
+                value={newDocUrl}
+                onChange={(e) => setNewDocUrl(e.target.value)}
+                className="h-8 text-xs bg-white font-mono"
+              />
+            </div>
+            <div className="flex items-end gap-2">
+              <div className="flex-1">
+                <label className="font-semibold text-slate-600 block mb-1">Version</label>
+                <Input
+                  placeholder="v1.0"
+                  value={newDocVersion}
+                  onChange={(e) => setNewDocVersion(e.target.value)}
+                  className="h-8 text-xs bg-white"
+                />
+              </div>
+              <Button
+                type="button"
+                onClick={handleAddDocument}
+                disabled={!newDocTitle.trim() || !newDocUrl.trim()}
+                className="h-8 px-3 text-xs font-bold bg-[#844AFB] text-white hover:bg-[#6721F2]"
+              >
+                Add Document
+              </Button>
+            </div>
+          </div>
+
+          {documents.length > 0 ? (
+            <div className="divide-y divide-slate-100 rounded-xl border border-slate-200 overflow-hidden text-xs">
+              {documents.map((doc, idx) => (
+                <div key={doc.id || idx} className="p-3 flex items-center justify-between gap-3 bg-white hover:bg-slate-50 transition-colors">
+                  <div className="flex items-center gap-2.5 overflow-hidden">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-purple-100 text-purple-800">
+                      {doc.type}
+                    </span>
+                    <span className="font-bold text-slate-900 truncate">{doc.title}</span>
+                    {doc.version && (
+                      <span className="text-[11px] font-mono text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
+                        {doc.version}
+                      </span>
+                    )}
+                    <a
+                      href={doc.fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-slate-400 hover:text-purple-600 transition-colors shrink-0"
+                      title="Preview Document Link"
+                    >
+                      <ExternalLink size={13} />
+                    </a>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveDocument(idx)}
+                    className="text-slate-400 hover:text-red-600 p-1 rounded transition-colors shrink-0"
+                    title="Remove document"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-[11px] text-slate-400 italic">No engineering documents attached yet.</p>
+          )}
+        </div>
+
+        {/* Sub-section B: In-Box Checklist */}
+        <div className="space-y-3 pt-4 border-t border-slate-100">
+          <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+            In The Box Checklist ({inBoxItems.length})
+          </h3>
+
+          <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 grid grid-cols-1 sm:grid-cols-4 gap-2.5 text-xs">
+            <div className="sm:col-span-2">
+              <label className="font-semibold text-slate-600 block mb-1">Item Name *</label>
+              <Input
+                placeholder="e.g. TTRC LF 6.0 Carrier PCB Board"
+                value={newInBoxName}
+                onChange={(e) => setNewInBoxName(e.target.value)}
+                className="h-8 text-xs bg-white"
+              />
+            </div>
+            <div>
+              <label className="font-semibold text-slate-600 block mb-1">Quantity</label>
+              <Input
+                type="number"
+                min="1"
+                value={newInBoxQty}
+                onChange={(e) => setNewInBoxQty(e.target.value)}
+                className="h-8 text-xs bg-white"
+              />
+            </div>
+            <div className="flex items-end gap-2">
+              <div className="flex-1">
+                <label className="font-semibold text-slate-600 block mb-1">Notes (Optional)</label>
+                <Input
+                  placeholder="e.g. Pre-assembled"
+                  value={newInBoxNotes}
+                  onChange={(e) => setNewInBoxNotes(e.target.value)}
+                  className="h-8 text-xs bg-white"
+                />
+              </div>
+              <Button
+                type="button"
+                onClick={handleAddInBoxItem}
+                disabled={!newInBoxName.trim()}
+                className="h-8 px-3 text-xs font-bold bg-[#844AFB] text-white hover:bg-[#6721F2]"
+              >
+                Add Item
+              </Button>
+            </div>
+          </div>
+
+          {inBoxItems.length > 0 ? (
+            <div className="divide-y divide-slate-100 rounded-xl border border-slate-200 overflow-hidden text-xs">
+              {inBoxItems.map((item, idx) => (
+                <div key={idx} className="p-2.5 flex items-center justify-between gap-3 bg-white hover:bg-slate-50 transition-colors">
+                  <div className="flex items-center gap-2">
+                    <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-[10px]">
+                      {item.quantity}×
+                    </span>
+                    <span className="font-semibold text-slate-900">{item.itemName}</span>
+                    {item.notes && <span className="text-slate-500 text-[11px]">({item.notes})</span>}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveInBoxItem(idx)}
+                    className="text-slate-400 hover:text-red-600 p-1 rounded transition-colors"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-[11px] text-slate-400 italic">No in-box checklist items specified yet.</p>
+          )}
         </div>
       </div>
 

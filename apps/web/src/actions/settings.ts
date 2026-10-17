@@ -119,3 +119,15 @@ export async function updateSiteSettingAction(key: keyof SiteSettings, value: un
     return { error: err.message || 'Failed to update setting' };
   }
 }
+
+/**
+ * Admin action to inspect Resend quota ledger, daily/monthly counts, and usage API status.
+ */
+export async function getEmailQuotaSummaryAction() {
+  const auth = await requireAdmin();
+  if ('error' in auth) return { error: auth.error };
+
+  const { getQuotaSummary } = await import('@/lib/email/quota-manager');
+  const summary = await getQuotaSummary();
+  return { success: true, summary };
+}

@@ -4,6 +4,7 @@ import { connectToDatabase } from '@/lib/mongodb/client';
 import { OrderModel, AuditLogModel } from '@/lib/mongodb/models';
 import { getAuthenticatedUser } from '@/lib/auth-helpers';
 import { generateBillNumber } from '@/lib/id-generator';
+import { sendOrderConfirmation, sendPaymentConfirmation } from '@/lib/email/resend';
 
 /**
  * POST /api/verify-payment
@@ -282,6 +283,45 @@ export async function POST(request: Request) {
     });
 
     console.log(`[verify-payment] ✅ Authoritatively verified and marked order ${order.order_number} as PAID.`);
+
+    // 11. Dispatch Order & Payment Confirmation Email (Idempotency checked)
+    if (!order.confirmation_email_sent) {
+      const recipientEmail = order.shipping_address?.email || order.guest_email || user?.email;
+      if (recipientEmail) {
+        try {
+          await sendOrderConfirmation({
+            toEmail: recipientEmail,
+            customerName: order.shipping_address?.fullName || user?.fullName || 'Customer',
+            orderNumber: order.order_number,
+            billNumber: order.bill_number,
+            totalAmountPaise: order.total,
+            paymentMethod: 'razorpay',
+            shippingAddress: order.shipping_address || {},
+            items: (order.items || []).map((i: any) => ({
+              name: i.product_name,
+              quantity: i.quantity,
+              pricePaise: i.unit_price,
+            })),
+          });
+
+          await sendPaymentConfirmation({
+            toEmail: recipientEmail,
+            customerName: order.shipping_address?.fullName || user?.fullName || 'Customer',
+            orderNumber: order.order_number,
+            billNumber: order.bill_number,
+            paymentId,
+            amountPaise: paymentEntity.amount,
+            paymentMethod: 'razorpay',
+          });
+
+          order.confirmation_email_sent = true;
+          order.confirmation_email_sent_at = new Date();
+          await order.save();
+        } catch (emailErr) {
+          console.warn('[verify-payment] Email dispatch failed (payment state safely preserved):', emailErr);
+        }
+      }
+    }
 
     return NextResponse.json({
       success: true,

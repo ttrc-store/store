@@ -464,7 +464,7 @@ export default function Header({ user, categories }: HeaderProps) {
           <div className="flex items-center gap-2.5 text-slate-700 font-mono tracking-wide text-[11px]">
             <span className="w-2 h-2 rounded-full bg-[#E3132A] animate-pulse" />
             <span className="font-bold text-slate-900 tracking-wider text-[11px]">
-              Think It. Build It. Make It Move
+              Think it. Build it. Make it. Move it.
             </span>
           </div>
           <Link

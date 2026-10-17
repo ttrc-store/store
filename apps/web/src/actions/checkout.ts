@@ -44,6 +44,7 @@ const CreateOrderSchema = z.object({
       gstin: z.string().regex(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/, 'Invalid 15-character GSTIN format'),
     })
     .optional(),
+  existingPendingOrderId: z.string().optional(),
 });
 
 type CreateOrderInput = z.infer<typeof CreateOrderSchema>;
@@ -53,7 +54,7 @@ export async function createOrderAction(raw: CreateOrderInput) {
   if (!validation.success) {
     return { error: validation.error.errors[0].message };
   }
-  const { items, paymentMethod, shippingAddress, billingAddress, stateCode, couponCode, guestEmail, companyGst } = validation.data;
+  const { items, paymentMethod, shippingAddress, billingAddress, stateCode, couponCode, guestEmail, companyGst, existingPendingOrderId } = validation.data;
 
   // Strict enforcement: Cash on Delivery is not supported on TTRC Store
   if (paymentMethod !== 'razorpay') {
@@ -68,6 +69,43 @@ export async function createOrderAction(raw: CreateOrderInput) {
 
   if (!isAuthenticated && !guestEmail) {
     return { error: 'Please provide an email address for guest checkout or sign in to your account.' };
+  }
+
+  // If retrying with an existing pending order, check if it can be safely reused without double stock deduction
+  if (existingPendingOrderId) {
+    try {
+      await connectToDatabase();
+      const isObjectId = /^[0-9a-fA-F]{24}$/.test(existingPendingOrderId);
+      const query: any = {
+        $and: [
+          {
+            $or: [
+              ...(isObjectId ? [{ _id: existingPendingOrderId }] : []),
+              { order_number: existingPendingOrderId },
+            ],
+          },
+          { status: 'pending', payment_status: 'pending' },
+        ],
+      };
+      if (user) {
+        query.$and.push({ user_id: user.id });
+      } else if (guestEmail) {
+        query.$and.push({ guest_email: guestEmail.toLowerCase().trim() });
+      }
+
+      const existingOrder = await OrderModel.findOne(query);
+      if (existingOrder) {
+        return {
+          success: true,
+          orderNumber: existingOrder.order_number,
+          orderId: existingOrder._id.toString(),
+          paymentMethod: 'razorpay',
+          amountPaise: existingOrder.total,
+        };
+      }
+    } catch {
+      // Continue with standard creation if reuse check encounters an issue
+    }
   }
 
   // Rate limit: 5 order attempts per minute per user / guest phone
@@ -359,3 +397,109 @@ export async function cancelOrderAction(orderId: string) {
     return { error: 'Failed to cancel order.' };
   }
 }
+
+export async function releasePendingOrderAction(orderId: string, guestEmail?: string) {
+  if (!orderId) return { error: 'Order ID is required.' };
+
+  const auth = await getAuthenticatedUser();
+  const isAuthenticated = !('error' in auth);
+  const user = isAuthenticated ? auth.user : null;
+
+  try {
+    await connectToDatabase();
+    const isObjectId = /^[0-9a-fA-F]{24}$/.test(orderId);
+    const query: any = {
+      $and: [
+        {
+          $or: [
+            ...(isObjectId ? [{ _id: orderId }] : []),
+            { order_number: orderId },
+          ],
+        },
+        { status: 'pending', payment_status: 'pending' },
+      ],
+    };
+
+    if (user) {
+      query.$and.push({ user_id: user.id });
+    } else if (guestEmail) {
+      query.$and.push({ guest_email: guestEmail.toLowerCase().trim() });
+    }
+
+    const order = await OrderModel.findOneAndUpdate(
+      query,
+      {
+        $set: {
+          status: 'cancelled',
+          payment_status: 'failed',
+        },
+      },
+      { new: false }
+    );
+    if (!order) {
+      return { error: 'Pending order not found or already completed.' };
+    }
+
+    order.notes = (order.notes ? order.notes + ' | ' : '') + 'Payment window dismissed or cancelled by customer. Inventory released.';
+    await order.save();
+
+    // Restock all reserved items atomically
+    for (const item of order.items) {
+      await ProductModel.findByIdAndUpdate(item.product_id, {
+        $inc: { stock_quantity: item.quantity },
+      });
+    }
+
+    return { success: true, message: 'Reserved stock restored successfully.' };
+  } catch (err: any) {
+    console.error('[Release Pending Order Error]', err);
+    return { error: 'Failed to release pending order.' };
+  }
+}
+
+export async function cleanupExpiredPendingOrdersAction(maxAgeMinutes = 30) {
+  try {
+    await connectToDatabase();
+    const expiryThreshold = new Date(Date.now() - maxAgeMinutes * 60 * 1000);
+
+    const expiredOrders = await OrderModel.find({
+      status: 'pending',
+      payment_status: 'pending',
+      created_at: { $lt: expiryThreshold },
+    }).lean();
+
+    let releasedCount = 0;
+    for (const order of expiredOrders) {
+      const atomicOrder = await OrderModel.findOneAndUpdate(
+        {
+          _id: order._id,
+          status: 'pending',
+          payment_status: 'pending',
+        },
+        {
+          $set: {
+            status: 'cancelled',
+            payment_status: 'failed',
+            notes: `Auto-cancelled after ${maxAgeMinutes} minutes of checkout inactivity. Inventory released.`,
+          },
+        },
+        { new: false }
+      );
+
+      if (atomicOrder) {
+        for (const item of atomicOrder.items) {
+          await ProductModel.findByIdAndUpdate(item.product_id, {
+            $inc: { stock_quantity: item.quantity },
+          });
+        }
+        releasedCount++;
+      }
+    }
+
+    return { success: true, releasedCount };
+  } catch (err: any) {
+    console.error('[Cleanup Expired Orders Error]', err);
+    return { error: 'Failed to cleanup expired orders.' };
+  }
+}
+

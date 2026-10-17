@@ -78,7 +78,7 @@ function HeroSection() {
             {/* H1 */}
             <h1 className="font-heading text-3xl sm:text-4xl lg:text-[2.65rem] font-extrabold tracking-tight text-[#050507] leading-[1.12]">
               Engineering Products<br />
-              <span className="text-[#844AFB]">Built to Create More</span>
+              <span className="text-[#E3132A]">Built to Create More</span>
             </h1>
 
             <p className="text-slate-600 text-sm sm:text-base max-w-lg leading-relaxed">
@@ -88,44 +88,34 @@ function HeroSection() {
 
             {/* CTAs */}
             <div className="flex flex-wrap items-center gap-3 pt-0.5">
-              <Link href="/category/gamified-robots">
+              <Link href="/search">
                 <Button
                   size="default"
-                  className="gap-2 bg-[#844AFB] hover:bg-[#6721F2] text-white font-extrabold text-xs sm:text-sm px-6 h-10 sm:h-11 shadow-md shadow-purple-900/20 rounded-xl transition-all hover:shadow-purple-900/35 hover:-translate-y-px"
+                  className="gap-2 bg-[#E3132A] hover:bg-[#B80F21] text-white font-extrabold text-xs sm:text-sm px-6 h-10 sm:h-11 shadow-md shadow-red-900/20 rounded-xl transition-all hover:shadow-red-900/35 hover:-translate-y-px"
                   id="hero-shop-products"
                 >
-                  <span>Shop Products</span>
+                  <span>Shop Category</span>
                   <ArrowRight size={16} />
-                </Button>
-              </Link>
-              <Link href="#categories-section">
-                <Button
-                  variant="outline"
-                  size="default"
-                  className="border-[#AF87F8]/60 text-[#1E0D45] hover:bg-[#EEE8FA] rounded-xl font-bold text-xs sm:text-sm px-5 h-10 sm:h-11 transition-all"
-                  id="hero-explore-categories"
-                >
-                  Explore Categories
                 </Button>
               </Link>
             </div>
 
             {/* Trust micro-strip */}
-            <div className="pt-3 flex flex-wrap items-center gap-4 sm:gap-5 text-xs font-bold text-slate-700 border-t border-[#EEE8FA]">
+            <div className="pt-3 flex flex-wrap items-center gap-4 sm:gap-5 text-xs font-bold text-slate-700 border-t border-slate-100">
               <div className="flex items-center gap-1.5">
-                <ShieldCheck size={14} className="text-[#844AFB]" />
+                <ShieldCheck size={14} className="text-[#E3132A]" />
                 <span>GST Invoices</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <Zap size={14} className="text-[#844AFB]" />
+                <Zap size={14} className="text-[#E3132A]" />
                 <span>Dispatch within 10 days</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <Truck size={14} className="text-[#844AFB]" />
+                <Truck size={14} className="text-[#E3132A]" />
                 <span>Pan-India Delivery</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <Building size={14} className="text-[#844AFB]" />
+                <Building size={14} className="text-[#E3132A]" />
                 <span>Bulk Orders Welcome</span>
               </div>
             </div>

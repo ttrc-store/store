@@ -21,6 +21,10 @@ import {
   HelpCircle,
   Home,
   ChevronRight,
+  FileText,
+  Download,
+  ExternalLink,
+  PackageCheck,
 } from 'lucide-react';
 import {
   getProductBySlug,
@@ -37,6 +41,8 @@ import { PincodeChecker } from '@/components/store/pincode-checker';
 import { ProductOrderBox } from '@/components/store/product-order-box';
 import { ProductShareButton } from '@/components/store/product-share-button';
 import { ProductGallery } from '@/components/store/product-gallery';
+import { ProductBundleBox } from '@/components/store/product-bundle-box';
+import { ProductCompatibilityChecker } from '@/components/store/product-compatibility-checker';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -419,54 +425,34 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
         {/* ─── SPECIAL KIT SECTION: Spare Parts & Frequently Bought Together Bundle ─── */}
         {product.type === 'kit' && compatibleSpares.length > 0 && (
           <div className="space-y-10 mb-16">
-            {/* Frequently Bought Together Bundle Box */}
+            {/* Interactive Frequently Bought Together Bundle Box */}
             {bundleSpares.length > 0 && (
-              <div className="p-6 sm:p-8 rounded-2xl bg-gradient-to-r from-purple-50/50 via-white to-purple-50/50 border border-purple-200 shadow-xs space-y-6">
-                <div className="flex items-center gap-2">
-                  <Badge variant="purple">Frequently Bought Together Bundle</Badge>
-                  <span className="text-xs text-slate-500">• Save time &amp; guarantee 100% compatibility</span>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-center">
-                  {/* Bundle Product 1: Main Kit */}
-                  <div className="flex items-center gap-3">
-                    <div className="relative w-16 h-16 rounded-xl bg-white border border-slate-200 flex-shrink-0">
-                      <Image src={product.imageUrls?.[0] || '/brand/ttrc-logo.png'} alt="" fill className="object-contain p-2" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-slate-900 line-clamp-2">{product.name}</p>
-                      <PriceTag pricePaise={product.pricePaise} size="sm" />
-                    </div>
-                  </div>
-
-                  {/* Bundle Spares */}
-                  {bundleSpares.map((spare) => (
-                    <div key={spare.id} className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-700 border border-purple-200 flex items-center justify-center font-bold text-xs flex-shrink-0">
-                        +
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <div className="relative w-16 h-16 rounded-xl bg-white border border-slate-200 flex-shrink-0">
-                          <Image src={spare.imageUrls?.[0] || '/brand/ttrc-logo.png'} alt="" fill className="object-contain p-2" />
-                        </div>
-                        <div>
-                          <p className="text-xs font-bold text-slate-900 line-clamp-2">{spare.name}</p>
-                          <PriceTag pricePaise={spare.pricePaise} size="sm" />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-
-                  {/* Bundle Total & Add Button */}
-                  <div className="md:col-span-1 border-t md:border-t-0 md:border-l border-slate-200 pt-4 md:pt-0 md:pl-6 space-y-2">
-                    <p className="text-xs text-slate-500 font-semibold">Total Bundle Price:</p>
-                    <PriceTag pricePaise={bundleTotalPricePaise} size="lg" />
-                    <Button className="w-full bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold text-xs h-10 shadow-md shadow-purple-900/20 rounded-xl">
-                      Add All {1 + bundleSpares.length} Items to Cart
-                    </Button>
-                  </div>
-                </div>
-              </div>
+              <ProductBundleBox
+                kit={{
+                  id: product.id,
+                  name: product.name,
+                  slug: product.slug,
+                  pricePaise: product.pricePaise,
+                  mrpPaise: product.mrpPaise,
+                  imageUrl: product.imageUrls?.[0],
+                  gstPercent: product.gstPercent,
+                  unit: product.unit,
+                  stockQty: product.stockQty,
+                  type: 'kit',
+                }}
+                spares={bundleSpares.map((spare) => ({
+                  id: spare.id,
+                  name: spare.name,
+                  slug: spare.slug,
+                  pricePaise: spare.pricePaise,
+                  mrpPaise: spare.mrpPaise,
+                  imageUrl: spare.imageUrls?.[0],
+                  gstPercent: spare.gstPercent,
+                  unit: spare.unit,
+                  stockQty: spare.stockQty,
+                  type: 'spare_part',
+                }))}
+              />
             )}
 
             {/* Spare Parts Grid for this Kit */}
@@ -511,23 +497,43 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
           </div>
         )}
 
+        {/* Interactive Robotics Component Compatibility Checker */}
+        <div className="mb-10">
+          <ProductCompatibilityChecker
+            productName={product.name}
+            sku={product.sku}
+            slug={slug}
+            voltage={product.voltage}
+            current={product.current}
+            power={product.power}
+            productType={product.type}
+            technicalSpecs={product.technicalSpecs}
+          />
+        </div>
+
         {/* Specifications & Tabbed Information (JetBrains Mono for Specs) */}
         <div className="mb-16">
           <Tabs defaultValue="specs" className="w-full">
-            <TabsList className="bg-purple-50/60 border border-purple-100 p-1 rounded-xl mb-6">
-              <TabsTrigger value="specs" className="text-xs font-bold px-6">
+            <TabsList className="bg-purple-50/60 border border-purple-100 p-1 rounded-xl mb-6 flex flex-wrap h-auto gap-1">
+              <TabsTrigger value="specs" className="text-xs font-bold px-4 py-2">
                 Technical Specifications
               </TabsTrigger>
-              <TabsTrigger value="description" className="text-xs font-bold px-6">
+              <TabsTrigger value="docs" className="text-xs font-bold px-4 py-2">
+                Datasheets &amp; Manuals ({product.documents?.length || 0})
+              </TabsTrigger>
+              <TabsTrigger value="inbox" className="text-xs font-bold px-4 py-2">
+                In The Box ({product.inBoxItems?.length || 0})
+              </TabsTrigger>
+              <TabsTrigger value="description" className="text-xs font-bold px-4 py-2">
                 Description &amp; Applications
               </TabsTrigger>
-              <TabsTrigger value="manufacturer" className="text-xs font-bold px-6">
+              <TabsTrigger value="manufacturer" className="text-xs font-bold px-4 py-2">
                 Manufacturer &amp; Provenance
               </TabsTrigger>
-              <TabsTrigger value="faqs" className="text-xs font-bold px-6">
+              <TabsTrigger value="faqs" className="text-xs font-bold px-4 py-2">
                 Buyer Q&amp;A / FAQs
               </TabsTrigger>
-              <TabsTrigger value="reviews" className="text-xs font-bold px-6">
+              <TabsTrigger value="reviews" className="text-xs font-bold px-4 py-2">
                 Reviews ({product.reviewCount})
               </TabsTrigger>
             </TabsList>
@@ -608,6 +614,124 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
                   </div>
                 ))}
               </div>
+            </TabsContent>
+
+            {/* Datasheets & Documentation Tab (Requirement 1, 5, 6, 8) */}
+            <TabsContent
+              value="docs"
+              className="p-6 sm:p-8 rounded-2xl bg-white border border-slate-200 space-y-6"
+            >
+              <div>
+                <h3 className="font-heading text-lg font-bold text-slate-900 flex items-center gap-2">
+                  <FileText className="text-[#844AFB]" size={20} /> Official Engineering Documentation &amp; Schematics
+                </h3>
+                <p className="text-xs text-slate-500 mt-1">
+                  Verified product manuals, pinout schematics, and technical datasheets for robotics engineering.
+                </p>
+              </div>
+
+              {product.documents && product.documents.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {product.documents.map((doc) => (
+                    <div
+                      key={doc.id}
+                      className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between gap-3 hover:border-purple-300 transition-colors"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-start gap-3">
+                          <div className="w-9 h-9 rounded-lg bg-red-100/80 text-[#E3132A] flex items-center justify-center font-bold text-xs shrink-0">
+                            PDF
+                          </div>
+                          <div>
+                            <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-purple-100 text-purple-800 mb-1">
+                              {doc.type}
+                            </span>
+                            <h4 className="font-bold text-slate-900 text-sm leading-snug">{doc.title}</h4>
+                            {doc.version && (
+                              <span className="text-[11px] font-mono text-slate-500">
+                                Revision: {doc.version}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 pt-2 border-t border-slate-200/60 text-xs">
+                        <a
+                          href={doc.fileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-300 hover:border-purple-600 text-slate-800 font-bold hover:text-purple-700 transition-colors shadow-xs"
+                        >
+                          <ExternalLink size={13} /> View / Open
+                        </a>
+                        <a
+                          href={doc.fileUrl}
+                          download
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-50 hover:bg-purple-100 text-[#844AFB] font-bold transition-colors"
+                        >
+                          <Download size={13} /> Download
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-8 text-center rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                  <FileText className="mx-auto text-slate-400" size={36} />
+                  <p className="font-bold text-slate-700 text-sm">No Technical Documents Published</p>
+                  <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                    Official datasheets and wiring pinouts for this component are currently being cataloged by our technical team.
+                  </p>
+                </div>
+              )}
+            </TabsContent>
+
+            {/* In The Box Package Checklist Tab */}
+            <TabsContent
+              value="inbox"
+              className="p-6 sm:p-8 rounded-2xl bg-white border border-slate-200 space-y-4"
+            >
+              <div>
+                <h3 className="font-heading text-lg font-bold text-slate-900 flex items-center gap-2">
+                  <PackageCheck className="text-[#844AFB]" size={20} /> Verified In-Box Checklist
+                </h3>
+                <p className="text-xs text-slate-500 mt-1">
+                  Guaranteed package contents included inside the factory sealed parcel.
+                </p>
+              </div>
+
+              {product.inBoxItems && product.inBoxItems.length > 0 ? (
+                <div className="divide-y divide-slate-100 rounded-xl border border-slate-200 overflow-hidden text-xs sm:text-sm">
+                  {product.inBoxItems.map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="p-3.5 flex items-center justify-between gap-3 bg-white hover:bg-slate-50 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="w-6 h-6 rounded-md bg-purple-100 text-purple-800 flex items-center justify-center font-bold text-xs shrink-0">
+                          {item.quantity}×
+                        </span>
+                        <div>
+                          <span className="font-semibold text-slate-900 block">{item.itemName}</span>
+                          {item.notes && <span className="text-slate-500 text-xs block">{item.notes}</span>}
+                        </div>
+                      </div>
+                      <span className="text-emerald-700 font-bold text-xs flex items-center gap-1 shrink-0">
+                        <CheckCircle2 size={13} /> Included
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-8 text-center rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                  <PackageCheck className="mx-auto text-slate-400" size={36} />
+                  <p className="font-bold text-slate-700 text-sm">Standard Unit Packaging</p>
+                  <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                    Contains 1× primary {product.name} with anti-static packaging and warranty seal.
+                  </p>
+                </div>
+              )}
             </TabsContent>
 
             {/* Description Tab */}
