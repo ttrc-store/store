@@ -51,7 +51,7 @@ export default function PaymentTestPage() {
           </div>
 
           <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1 text-[11px] text-slate-600">
-            <p><span className="font-bold">Key ID:</span> {process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_TnRvg3LwstLPha'}</p>
+            <p><span className="font-bold">Key ID:</span> {process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'Not configured in environment'}</p>
             <p><span className="font-bold">Gateway:</span> Razorpay Standard Web Checkout</p>
             <p><span className="font-bold">Supported:</span> UPI, Cards, NetBanking, Wallets</p>
           </div>

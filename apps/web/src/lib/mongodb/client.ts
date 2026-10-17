@@ -16,11 +16,17 @@ if (
   }
 }
 
-const DIRECT_REPLICA_SEEDLIST =
-  'mongodb://ttrcstoree_db_user:ZjFSWGqEKH4rQ6OY@ac-d2d3mt6-shard-00-00.imdmatw.mongodb.net:27017,ac-d2d3mt6-shard-00-01.imdmatw.mongodb.net:27017,ac-d2d3mt6-shard-00-02.imdmatw.mongodb.net:27017/ttrc_store?ssl=true&replicaSet=atlas-qqc46k-shard-0&authSource=admin&retryWrites=true&w=majority';
+const MONGODB_URI = process.env.MONGODB_URI;
+const DIRECT_FALLBACK_URI = process.env.MONGODB_DIRECT_URI;
 
-const MONGODB_URI = process.env.MONGODB_URI || DIRECT_REPLICA_SEEDLIST;
-const DIRECT_FALLBACK_URI = process.env.MONGODB_DIRECT_URI || DIRECT_REPLICA_SEEDLIST;
+function assertMongoUri(uri: string | undefined): asserts uri is string {
+  if (!uri || (!uri.startsWith('mongodb://') && !uri.startsWith('mongodb+srv://'))) {
+    throw new Error(
+      '[MongoDB Atlas] Fatal configuration error: MONGODB_URI environment variable is missing, empty, or malformed. ' +
+      'Please configure a valid MongoDB connection string in your server environment variables.'
+    );
+  }
+}
 
 interface MongooseCache {
   conn: typeof mongoose | null;
@@ -49,6 +55,7 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
     };
 
     cached.promise = (async () => {
+      assertMongoUri(MONGODB_URI);
       try {
         const m = await mongoose.connect(MONGODB_URI, opts);
         console.log('[MongoDB Atlas] Successfully connected to database: ttrc_store');
@@ -70,10 +77,10 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
             const m = await mongoose.connect(DIRECT_FALLBACK_URI, opts);
             console.log('[MongoDB Atlas] Successfully connected via direct replica set seedlist: ttrc_store');
             return m;
-          } catch (fallbackErr) {
+          } catch (fallbackErr: any) {
             console.error('[MongoDB Atlas] Both SRV and direct seedlist connections failed:', {
               primaryError: err?.message,
-              fallbackError: (fallbackErr as any)?.message,
+              fallbackError: fallbackErr?.message,
             });
             throw fallbackErr;
           }

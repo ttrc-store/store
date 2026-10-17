@@ -1,5 +1,6 @@
 'use server';
 
+import crypto from 'crypto';
 import { z } from 'zod';
 import { connectToDatabase } from '@/lib/mongodb/client';
 import { OrderModel, ProductModel, CouponModel } from '@/lib/mongodb/models';
@@ -279,6 +280,10 @@ export async function createOrderAction(raw: CreateOrderInput) {
       image_url: item.product.images?.[0],
     }));
 
+    // Generate cryptographically secure guest invoice token
+    const guestInvoiceToken = crypto.randomBytes(32).toString('hex');
+    const guestInvoiceTokenHash = crypto.createHash('sha256').update(guestInvoiceToken).digest('hex');
+
     const order = await OrderModel.create({
       order_number: orderNumber,
       user_id: user ? user.id : undefined,
@@ -293,6 +298,7 @@ export async function createOrderAction(raw: CreateOrderInput) {
       total: finalOrderTotalPaise,
       shipping_address: shippingAddress,
       billing_address: billingAddress || shippingAddress,
+      guest_invoice_token_hash: guestInvoiceTokenHash,
       notes: companyGst ? `GST Invoice Request: ${companyGst.companyName} (GSTIN: ${companyGst.gstin})` : undefined,
     });
 
@@ -302,6 +308,7 @@ export async function createOrderAction(raw: CreateOrderInput) {
       orderId: order._id.toString(),
       paymentMethod,
       amountPaise: finalOrderTotalPaise,
+      invoiceToken: guestInvoiceToken,
     };
   } catch (err: any) {
     console.error('[Create Order Error]', err);

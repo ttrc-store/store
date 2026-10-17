@@ -6,7 +6,7 @@ import bcrypt from 'bcryptjs';
 import { connectToDatabase } from '@/lib/mongodb/client';
 import { UserModel, AuditLogModel } from '@/lib/mongodb/models';
 import { ensureDatabaseSeeded } from '@/lib/mongodb/seed';
-import { createSessionCookie, clearSessionCookie } from '@/lib/auth-helpers';
+import { createSessionCookie, clearSessionCookie, requireAuth } from '@/lib/auth-helpers';
 import { checkRateLimit } from '@/lib/security/rate-limiter';
 import { getNextSequenceId } from '@/lib/id-generator';
 import {
@@ -86,13 +86,7 @@ export async function loginAction(formData: FormData) {
       return { error: 'Invalid email or password.' };
     }
 
-    let isMatch = await bcrypt.compare(password, user.password_hash);
-    if (!isMatch && user.email === 'admin@ttrc.store' && (password === 'TTRC@store' || password === 'Admin@ttrc2026')) {
-      isMatch = true;
-      user.password_hash = await bcrypt.hash(password, 10);
-      await user.save();
-    }
-
+    const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) {
       return { error: 'Invalid email or password.' };
     }
@@ -481,7 +475,10 @@ export async function resetPasswordAction(formData: FormData) {
     const newPasswordHash = await bcrypt.hash(password, 10);
     const user = await UserModel.findOneAndUpdate(
       { email },
-      { $set: { password_hash: newPasswordHash } },
+      { 
+        $set: { password_hash: newPasswordHash },
+        $inc: { token_version: 1 },
+      },
       { new: true }
     );
 
@@ -508,5 +505,74 @@ export async function resetPasswordAction(formData: FormData) {
   } catch (err: any) {
     console.error('[Reset Password Action Error]', err);
     return { error: 'Failed to reset password. Please try again.' };
+  }
+}
+
+/**
+ * Authenticated Change Password Action
+ * Verifies current password, updates to new password, and increments token_version to invalidate other sessions.
+ */
+export async function changePasswordAction(formData: FormData) {
+  const currentPassword = formData.get('currentPassword') as string;
+  const newPassword = formData.get('newPassword') as string;
+  const confirmPassword = formData.get('confirmPassword') as string;
+
+  const auth = await requireAuth();
+  if ('error' in auth) {
+    return { error: 'Authentication required to change password.', status: 401 };
+  }
+
+  if (!currentPassword) {
+    return { error: 'Current password is required.' };
+  }
+
+  if (!newPassword || newPassword.length < 8) {
+    return { error: 'New password must be at least 8 characters long.' };
+  }
+
+  if (newPassword !== confirmPassword) {
+    return { error: 'New passwords do not match.' };
+  }
+
+  try {
+    await connectToDatabase();
+    const user = await UserModel.findById(auth.user.id);
+    if (!user || !user.password_hash) {
+      return { error: 'User account not found.' };
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
+    if (!isMatch) {
+      return { error: 'Current password is incorrect.' };
+    }
+
+    const newHash = await bcrypt.hash(newPassword, 10);
+    user.password_hash = newHash;
+    user.token_version = (user.token_version || 1) + 1;
+    await user.save();
+
+    // Issue refreshed cookie for this current device with new token_version
+    await createSessionCookie(user);
+
+    await sendSecurityNotification({
+      toEmail: user.email,
+      customerName: user.full_name || 'Customer',
+      actionTitle: 'Password Changed',
+      description: 'Your account password was successfully updated and other active sessions were revoked.',
+      timestamp: new Date().toLocaleString('en-IN'),
+    });
+
+    await AuditLogModel.create({
+      actor_id: user._id.toString(),
+      action: 'user.password_changed',
+      entity: 'user',
+      entity_id: user._id.toString(),
+      metadata: { email: user.email, timestamp: new Date().toISOString() },
+    });
+
+    return { success: true, message: 'Password changed successfully. All other active sessions have been revoked.' };
+  } catch (err: any) {
+    console.error('[Change Password Action Error]', err);
+    return { error: 'Failed to change password. Please try again.' };
   }
 }

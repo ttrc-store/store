@@ -106,15 +106,21 @@ const invoiceRoutePath = path.join(WEB_SRC, 'app', 'api', 'invoice', '[id]', 'ro
 const invoiceContent = fs.existsSync(invoiceRoutePath) ? fs.readFileSync(invoiceRoutePath, 'utf8') : '';
 
 check(
-  'Invoice endpoint requires session authentication',
-  invoiceContent.includes('getAuthenticatedUser') && invoiceContent.includes('status: 401'),
-  'Unauthenticated users must not be able to generate or view invoices.'
+  'Invoice endpoint requires session authentication or timing-safe cryptographic guest token',
+  invoiceContent.includes('getAuthenticatedUser') &&
+  invoiceContent.includes('guest_invoice_token_hash') &&
+  invoiceContent.includes('crypto.timingSafeEqual'),
+  'Unauthenticated users without cryptographic guest token must not be able to generate or view invoices.'
 );
 
 check(
-  'Invoice endpoint enforces order ownership authorization (IDOR check)',
-  invoiceContent.includes('isOwner') && invoiceContent.includes('isAdmin') && invoiceContent.includes('status: 403'),
-  'Users must only be allowed to view invoices for their own orders unless admin.'
+  'Invoice endpoint enforces order ownership authorization (IDOR check) and eliminates isRecentOrder bypass',
+  !invoiceContent.includes('isRecentOrder') &&
+  invoiceContent.includes('isOwner') &&
+  invoiceContent.includes('isAdmin') &&
+  invoiceContent.includes('Cache-Control') &&
+  invoiceContent.includes('no-store'),
+  'Users must only be allowed to view invoices for their own orders unless admin, with private no-store caching.'
 );
 
 const ordersActionPath = path.join(WEB_SRC, 'actions', 'orders.ts');
@@ -371,6 +377,107 @@ check(
   instrumentationContent.includes('assertProductionSecrets()') &&
   instrumentationContent.includes('export async function register()'),
   'Application must halt startup if insecure secrets are detected in production.'
+);
+
+const mongoClientPath = path.join(WEB_SRC, 'lib', 'mongodb', 'client.ts');
+const mongoClientContent = fs.existsSync(mongoClientPath) ? fs.readFileSync(mongoClientPath, 'utf8') : '';
+
+check(
+  'MongoDB client contains ZERO hardcoded credentials or replica seedlists (SEC-01)',
+  !mongoClientContent.includes('DIRECT_REPLICA_SEEDLIST') &&
+  !mongoClientContent.includes('ZjFSWGqEKH4rQ6OY') &&
+  mongoClientContent.includes('assertMongoUri'),
+  'MongoDB client must require MONGODB_URI via environment and contain zero embedded credentials.'
+);
+
+check(
+  'Admin authentication contains ZERO backdoor passwords or hash override logic (SEC-02)',
+  !authActionsContent.includes('TTRC@store') &&
+  !authActionsContent.includes('Admin@ttrc2026') &&
+  !authActionsContent.includes('user.password_hash = await bcrypt.hash'),
+  'Admin login must strictly verify against stored password hash without fallback backdoor.'
+);
+
+const seedPath = path.join(WEB_SRC, 'lib', 'mongodb', 'seed.ts');
+const seedContent = fs.existsSync(seedPath) ? fs.readFileSync(seedPath, 'utf8') : '';
+
+check(
+  'Database seeder contains ZERO predictable default administrator passwords (SEC-04)',
+  !seedContent.includes('Admin@ttrc2026') &&
+  !seedContent.includes('defaultPasswordHash') &&
+  seedContent.includes('process.env.INITIAL_ADMIN_PASSWORD'),
+  'Database seeder must require INITIAL_ADMIN_PASSWORD from environment variables.'
+);
+
+// ---------------------------------------------------------------------------
+// 8. SESSION REVOCATION & SENSITIVE OPERATIONS REAUTHENTICATION (SEC-05 & SEC-06)
+// ---------------------------------------------------------------------------
+console.log('\n[8/8] Auditing Session Revocation & Sensitive Operations Reauthentication...');
+
+const modelsPath = path.join(WEB_SRC, 'lib', 'mongodb', 'models.ts');
+const modelsContent = fs.existsSync(modelsPath) ? fs.readFileSync(modelsPath, 'utf8') : '';
+
+check(
+  'User model and session JWT implement token_version for instant session revocation (SEC-05)',
+  modelsContent.includes('token_version') &&
+  modelsContent.includes('token_version: { type: Number, default: 1 }') &&
+  authHelpersContent.includes('tokenVersion') &&
+  authHelpersContent.includes('sessionTokenVersion !== dbTokenVersion'),
+  'Users must have token_version validated on each request to allow instant multi-device session revocation.'
+);
+
+check(
+  'Password change, password reset, and customer disablement increment token_version (SEC-05)',
+  authActionsContent.includes('$inc: { token_version: 1 }') &&
+  authHelpersContent.includes('revokeUserSessions'),
+  'Credential mutations must increment token_version to invalidate existing JWT sessions.'
+);
+
+const adminReauthPath = path.join(WEB_SRC, 'actions', 'admin-reauth.ts');
+const adminReauthContent = fs.existsSync(adminReauthPath) ? fs.readFileSync(adminReauthPath, 'utf8') : '';
+const settingsActionsPath = path.join(WEB_SRC, 'actions', 'settings.ts');
+const settingsActionsContent = fs.existsSync(settingsActionsPath) ? fs.readFileSync(settingsActionsPath, 'utf8') : '';
+const adminActionsPath = path.join(WEB_SRC, 'actions', 'admin.ts');
+const adminActionsContent = fs.existsSync(adminActionsPath) ? fs.readFileSync(adminActionsPath, 'utf8') : '';
+
+check(
+  'Admin reauthentication helper requires fresh password confirmation for sensitive operations (SEC-06)',
+  authHelpersContent.includes('requireAdminReauth') &&
+  authHelpersContent.includes('ttrc_admin_reauth') &&
+  adminReauthContent.includes('confirmAdminPasswordAction') &&
+  adminReauthContent.includes('checkRateLimit'),
+  'Sensitive operations must require fresh reauthentication within 15 minutes.'
+);
+
+check(
+  'Sensitive store settings, order cancellation/refunds, product deletion, and customer disablement enforce reauth (SEC-06)',
+  settingsActionsContent.includes('requireAdminReauth') &&
+  settingsActionsContent.includes('isSensitive') &&
+  adminActionsContent.includes('isHighImpact') &&
+  adminActionsContent.includes("targetStatus === 'refunded' || targetStatus === 'cancelled'") &&
+  adminActionsContent.includes('deleteProductAction') &&
+  adminActionsContent.includes('disableCustomerAction'),
+  'High-impact and irreversible admin actions must gate execution behind requireAdminReauth.'
+);
+
+check(
+  'Invoice endpoint returns identical 404 with zero PII and revokes access upon order cancellation (SEC-03)',
+  invoiceContent.includes("order.status === 'cancelled'") &&
+  invoiceContent.includes("error: 'Invoice not found or access denied.'") &&
+  invoiceContent.includes('denyResponse') &&
+  invoiceContent.includes('private, no-cache, no-store, must-revalidate') &&
+  invoiceContent.includes('no-referrer'),
+  'Invoice failure paths must return uniform 404s without leaking customer information.'
+);
+
+const paymentTestPath = path.join(WEB_SRC, 'app', 'payment-test', 'page.tsx');
+const paymentTestContent = fs.existsSync(paymentTestPath) ? fs.readFileSync(paymentTestPath, 'utf8') : '';
+
+check(
+  'Payment test page contains ZERO hardcoded rzp_test_ fallback keys (SEC-07)',
+  !paymentTestContent.includes('rzp_test_TnRvg3LwstLPha') &&
+  !paymentTestContent.match(/rzp_test_[a-zA-Z0-9]+/),
+  'Payment test page must read exclusively from NEXT_PUBLIC_RAZORPAY_KEY_ID.'
 );
 
 // ---------------------------------------------------------------------------

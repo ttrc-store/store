@@ -27,6 +27,7 @@ export interface IUser extends Document {
   wishlist?: string[];
   email_verified: boolean;
   email_verified_at?: Date;
+  token_version?: number;
   created_at: Date;
   updated_at: Date;
 }
@@ -44,6 +45,7 @@ const UserSchema = new Schema<IUser>(
     wishlist: { type: [String], default: [] },
     email_verified: { type: Boolean, default: false },
     email_verified_at: { type: Date },
+    token_version: { type: Number, default: 1 },
   },
   { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } }
 );
@@ -349,6 +351,8 @@ export interface IOrder extends Document {
   bill_number?: string;
   tracking_number?: string;
   tracking_url?: string;
+  guest_invoice_token_hash?: string;
+  guest_invoice_token_revoked?: boolean;
   notes?: string;
   items: IOrderItem[];
   confirmation_email_sent?: boolean;
@@ -404,6 +408,8 @@ const OrderSchema = new Schema<IOrder>(
     bill_number: { type: String, unique: true, sparse: true },
     tracking_number: { type: String },
     tracking_url: { type: String },
+    guest_invoice_token_hash: { type: String, index: true },
+    guest_invoice_token_revoked: { type: Boolean, default: false },
     notes: { type: String },
     items: [OrderItemSchema],
     confirmation_email_sent: { type: Boolean, default: false },

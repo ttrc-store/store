@@ -3,7 +3,7 @@
 import { connectToDatabase } from '@/lib/mongodb/client';
 import { SiteSettingModel, AuditLogModel } from '@/lib/mongodb/models';
 import { ensureDatabaseSeeded } from '@/lib/mongodb/seed';
-import { requireAdmin } from '@/lib/auth-helpers';
+import { requireAdmin, requireAdminReauth } from '@/lib/auth-helpers';
 import { revalidatePath } from 'next/cache';
 
 export interface SiteSettings {
@@ -57,9 +57,20 @@ export async function getSiteSettingsAction(): Promise<SiteSettings> {
   }
 }
 
-export async function updateSiteSettingAction(key: keyof SiteSettings, value: unknown) {
-  const auth = await requireAdmin();
-  if ('error' in auth) return { error: auth.error };
+export async function updateSiteSettingAction(
+  key: keyof SiteSettings,
+  value: unknown,
+  adminPassword?: string
+) {
+  // Reauthentication for sensitive financial & payment configuration (SEC-06)
+  const isSensitive = key === 'razorpay_enabled' || key === 'gst_enabled' || key === 'cod_max_limit_paise';
+  const auth = isSensitive ? await requireAdminReauth(adminPassword) : await requireAdmin();
+  if ('error' in auth) {
+    return {
+      error: auth.error,
+      ...('requiresReauth' in auth && auth.requiresReauth ? { requiresReauth: true } : {}),
+    };
+  }
 
   try {
     await connectToDatabase();

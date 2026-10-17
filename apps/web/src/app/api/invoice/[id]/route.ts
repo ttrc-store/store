@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import crypto from 'crypto';
 import { generateInvoiceHtml } from '@/lib/invoice/pdf-generator';
 import { getSiteSettingsAction } from '@/actions/settings';
 import { getAuthenticatedUser } from '@/lib/auth-helpers';
@@ -17,37 +18,64 @@ export async function GET(
 
     const isObjectId = /^[0-9a-fA-F]{24}$/.test(decodedId);
     const order = await OrderModel.findOne(
-      isObjectId ? { $or: [{ _id: decodedId }, { order_number: decodedId }, { bill_number: decodedId }] } : { $or: [{ order_number: decodedId }, { bill_number: decodedId }] }
+      isObjectId
+        ? { $or: [{ _id: decodedId }, { order_number: decodedId }, { bill_number: decodedId }] }
+        : { $or: [{ order_number: decodedId }, { bill_number: decodedId }] }
     ).lean();
 
+    const denyResponse = () =>
+      NextResponse.json(
+        { error: 'Invoice not found or access denied.' },
+        {
+          status: 404,
+          headers: {
+            'Cache-Control': 'private, no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0',
+            'X-Content-Type-Options': 'nosniff',
+            'Referrer-Policy': 'no-referrer',
+          },
+        }
+      );
+
     if (!order) {
-      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+      return denyResponse();
     }
 
-    // Authorization: User owner, guest email match, or staff/admin
+    // 1. Session-based authorization (Order Owner or Admin/Staff)
     const auth = await getAuthenticatedUser();
     const isAuthenticated = !('error' in auth);
-    const url = new URL(request.url);
-    const queryEmail = url.searchParams.get('email')?.toLowerCase().trim();
-
-    const isOwner = isAuthenticated && order.user_id && order.user_id === auth.user.id;
+    const isOwner = isAuthenticated && Boolean(order.user_id && order.user_id === auth.user.id);
     const isAdmin = isAuthenticated && (auth.user.role === 'admin' || auth.user.role === 'staff');
-    const isGuestMatch = Boolean(
-      order.guest_email &&
-      queryEmail &&
-      order.guest_email.toLowerCase() === queryEmail
-    );
 
-    // If order was created recently (within 24 hours), allow retrieval by direct order_number / bill_number link from checkout
-    const orderAgeMs = Date.now() - new Date(order.created_at || Date.now()).getTime();
-    const isRecentOrder = orderAgeMs < 24 * 60 * 60 * 1000;
+    // 2. High-entropy guest token verification
+    const url = new URL(request.url);
+    const queryToken = url.searchParams.get('token');
 
-    if (!isAuthenticated && !isGuestMatch && !isRecentOrder) {
-      return NextResponse.json({ error: 'Authentication required to view invoice' }, { status: 401 });
+    let isTokenAuthorized = false;
+    if (queryToken && typeof queryToken === 'string' && queryToken.length >= 32) {
+      const candidateHash = crypto.createHash('sha256').update(queryToken.trim()).digest('hex');
+      if (order.guest_invoice_token_hash) {
+        const storedBuf = Buffer.from(order.guest_invoice_token_hash, 'hex');
+        const candidateBuf = Buffer.from(candidateHash, 'hex');
+        if (storedBuf.length === candidateBuf.length && crypto.timingSafeEqual(storedBuf, candidateBuf)) {
+          isTokenAuthorized = true;
+        }
+      }
     }
 
-    if (!isOwner && !isAdmin && !isGuestMatch && !isRecentOrder) {
-      return NextResponse.json({ error: 'Forbidden: You are not authorized to view this invoice' }, { status: 403 });
+    // Strict Deny-by-Default: Identical response whether order exists or not
+    if (!isOwner && !isAdmin && !isTokenAuthorized) {
+      return denyResponse();
+    }
+
+    // Guest Token Lifecycle & Revocation:
+    // If accessing via guest token, access is permanently revoked if order is cancelled, refunded,
+    // or if the guest token has been explicitly marked as revoked.
+    if (isTokenAuthorized && !isOwner && !isAdmin) {
+      if (order.status === 'cancelled' || order.status === 'refunded' || (order as any).guest_invoice_token_revoked) {
+        return denyResponse();
+      }
     }
 
     const settings = await getSiteSettingsAction();
@@ -107,7 +135,7 @@ export async function GET(
       shippingAddress: formattedShippingAddress || formattedBillingAddress || 'Customer Address',
       stateCode: resolvedStateCode,
       placeOfSupply,
-      items: (order.items || []).map((item) => ({
+      items: ((order as any).items || []).map((item: any) => ({
         name: item.product_name,
         hsnCode: item.hsn_code || '8479',
         quantity: item.quantity,
@@ -126,10 +154,25 @@ export async function GET(
         'Content-Type': 'text/html; charset=utf-8',
         'Content-Disposition': `inline; filename="${docName}"`,
         'X-Content-Type-Options': 'nosniff',
+        'Cache-Control': 'private, no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'Referrer-Policy': 'no-referrer',
       },
     });
   } catch (err: any) {
-    console.error('[Invoice API Error]', err);
-    return NextResponse.json({ error: 'Failed to generate invoice' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to generate invoice.' },
+      {
+        status: 500,
+        headers: {
+          'Cache-Control': 'private, no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+          'X-Content-Type-Options': 'nosniff',
+          'Referrer-Policy': 'no-referrer',
+        },
+      }
+    );
   }
 }

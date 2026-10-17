@@ -3,6 +3,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 // Mock dependencies before importing actions
 vi.mock('@/lib/auth-helpers', () => ({
   requireAdmin: vi.fn(),
+  requireAdminReauth: vi.fn(),
+  revokeUserSessions: vi.fn(),
   getSessionUser: vi.fn(),
 }));
 
@@ -80,7 +82,7 @@ vi.mock('@/lib/mongodb/models', () => ({
   AuditLogModel: mockAuditLogModel,
 }));
 
-import { requireAdmin } from '@/lib/auth-helpers';
+import { requireAdmin, requireAdminReauth } from '@/lib/auth-helpers';
 import { updateOrderStatusAction, adjustInventoryAction } from '@/actions/admin';
 import { updateSiteSettingAction } from '@/actions/settings';
 import { deleteAdminCategoryAction } from '@/actions/admin-categories';
@@ -89,6 +91,7 @@ import { getAdminDashboardMetricsAction } from '@/actions/orders';
 describe('TTRC Store — Admin Panel Production Hardening & Authorization Test Suite', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(requireAdminReauth).mockImplementation(async () => requireAdmin() as any);
   });
 
   describe('1. Server-Side Administrative Authorization Boundary', () => {

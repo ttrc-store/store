@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 import { z } from 'zod';
 import { connectToDatabase } from '@/lib/mongodb/client';
 import { ProductModel, CategoryModel, OrderModel, UserModel, CouponModel, AuditLogModel } from '@/lib/mongodb/models';
-import { requireAdmin } from '@/lib/auth-helpers';
+import { requireAdmin, requireAdminReauth, revokeUserSessions } from '@/lib/auth-helpers';
 import { ProductSchema, sanitizeVideoEmbedUrl } from '@/lib/video-utils';
 import { revalidatePath } from 'next/cache';
 import { notifySubscribersOnRestock } from '@/actions/stock-subscriptions';
@@ -481,11 +481,12 @@ export async function archiveProductAction(id: string) {
   }
 }
 
-export async function deleteProductAction(id: string) {
+export async function deleteProductAction(id: string, adminPassword?: string) {
   if (!id) return { error: 'Product ID is required' };
 
-  const auth = await requireAdmin();
-  if ('error' in auth) return { error: auth.error };
+  // Reauthentication challenge for product deletion (SEC-06)
+  const auth = await requireAdminReauth(adminPassword);
+  if ('error' in auth) return { error: auth.error, requiresReauth: 'requiresReauth' in auth };
 
   try {
     await connectToDatabase();
@@ -539,14 +540,22 @@ export async function updateOrderStatusAction(
   orderId: string,
   newStatus: string,
   trackingNumber?: string,
-  adminNote?: string
+  adminNote?: string,
+  adminPassword?: string
 ) {
   if (!orderId) return { error: 'Order ID is required' };
 
-  const auth = await requireAdmin();
-  if ('error' in auth) return { error: auth.error };
-
   const targetStatus = newStatus.trim().toLowerCase();
+  // Require reauthentication for high-impact status changes (refunded, cancelled) (SEC-06)
+  const isHighImpact = targetStatus === 'refunded' || targetStatus === 'cancelled';
+  const auth = isHighImpact ? await requireAdminReauth(adminPassword) : await requireAdmin();
+  if ('error' in auth) {
+    return {
+      error: auth.error,
+      ...('requiresReauth' in auth && auth.requiresReauth ? { requiresReauth: true } : {}),
+    };
+  }
+
   if (!ALLOWED_ORDER_STATUSES.has(targetStatus)) {
     return { error: `Invalid order status "${newStatus}". Allowed: ${Array.from(ALLOWED_ORDER_STATUSES).join(', ')}` };
   }
@@ -674,16 +683,17 @@ export async function updateOrderStatusAction(
   }
 }
 
-export async function disableCustomerAction(userId: string) {
+export async function disableCustomerAction(userId: string, adminPassword?: string) {
   if (!userId) return { error: 'User ID is required' };
 
-  const auth = await requireAdmin();
-  if ('error' in auth) return { error: auth.error };
+  const auth = await requireAdminReauth(adminPassword);
+  if ('error' in auth) return { error: auth.error, requiresReauth: 'requiresReauth' in auth };
 
   try {
     await connectToDatabase();
     await UserModel.findByIdAndUpdate(userId, { $set: { role: 'customer' } });
-    return { success: true, message: 'Customer account updated.' };
+    await revokeUserSessions(userId); // Invalidate active sessions immediately
+    return { success: true, message: 'Customer account updated and sessions revoked.' };
   } catch {
     return { error: 'Failed to disable customer.' };
   }

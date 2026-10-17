@@ -52,17 +52,47 @@ export async function ensureDatabaseSeeded() {
       );
     }
 
-    // 3. Seed Default Admin if no admin exists
+    // 3. Provision Initial Administrator ONLY if explicitly configured via environment variable
     const adminCount = await UserModel.countDocuments({ role: 'admin' });
     if (adminCount === 0) {
-      const defaultPasswordHash = await bcrypt.hash('Admin@ttrc2026', 10);
-      await UserModel.create({
-        email: 'admin@ttrc.store',
-        password_hash: defaultPasswordHash,
-        full_name: 'Store Admin',
-        role: 'admin',
-      });
-      console.log('[MongoDB Seed] Default admin created: admin@ttrc.store');
+      const rawPassword = process.env.INITIAL_ADMIN_PASSWORD?.trim();
+      const initialAdminEmail = (process.env.INITIAL_ADMIN_EMAIL || 'admin@ttrc.store').trim().toLowerCase();
+
+      const BANNED_PASSWORDS = new Set([
+        'admin@ttrc2026',
+        'admin123',
+        'password123',
+        'changeme123',
+        'admin@123',
+        'ttrc@store',
+      ]);
+
+      const isComplex =
+        rawPassword &&
+        rawPassword.length >= 12 &&
+        /[A-Z]/.test(rawPassword) &&
+        /[a-z]/.test(rawPassword) &&
+        /[0-9]/.test(rawPassword) &&
+        /[^A-Za-z0-9]/.test(rawPassword) &&
+        !BANNED_PASSWORDS.has(rawPassword.toLowerCase());
+
+      if (isComplex) {
+        const passwordHash = await bcrypt.hash(rawPassword, 10);
+        await UserModel.create({
+          email: initialAdminEmail,
+          password_hash: passwordHash,
+          full_name: 'Store Admin',
+          role: 'admin',
+          email_verified: true,
+          token_version: 1,
+        });
+        console.log(`[MongoDB Seed] Successfully provisioned initial administrator for: ${initialAdminEmail}`);
+      } else {
+        console.log(
+          '[MongoDB Seed] Notice: No administrator account exists. ' +
+          'To provision an administrator, configure INITIAL_ADMIN_PASSWORD (min 12 chars, upper/lower/digit/special) in server environment variables.'
+        );
+      }
     }
 
     // 4. Seed Default Verified Manufacturer if empty
