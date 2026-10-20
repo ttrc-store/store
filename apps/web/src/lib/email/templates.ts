@@ -32,6 +32,16 @@ export interface EmailRenderResult {
   text: string;
 }
 
+function escapeHtml(str: string): string {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 /**
  * Shared Ecommerce Email Base Layout
  */
@@ -671,6 +681,113 @@ ${MANDATORY_TEXT_FOOTER}`;
   return {
     subject,
     html: baseLayout('Email Design Test', htmlContent),
+    text,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// ENQUIRY NOTIFICATION TEMPLATE (Contact & RFQ alerts for Store Admin)
+// ---------------------------------------------------------------------------
+export interface EnquiryNotificationPayload {
+  toEmail: string;
+  enquiryId: string;
+  type: 'CONTACT' | 'RFQ';
+  name: string;
+  email: string;
+  mobile: string;
+  message: string;
+  organization?: string;
+  productName?: string;
+  sku?: string;
+  quantity?: number;
+  sourcePage?: string;
+}
+
+export function renderEnquiryNotificationEmail(payload: EnquiryNotificationPayload): EmailRenderResult {
+  const isRfq = payload.type === 'RFQ';
+  const typeLabel = isRfq ? 'Request for Quote (RFQ)' : 'Contact Us Enquiry';
+  const subject = `[TTRC Store] New ${typeLabel} from ${payload.name}`;
+
+  const htmlContent = `
+    <div style="margin-bottom: 24px;">
+      <span style="display: inline-block; background-color: ${isRfq ? '#EEE8FA' : '#E0F2FE'}; color: ${isRfq ? '#6721F2' : '#0369A1'}; font-family: 'Space Grotesk', sans-serif; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+        ${typeLabel}
+      </span>
+      <h1 style="font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 800; color: #1E0D45; margin: 12px 0 6px 0;">
+        New Lead Received
+      </h1>
+      <p style="font-size: 13px; color: #6D6A6A; margin: 0;">
+        A new ${isRfq ? 'quotation request' : 'customer message'} was submitted on TTRC Store. Review details below or manage it in the admin panel.
+      </p>
+    </div>
+
+    <!-- Details Card -->
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; margin-bottom: 20px; overflow: hidden;">
+      <tr>
+        <td style="padding: 12px 16px; border-bottom: 1px solid #E2E8F0; font-family: 'Space Grotesk', sans-serif; font-size: 12px; font-weight: 700; color: #64748B; width: 35%;">Customer Name:</td>
+        <td style="padding: 12px 16px; border-bottom: 1px solid #E2E8F0; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 700; color: #0F172A;">${escapeHtml(payload.name)}</td>
+      </tr>
+      <tr>
+        <td style="padding: 12px 16px; border-bottom: 1px solid #E2E8F0; font-family: 'Space Grotesk', sans-serif; font-size: 12px; font-weight: 700; color: #64748B;">Mobile Number:</td>
+        <td style="padding: 12px 16px; border-bottom: 1px solid #E2E8F0; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; color: #0F172A;"><a href="tel:${escapeHtml(payload.mobile)}" style="color: #6721F2; text-decoration: none; font-weight: 600;">${escapeHtml(payload.mobile)}</a></td>
+      </tr>
+      <tr>
+        <td style="padding: 12px 16px; border-bottom: 1px solid #E2E8F0; font-family: 'Space Grotesk', sans-serif; font-size: 12px; font-weight: 700; color: #64748B;">Email Address:</td>
+        <td style="padding: 12px 16px; border-bottom: 1px solid #E2E8F0; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; color: #0F172A;"><a href="mailto:${escapeHtml(payload.email)}" style="color: #6721F2; text-decoration: none;">${escapeHtml(payload.email)}</a></td>
+      </tr>
+      ${payload.organization ? `
+      <tr>
+        <td style="padding: 12px 16px; border-bottom: 1px solid #E2E8F0; font-family: 'Space Grotesk', sans-serif; font-size: 12px; font-weight: 700; color: #64748B;">Organization:</td>
+        <td style="padding: 12px 16px; border-bottom: 1px solid #E2E8F0; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; color: #0F172A;">${escapeHtml(payload.organization)}</td>
+      </tr>
+      ` : ''}
+      ${isRfq && (payload.productName || payload.sku || payload.quantity) ? `
+      <tr>
+        <td style="padding: 12px 16px; border-bottom: 1px solid #E2E8F0; font-family: 'Space Grotesk', sans-serif; font-size: 12px; font-weight: 700; color: #64748B;">Product Requested:</td>
+        <td style="padding: 12px 16px; border-bottom: 1px solid #E2E8F0; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 600; color: #0F172A;">
+          ${payload.productName ? escapeHtml(payload.productName) : ''}
+          ${payload.sku ? ` <span style="font-size: 11px; color: #64748B;">(SKU: ${escapeHtml(payload.sku)})</span>` : ''}
+          ${payload.quantity ? `<br><span style="font-size: 12px; color: #059669; font-weight: 700;">Quantity: ${payload.quantity} units</span>` : ''}
+        </td>
+      </tr>
+      ` : ''}
+      ${payload.sourcePage ? `
+      <tr>
+        <td style="padding: 12px 16px; border-bottom: 1px solid #E2E8F0; font-family: 'Space Grotesk', sans-serif; font-size: 12px; font-weight: 700; color: #64748B;">Source Page:</td>
+        <td style="padding: 12px 16px; border-bottom: 1px solid #E2E8F0; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 12px; color: #64748B;">${escapeHtml(payload.sourcePage)}</td>
+      </tr>
+      ` : ''}
+      <tr>
+        <td style="padding: 12px 16px; font-family: 'Space Grotesk', sans-serif; font-size: 12px; font-weight: 700; color: #64748B; vertical-align: top;">Message:</td>
+        <td style="padding: 12px 16px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; color: #1E293B; line-height: 1.5; white-space: pre-line;">${escapeHtml(payload.message)}</td>
+      </tr>
+    </table>
+
+    <!-- Admin CTA -->
+    <div style="text-align: center; margin: 24px 0 12px 0;">
+      <a href="${STORE_URL}/admin/enquiries" target="_blank" style="display: inline-block; background-color: #844AFB; color: #FFFFFF; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 13px; padding: 12px 28px; border-radius: 10px; text-decoration: none; box-shadow: 0 4px 14px rgba(132, 74, 251, 0.3);">
+        Open Enquiries in Admin Panel &rarr;
+      </a>
+    </div>
+  `;
+
+  const text = `TTRC Store — New ${typeLabel}
+
+Customer Name: ${payload.name}
+Mobile Number: ${payload.mobile}
+Email: ${payload.email}
+${payload.organization ? `Organization: ${payload.organization}\n` : ''}${payload.productName ? `Product: ${payload.productName}\n` : ''}${payload.sku ? `SKU: ${payload.sku}\n` : ''}${payload.quantity ? `Quantity: ${payload.quantity}\n` : ''}${payload.sourcePage ? `Source Page: ${payload.sourcePage}\n` : ''}
+Message:
+${payload.message}
+
+Manage enquiries in admin panel: ${STORE_URL}/admin/enquiries
+
+—
+${MANDATORY_TEXT_FOOTER}`;
+
+  return {
+    subject,
+    html: baseLayout(`New ${typeLabel}`, htmlContent),
     text,
   };
 }

@@ -24,17 +24,26 @@ export default function BulkEnquiryPage() {
     setErrorMsg(null);
     try {
       const res = await submitEnquiryAction({
-        type: 'bulk_enquiry',
+        type: 'RFQ',
         name: formData.name,
         organization: formData.organization,
         email: formData.email,
+        mobile: formData.phone,
         phone: formData.phone,
         message: formData.message,
         subject: `Institutional Enquiry from ${formData.organization || formData.name}`,
+        sourcePage: '/bulk-enquiry',
       });
 
       if (res.success) {
         setSubmitted(true);
+        setFormData({
+          name: '',
+          organization: '',
+          email: '',
+          phone: '',
+          message: '',
+        });
       } else {
         setErrorMsg(res.error || 'Failed to submit enquiry. Please try again.');
       }

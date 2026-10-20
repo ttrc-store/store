@@ -1,7 +1,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { MapPin, Mail, Phone, ShieldCheck, Truck, RefreshCw, CreditCard, Package, Users, BookOpen } from 'lucide-react';
+import { MapPin, Mail, Phone, ShieldCheck, Truck, RefreshCw, CreditCard, Package, Users, BookOpen, ArrowRight } from 'lucide-react';
 import { BUSINESS_INFO } from '@ttrc/shared';
 import {
   WhatsAppIcon,
@@ -55,6 +55,36 @@ export default function Footer() {
               <h4 className="font-heading text-sm font-bold text-slate-900">Secure Online Checkout</h4>
               <p className="text-xs text-slate-500">UPI, Cards, NetBanking, EMI</p>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Tamizh Robotics Club Membership CTA */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 mb-10 border-b border-slate-100">
+        <div className="rounded-2xl bg-gradient-to-r from-[#F8FAFC] via-[#FDFDFD] to-[#EEE8FA]/50 border border-slate-200 p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-xs">
+          <div className="space-y-2 max-w-2xl">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#EEE8FA] text-[#6721F2] text-[11px] font-bold border border-[#AF87F8]/40">
+              <Users size={12} className="text-[#844AFB]" aria-hidden="true" />
+              <span>Community &amp; Learning</span>
+            </div>
+            <h3 className="font-heading text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight">
+              Join Our Tamizh Robotics Club
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+              Connect with fellow robotics enthusiasts, build hands-on engineering skills, participate in competitions, and learn from experienced mentors.
+            </p>
+          </div>
+          <div className="flex-shrink-0 w-full sm:w-auto">
+            <a
+              href="https://www.tamizhtech.in/robotics-club/join"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold text-xs sm:text-sm shadow-sm shadow-purple-900/10 hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-[#844AFB] focus:ring-offset-2"
+              aria-label="Join the Club - Opens Tamizh Robotics Club membership application in a new tab"
+            >
+              <span>Join the Club</span>
+              <ArrowRight size={14} aria-hidden="true" />
+            </a>
           </div>
         </div>
       </div>

@@ -23,11 +23,13 @@ import {
   renderBackInStockEmail,
   renderSecurityAlertEmail,
   renderDesignTestEmail,
+  renderEnquiryNotificationEmail,
   OrderConfirmationPayload,
   PaymentConfirmationPayload,
   OrderStatusPayload,
   BackInStockPayload,
   SecurityAlertPayload,
+  EnquiryNotificationPayload,
 } from './templates';
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
@@ -384,6 +386,20 @@ export async function sendDesignTestEmail(toEmail: string): Promise<SendEmailRes
   const rendered = renderDesignTestEmail();
   return dispatchWithRetry(
     toEmail,
+    rendered.subject,
+    rendered.html,
+    rendered.text,
+    'P2'
+  );
+}
+
+/**
+ * P2: Send Contact Us or RFQ Enquiry Alert to Store Administrator
+ */
+export async function sendEnquiryNotificationEmail(payload: EnquiryNotificationPayload): Promise<SendEmailResult> {
+  const rendered = renderEnquiryNotificationEmail(payload);
+  return dispatchWithRetry(
+    payload.toEmail,
     rendered.subject,
     rendered.html,
     rendered.text,

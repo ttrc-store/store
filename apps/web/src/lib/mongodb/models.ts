@@ -714,50 +714,87 @@ export const MediaModel: Model<IMedia> =
   mongoose.models.Media || mongoose.model<IMedia>('Media', MediaSchema);
 
 // ---------------------------------------------------------------------------
-// 15. ENQUIRY SCHEMA & MODEL (Customer support & B2B bulk enquiries)
+// 15. ENQUIRY SCHEMA & MODEL (Customer support & B2B RFQ enquiries)
 // ---------------------------------------------------------------------------
+export type EnquiryType = 'CONTACT' | 'RFQ' | 'contact' | 'rfq' | 'bulk_enquiry' | 'bulk_orders';
+export type EnquiryStatus = 'NEW' | 'IN_PROGRESS' | 'RESPONDED' | 'CLOSED' | 'new' | 'in_progress' | 'responded' | 'closed';
+
 export interface IEnquiry extends Document {
-  type: 'contact' | 'bulk_enquiry' | 'bulk_orders';
+  type: EnquiryType;
   name: string;
-  email: string;
+  mobile: string;
   phone?: string;
+  email: string;
+  message: string;
+  productId?: string;
+  productName?: string;
+  sku?: string;
+  quantity?: number;
   organization?: string;
   subject?: string;
-  message: string;
   product_details?: string;
-  quantity?: number;
-  status: 'new' | 'in_progress' | 'responded' | 'closed';
+  status: EnquiryStatus;
+  adminNotes?: string;
+  admin_notes?: string;
+  sourcePage?: string;
+  source_page?: string;
   ip_address?: string;
   created_at: Date;
   updated_at: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 const EnquirySchema = new Schema<IEnquiry>(
   {
     type: {
       type: String,
-      enum: ['contact', 'bulk_enquiry', 'bulk_orders'],
-      default: 'contact',
+      enum: ['CONTACT', 'RFQ', 'contact', 'rfq', 'bulk_enquiry', 'bulk_orders'],
+      default: 'CONTACT',
       index: true,
     },
-    name: { type: String, required: true, trim: true },
-    email: { type: String, required: true, lowercase: true, trim: true, index: true },
-    phone: { type: String, trim: true },
-    organization: { type: String, trim: true },
-    subject: { type: String, trim: true },
-    message: { type: String, required: true, trim: true },
-    product_details: { type: String, trim: true },
-    quantity: { type: Number },
+    name: { type: String, required: true, trim: true, maxlength: 100 },
+    mobile: { type: String, required: true, trim: true, maxlength: 20, alias: 'phone' },
+    email: { type: String, required: true, lowercase: true, trim: true, maxlength: 150, index: true },
+    message: { type: String, required: true, trim: true, maxlength: 3000 },
+    productId: { type: String, trim: true, maxlength: 100 },
+    productName: { type: String, trim: true, maxlength: 200 },
+    sku: { type: String, trim: true, maxlength: 100 },
+    quantity: { type: Number, min: 1, max: 1000000 },
+    organization: { type: String, trim: true, maxlength: 150 },
+    subject: { type: String, trim: true, maxlength: 200 },
+    product_details: { type: String, trim: true, maxlength: 1000 },
     status: {
       type: String,
-      enum: ['new', 'in_progress', 'responded', 'closed'],
-      default: 'new',
+      enum: ['NEW', 'IN_PROGRESS', 'RESPONDED', 'CLOSED', 'new', 'in_progress', 'responded', 'closed'],
+      default: 'NEW',
       index: true,
     },
+    adminNotes: { type: String, trim: true, maxlength: 2000, alias: 'admin_notes' },
+    sourcePage: { type: String, trim: true, maxlength: 200, alias: 'source_page' },
     ip_address: { type: String },
   },
-  { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } }
+  {
+    timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
 );
+
+// Virtual getters for camelCase timestamps
+EnquirySchema.virtual('createdAt').get(function () {
+  return this.created_at;
+});
+EnquirySchema.virtual('updatedAt').get(function () {
+  return this.updated_at;
+});
+
+// Compound & single-field indexes for admin sorting, filtering, and customer lookups
+EnquirySchema.index({ type: 1, status: 1, created_at: -1 });
+EnquirySchema.index({ status: 1, created_at: -1 });
+EnquirySchema.index({ email: 1, created_at: -1 });
+EnquirySchema.index({ mobile: 1, created_at: -1 });
+EnquirySchema.index({ created_at: -1 });
 
 export const EnquiryModel: Model<IEnquiry> =
   mongoose.models.Enquiry || mongoose.model<IEnquiry>('Enquiry', EnquirySchema);

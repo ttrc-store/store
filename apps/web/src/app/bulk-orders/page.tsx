@@ -41,19 +41,29 @@ function BulkOrdersForm() {
         .join(' | ') || `Quotation request for ${quantity}x ${productName}`;
 
       const res = await submitEnquiryAction({
-        type: 'bulk_orders',
+        type: 'RFQ',
         name,
         organization: company,
         email,
+        mobile: phone,
         phone,
+        productName: productName || undefined,
+        sku: sku || undefined,
         product_details: `${productName} (SKU: ${sku || 'N/A'})`,
         quantity: parseInt(quantity, 10) || 50,
         message: fullMessage,
         subject: `Bulk Order Request: ${quantity}x ${productName} by ${company || name}`,
+        sourcePage: '/bulk-orders',
       });
 
       if (res.success) {
         setSubmitted(true);
+        setCompany('');
+        setGstin('');
+        setName('');
+        setEmail('');
+        setPhone('');
+        setMessage('');
       } else {
         setErrorMsg(res.error || 'Failed to submit request.');
       }

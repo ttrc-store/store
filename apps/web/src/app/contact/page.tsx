@@ -25,16 +25,25 @@ export default function ContactPage() {
     setErrorMsg(null);
     try {
       const res = await submitEnquiryAction({
-        type: 'contact',
+        type: 'CONTACT',
         name: formData.name,
         email: formData.email,
-        phone: formData.phone || undefined,
+        mobile: formData.phone,
+        phone: formData.phone,
         subject: formData.subject || undefined,
         message: formData.message,
+        sourcePage: '/contact',
       });
 
       if (res.success) {
         setSubmitted(true);
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          subject: '',
+          message: '',
+        });
       } else {
         setErrorMsg(res.error || 'Failed to send message. Please try again.');
       }
@@ -151,8 +160,10 @@ export default function ContactPage() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-700">Phone Number</label>
+                  <label className="font-bold text-slate-700">Mobile Number *</label>
                   <Input
+                    required
+                    type="tel"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     placeholder="+91 98765 43210"

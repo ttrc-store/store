@@ -10,12 +10,14 @@ import {
   TrendingUp,
   Eye,
   Users,
+  MessageSquareQuote,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PriceDisplay, PriceTag } from '@/components/store/price-display';
 import { MetricCard } from '@/components/admin/metric-card';
 import { formatRupees } from '@/lib/utils';
 import { getAdminDashboardMetricsAction } from '@/actions/orders';
+import { getAdminEnquiriesCountAction } from '@/actions/enquiries';
 import { ORDER_STATUS_LABELS } from '@ttrc/shared';
 
 export const revalidate = 60; // Revalidate every 60 seconds
@@ -43,7 +45,10 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default async function AdminDashboardOverview() {
-  const metrics = await getAdminDashboardMetricsAction();
+  const [metrics, enquiriesCount] = await Promise.all([
+    getAdminDashboardMetricsAction(),
+    getAdminEnquiriesCountAction(),
+  ]);
 
   if ('error' in metrics) {
     return (
@@ -96,6 +101,20 @@ export default async function AdminDashboardOverview() {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <Link href="/admin/enquiries">
+            <Button
+              variant="outline"
+              className="border-slate-300 bg-white text-slate-700 hover:bg-slate-100 text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-xs"
+            >
+              <MessageSquareQuote size={15} className="text-[#844AFB]" />
+              <span>Enquiries &amp; RFQ</span>
+              {enquiriesCount.newCount > 0 && (
+                <span className="bg-amber-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-extrabold ml-1 animate-pulse">
+                  {enquiriesCount.newCount}
+                </span>
+              )}
+            </Button>
+          </Link>
           <Link href="/admin/products/new">
             <Button className="bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold text-xs rounded-xl flex items-center gap-2 shadow-sm shadow-purple-900/10">
               <Plus size={16} /> Add Product
@@ -108,6 +127,30 @@ export default async function AdminDashboardOverview() {
           </Link>
         </div>
       </div>
+
+      {/* New Enquiries Notification Banner if pending */}
+      {enquiriesCount.newCount > 0 && (
+        <div className="p-4 rounded-2xl bg-amber-50/80 border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-amber-100 text-amber-700 shrink-0">
+              <MessageSquareQuote size={18} />
+            </div>
+            <div>
+              <p className="font-bold text-amber-900 text-xs sm:text-sm">
+                {enquiriesCount.newCount} New Enquiry / Quotation Request{enquiriesCount.newCount > 1 ? 's' : ''} Awaiting Review
+              </p>
+              <p className="text-[11px] text-amber-700 mt-0.5">
+                Prospective customers have submitted Contact or RFQ quotation inquiries through the storefront.
+              </p>
+            </div>
+          </div>
+          <Link href="/admin/enquiries">
+            <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shrink-0">
+              Manage Enquiries &rarr;
+            </Button>
+          </Link>
+        </div>
+      )}
 
       {/* Metric Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

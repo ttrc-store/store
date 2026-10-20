@@ -21,6 +21,7 @@ import {
   Search,
   Bell,
   UserCheck,
+  MessageSquareQuote,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -28,6 +29,7 @@ const NAV_ITEMS = [
   { name: 'Products', href: '/admin/products', icon: Package },
   { name: 'Categories', href: '/admin/categories', icon: FolderTree },
   { name: 'Orders', href: '/admin/orders', icon: ShoppingBag },
+  { name: 'Enquiries & RFQ', href: '/admin/enquiries', icon: MessageSquareQuote },
   { name: 'Reports & Analytics', href: '/admin/reports', icon: BarChart3 },
   { name: 'Customers', href: '/admin/customers', icon: Users },
   { name: 'Coupons', href: '/admin/coupons', icon: Ticket },
