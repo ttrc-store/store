@@ -532,6 +532,7 @@ export async function getProductBySlug(slug: string, allowInactive = false): Pro
       $or: [
         { slug },
         { slug: slug.toLowerCase() },
+        { sku: slug.toUpperCase() },
       ],
     };
 
@@ -543,7 +544,10 @@ export async function getProductBySlug(slug: string, allowInactive = false): Pro
       query.$or.push({ _id: slug });
     }
 
-    const productDoc = await ProductModel.findOne(query).lean();
+    let productDoc = await ProductModel.findOne(query).lean();
+    if (!productDoc && (slug === 'n20-micro-gear-motor' || slug === 'ttrc-n20-micro-gear-motor')) {
+      productDoc = await ProductModel.findOne({ slug: 'ttrc-n20-micro-gear-motor-6v-600rpm', is_active: true }).lean();
+    }
     if (!productDoc) return null;
 
     const [manufacturerDoc, categoryInfo] = await Promise.all([

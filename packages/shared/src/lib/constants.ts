@@ -40,9 +40,12 @@ export const CATEGORY_TREE: CategoryTreeNode[] = [
   },
   {
     slug: 'motors',
-    name: 'Motors',
+    name: 'Motors & Drivers',
     icon: 'rotate-3d',
-    subcategories: [],
+    subcategories: [
+      { slug: 'motor', name: 'Motors' },
+      { slug: 'motor-drivers', name: 'Motor Drivers' },
+    ],
   },
   {
     slug: 'sensors',

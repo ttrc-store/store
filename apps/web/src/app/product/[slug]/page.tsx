@@ -365,6 +365,59 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
               {product.shortDescription}
             </p>
 
+            {/* Variant Switcher for Product Family (e.g. N20 Motor Voltage & Speed Options) */}
+            {product.attributes?.variants && Array.isArray(product.attributes.variants) && product.attributes.variants.length > 0 && (
+              <div className="p-3.5 rounded-xl border border-purple-200 bg-purple-50/40 space-y-2.5">
+                <div className="flex items-center justify-between text-xs font-bold text-slate-800">
+                  <span className="flex items-center gap-1.5">
+                    <Layers size={14} className="text-[#844AFB]" />
+                    <span>Select Voltage &amp; Speed Variant:</span>
+                  </span>
+                  <span className="text-[11px] font-semibold text-[#844AFB] bg-purple-100/80 px-2 py-0.5 rounded-full">
+                    {product.voltage || ''} {product.attributes?.speed ? `• ${product.attributes.speed}` : ''}
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  {product.attributes.variants.map((v: any) => {
+                    const isSelected = v.slug === product.slug || v.sku === product.sku;
+                    return isSelected ? (
+                      <div
+                        key={v.slug}
+                        className="p-3 rounded-lg border-2 border-[#844AFB] bg-white ring-2 ring-[#844AFB]/20 shadow-xs flex flex-col justify-between text-left"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-extrabold text-slate-900">{v.name}</span>
+                          <CheckCircle2 size={14} className="text-[#844AFB]" />
+                        </div>
+                        <div className="mt-1 flex items-baseline gap-1.5">
+                          <span className="text-sm font-heading font-extrabold text-[#844AFB]">
+                            ₹{(v.price_paise / 100).toFixed(0)}
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-normal">per piece</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <Link
+                        key={v.slug}
+                        href={`/product/${v.slug}`}
+                        className="p-3 rounded-lg border border-slate-200 bg-white hover:border-[#844AFB] hover:bg-purple-50/20 transition-all text-left flex flex-col justify-between group"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-semibold text-slate-700 group-hover:text-[#844AFB] transition-colors">{v.name}</span>
+                        </div>
+                        <div className="mt-1 flex items-baseline gap-1.5">
+                          <span className="text-sm font-heading font-bold text-slate-900 group-hover:text-[#844AFB]">
+                            ₹{(v.price_paise / 100).toFixed(0)}
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-normal">per piece</span>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Interactive Order Box (Bulk Pricing, Dynamic Tiers, Add to Cart) */}
             <ProductOrderBox
               id={product.id}
