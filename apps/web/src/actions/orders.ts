@@ -805,13 +805,14 @@ export async function getAdminProductsAction(opts?: {
         category_id: p.category_id,
         brand: p.brand || 'Tamizh Tech',
         manufacturer: p.manufacturer_id,
-        created_at: p.created_at.toISOString(),
-        updated_at: p.updated_at.toISOString(),
+        created_at: p.created_at ? (p.created_at instanceof Date ? p.created_at.toISOString() : new Date(p.created_at).toISOString()) : new Date().toISOString(),
+        updated_at: p.updated_at ? (p.updated_at instanceof Date ? p.updated_at.toISOString() : new Date(p.updated_at).toISOString()) : new Date().toISOString(),
         imageUrls: p.images || [],
       })),
       total: count,
     };
-  } catch {
+  } catch (err) {
+    console.error('[getAdminProductsAction error]', err);
     return { error: 'Failed to load products.' };
   }
 }
