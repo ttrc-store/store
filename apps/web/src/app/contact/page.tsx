@@ -89,7 +89,7 @@ export default function ContactPage() {
                   <Mail className="text-purple-700 flex-shrink-0" size={18} />
                   <div>
                     <strong className="text-slate-900">Email Support:</strong>
-                    <p className="text-slate-500">support@tamizhtech.in / contact@ttrc.store</p>
+                    <p className="text-slate-500">ttrcstore@gmail.com / support@ttrc.store</p>
                   </div>
                 </div>
 

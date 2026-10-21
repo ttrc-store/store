@@ -22,7 +22,7 @@ export default function FAQPage() {
     },
     {
       q: 'How can institutional buyers / STEM labs order in bulk?',
-      a: 'Visit our Bulk Enquiry page (/bulk-enquiry) or email support@tamizhtech.in for institutional quotes and GST invoices.',
+      a: 'Visit our Bulk Enquiry page (/bulk-enquiry) or email ttrcstore@gmail.com for institutional quotes and GST invoices.',
     },
   ];
 

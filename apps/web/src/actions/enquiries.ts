@@ -251,9 +251,9 @@ export async function submitEnquiryAction(input: SubmitEnquiryInput) {
     // 5. Asynchronous Notification Email to Store Admin (Fire-and-forget, non-blocking)
     try {
       const adminEmail =
+        process.env.ENQUIRY_NOTIFICATION_EMAIL ||
         process.env.ADMIN_NOTIFICATION_EMAIL ||
-        process.env.INITIAL_ADMIN_EMAIL ||
-        'support@tamizhtech.in';
+        'ttrcstore@gmail.com';
 
       sendEnquiryNotificationEmail({
         toEmail: adminEmail,
@@ -290,7 +290,7 @@ export async function submitEnquiryAction(input: SubmitEnquiryInput) {
     // Safe logging without exposing MongoDB connection string or credentials
     console.error('Failed to persist enquiry:', error instanceof Error ? error.message : 'Unknown database error');
     return {
-      error: 'Failed to submit enquiry due to a server error. Please try again or email us directly at support@tamizhtech.in.',
+      error: 'Failed to submit enquiry due to a server error. Please try again or email us directly at ttrcstore@gmail.com.',
     };
   }
 }

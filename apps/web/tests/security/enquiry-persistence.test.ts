@@ -117,6 +117,15 @@ describe('TTRC Store — Contact Form & RFQ Database Integration', () => {
     expect(createPayload.mobile).toBe('+91 98765 43210');
     expect(createPayload.status).toBe('NEW');
     expect(createPayload.sourcePage).toBe('/contact');
+
+    // Notification email must be sent to ttrcstore@gmail.com
+    expect(mockSendEnquiryNotificationEmail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        toEmail: 'ttrcstore@gmail.com',
+        type: 'CONTACT',
+        name: 'Karthik Raja',
+      })
+    );
   });
 
   // ─── 2. VALID RFQ SUBMISSION IS PERSISTED WITH PRODUCT DETAILS ──────────────
@@ -161,6 +170,15 @@ describe('TTRC Store — Contact Form & RFQ Database Integration', () => {
     expect(createPayload.sku).toBe('ROB-RACE-4WD-01');
     expect(createPayload.quantity).toBe(50);
     expect(createPayload.organization).toBe('PSG Tech Robotics Club');
+
+    // RFQ notification email must be sent to ttrcstore@gmail.com
+    expect(mockSendEnquiryNotificationEmail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        toEmail: 'ttrcstore@gmail.com',
+        type: 'RFQ',
+        name: 'Prof. Rajesh Kumar',
+      })
+    );
   });
 
   // ─── 3. MISSING REQUIRED FIELDS ARE REJECTED ─────────────────────────────────
