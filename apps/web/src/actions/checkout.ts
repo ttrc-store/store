@@ -34,6 +34,7 @@ const ShippingAddressSchema = z.object({
 const CreateOrderSchema = z.object({
   items: z.array(CheckoutItemSchema).min(1, 'Cart cannot be empty').max(50),
   paymentMethod: z.string().default('razorpay'),
+  shippingMethod: z.enum(['standard', 'express']).optional().default('standard'),
   shippingAddress: ShippingAddressSchema,
   billingAddress: ShippingAddressSchema.optional(),
   stateCode: z.string().regex(/^\d{2}$/, 'Valid 2-digit state code required').default('33'),
@@ -48,14 +49,14 @@ const CreateOrderSchema = z.object({
   existingPendingOrderId: z.string().optional(),
 });
 
-type CreateOrderInput = z.infer<typeof CreateOrderSchema>;
+type CreateOrderInput = z.input<typeof CreateOrderSchema>;
 
 export async function createOrderAction(raw: CreateOrderInput) {
   const validation = CreateOrderSchema.safeParse(raw);
   if (!validation.success) {
     return { error: validation.error.errors[0].message };
   }
-  const { items, paymentMethod, shippingAddress, billingAddress, stateCode, couponCode, guestEmail, companyGst, existingPendingOrderId } = validation.data;
+  const { items, paymentMethod, shippingMethod = 'standard', shippingAddress, billingAddress, stateCode, couponCode, guestEmail, companyGst, existingPendingOrderId } = validation.data;
 
   // Strict enforcement: Cash on Delivery is not supported on TTRC Store
   if (paymentMethod !== 'razorpay') {
@@ -216,8 +217,9 @@ export async function createOrderAction(raw: CreateOrderInput) {
     }
 
     const subtotalPaise = validatedItems.reduce((s, i) => s + i.lineTotal, 0);
-    // Standard shipping is always applied across all orders (no free shipping)
-    const shippingPaise = baseShipping || 5900;
+    // Shipping calculation: Standard Delivery (₹120) or Express Priority Air (₹199)
+    const standardShipping = baseShipping || 12000;
+    const shippingPaise = shippingMethod === 'express' ? 19900 : standardShipping;
 
     let couponDiscountPaise = 0;
     let appliedCouponDoc: any = null;
@@ -330,6 +332,7 @@ export async function createOrderAction(raw: CreateOrderInput) {
       status: 'pending',
       payment_status: 'pending',
       payment_method: 'razorpay',
+      shipping_method: shippingMethod,
       subtotal: subtotalPaise,
       discount_total: couponDiscountPaise,
       tax_total: totalTaxPaise,

@@ -13,7 +13,7 @@ export default function AdminSettingsPage() {
   const [razorpayEnabled, setRazorpayEnabled] = React.useState(false);
   const [grievanceOfficer, setGrievanceOfficer] = React.useState('Karthik Raja (support@tamizhtech.in)');
   const [freeShippingThreshold, setFreeShippingThreshold] = React.useState('999');
-  const [baseShippingFee, setBaseShippingFee] = React.useState('59');
+  const [baseShippingFee, setBaseShippingFee] = React.useState('120');
   const [codLimit, setCodLimit] = React.useState('5000');
 
   const [saving, setSaving] = React.useState(false);

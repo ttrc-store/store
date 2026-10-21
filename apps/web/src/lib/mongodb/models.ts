@@ -341,6 +341,7 @@ export interface IOrder extends Document {
   discount_total: number;
   tax_total: number;
   shipping_total: number;
+  shipping_method?: 'standard' | 'express';
   cod_fee: number;
   total: number;
   shipping_address: Record<string, any>;
@@ -398,6 +399,7 @@ const OrderSchema = new Schema<IOrder>(
     discount_total: { type: Number, default: 0 },
     tax_total: { type: Number, default: 0 },
     shipping_total: { type: Number, default: 0 },
+    shipping_method: { type: String, enum: ['standard', 'express'], default: 'standard' },
     cod_fee: { type: Number, default: 0 },
     total: { type: Number, required: true },
     shipping_address: { type: Schema.Types.Mixed, required: true },

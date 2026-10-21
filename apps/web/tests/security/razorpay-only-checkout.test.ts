@@ -173,6 +173,59 @@ describe('TTRC Store — Razorpay-Only Checkout & COD Rejection Audit', () => {
       expect(createdArg.payment_method).toBe('razorpay');
       expect(createdArg.payment_status).toBe('pending');
       expect(createdArg.status).toBe('pending');
+      expect(createdArg.shipping_method).toBe('standard');
+    });
+
+    it('correctly calculates Express Priority Air shipping fee of ₹199 (19900 paise)', async () => {
+      (ProductModel.find as any).mockReturnValue({
+        lean: vi.fn().mockResolvedValue([
+          {
+            _id: '64f8a1b2c3d4e5f6a7b8c9d0',
+            name: 'ESP32 Dual Core Controller',
+            title: 'ESP32 Dual Core Controller',
+            price: 54900,
+            stock_quantity: 20,
+            gst_percent: 18,
+            hsn_code: '85423100',
+          },
+        ]),
+      });
+
+      (ProductModel.findOneAndUpdate as any).mockResolvedValue({
+        _id: '64f8a1b2c3d4e5f6a7b8c9d0',
+        name: 'ESP32 Dual Core Controller',
+        stock_quantity: 19,
+      });
+
+      (OrderModel.create as any).mockResolvedValue({
+        _id: 'order_mongo_457',
+        order_number: 'TTRC/25-26/100043',
+        payment_method: 'razorpay',
+        payment_status: 'pending',
+        status: 'pending',
+        shipping_method: 'express',
+        shipping_total: 19900,
+      });
+
+      const payload: any = {
+        items: [{ productId: '64f8a1b2c3d4e5f6a7b8c9d0', quantity: 1 }],
+        paymentMethod: 'razorpay',
+        shippingMethod: 'express',
+        shippingAddress: {
+          fullName: 'Robo Maker',
+          phone: '9876543210',
+          line1: '12 Tech Park',
+          city: 'Coimbatore',
+          state: 'Tamil Nadu',
+          pincode: '641001',
+        },
+      };
+
+      const result = await createOrderAction(payload);
+      expect(result.error).toBeUndefined();
+      const createdArg = (OrderModel.create as any).mock.calls[(OrderModel.create as any).mock.calls.length - 1][0];
+      expect(createdArg.shipping_method).toBe('express');
+      expect(createdArg.shipping_total).toBe(19900);
     });
   });
 

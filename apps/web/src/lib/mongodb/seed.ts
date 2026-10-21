@@ -26,7 +26,8 @@ const DEFAULT_SETTINGS = [
   { key: 'cod_limit_paise', value: 500000 },
   { key: 'cod_fee_paise', value: 4900 },
   { key: 'free_shipping_threshold_paise', value: 999999999 },
-  { key: 'standard_shipping_fee_paise', value: 5900 },
+  { key: 'standard_shipping_fee_paise', value: 12000 },
+  { key: 'base_shipping_paise', value: 12000 },
 ];
 
 let seeded = false;

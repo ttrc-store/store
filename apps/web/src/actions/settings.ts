@@ -25,7 +25,7 @@ export async function getSiteSettingsAction(): Promise<SiteSettings> {
     gstin: 'Not yet registered — add GSTIN here when available',
     company_name: 'TTRC',
     free_shipping_threshold_paise: 999999999,
-    base_shipping_paise: 5900,
+    base_shipping_paise: 12000,
     cod_max_limit_paise: 500000,
   };
 

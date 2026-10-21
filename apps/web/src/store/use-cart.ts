@@ -208,7 +208,7 @@ export const useCartStore = create<CartStore>()(
         const { items, discountPaise, stateCode } = get();
         const subtotalPaise = items.reduce((sum, i) => sum + i.pricePaise * i.quantity, 0);
         // Standard delivery is charged on all orders (no free shipping)
-        const shippingPaise = 5900;
+        const shippingPaise = 12000;
 
         const isIntraState = !stateCode || stateCode === '33';
         let totalCgst = 0;

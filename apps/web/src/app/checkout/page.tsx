@@ -130,7 +130,7 @@ export default function CheckoutPage() {
   // Step 2: Shipping method selection
   const [shippingMethod, setShippingMethod] = React.useState<'standard' | 'express'>('standard');
   const [freeShippingThresholdPaise, setFreeShippingThresholdPaise] = React.useState(99900);
-  const [baseShippingPaise, setBaseShippingPaise] = React.useState(5900);
+  const [baseShippingPaise, setBaseShippingPaise] = React.useState(12000);
 
   // Coupon Input State
   const [couponInput, setCouponInput] = React.useState('');
@@ -223,7 +223,7 @@ export default function CheckoutPage() {
 
         // Settings
         setFreeShippingThresholdPaise(settings.free_shipping_threshold_paise || 99900);
-        setBaseShippingPaise(settings.base_shipping_paise || 5900);
+        setBaseShippingPaise(settings.base_shipping_paise || 12000);
 
         const keyId = settings.razorpay_key_id || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '';
         setRazorpayKey(keyId);
@@ -373,8 +373,8 @@ export default function CheckoutPage() {
 
   // Calculate dynamic shipping cost (standard delivery applied across all orders, no free shipping)
   const isEligibleForFreeShipping = false;
-  const standardShippingCost = baseShippingPaise || 5900;
-  const expressShippingCost = 9900;
+  const standardShippingCost = baseShippingPaise || 12000;
+  const expressShippingCost = 19900;
   const selectedShippingPaise = shippingMethod === 'express' ? expressShippingCost : standardShippingCost;
 
   // Calculate GST added to total bill
@@ -425,6 +425,7 @@ export default function CheckoutPage() {
     const orderPayload = {
       items: items.map((i) => ({ productId: i.id, quantity: i.quantity })),
       paymentMethod: 'razorpay',
+      shippingMethod,
       guestEmail: !isAuthenticated ? email.toLowerCase().trim() : undefined,
       shippingAddress: {
         fullName: fullNameCombined,
@@ -1282,11 +1283,11 @@ export default function CheckoutPage() {
                               <p className="text-sm font-bold text-slate-900">Standard Surface Delivery</p>
                             </div>
                             <p className="text-xs text-slate-500 mt-0.5">
-                              Estimated Delivery: Dispatch within 10 days ({pincodeResult?.estimatedDays || '2 – 4 Business Days transit across India'})
+                              Estimated Delivery: Dispatch within 10 days (1–2 Days Express Transit)
                             </p>
                             <p className="text-[11px] text-slate-400 mt-1 flex items-center gap-1.5">
                               <Truck size={13} className="text-[#844AFB]" />
-                              <span>Couriers: {pincodeResult?.courierName || 'Delhivery / BlueDart / ST Courier'}</span>
+                              <span>Couriers: BlueDart Air / ST Courier / DTDC / Indian Post</span>
                             </p>
                           </div>
                         </div>
@@ -1363,7 +1364,7 @@ export default function CheckoutPage() {
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-700 gap-2 bg-slate-50 p-4 rounded-xl border border-slate-200">
                     <div>
                       <p className="font-bold text-slate-900">
-                        {shippingMethod === 'express' ? 'Express Priority Air (1–2 Days)' : 'Standard Surface Delivery'}
+                        {shippingMethod === 'express' ? 'Express Priority Air (1–2 Days Flight Transit)' : 'Standard Surface Delivery (1–2 Days Express Transit)'}
                       </p>
                       <p className="text-slate-500">
                         Shipping Fee: {selectedShippingPaise === 0 ? 'FREE' : `₹${(selectedShippingPaise / 100).toFixed(2)}`}
@@ -1445,7 +1446,7 @@ export default function CheckoutPage() {
                             </button>
                           </div>
                           <p className="font-semibold text-slate-800">
-                            {shippingMethod === 'express' ? 'Express Priority Air (1–2 Days)' : 'Standard Surface Delivery (2–4 Days)'}
+                            {shippingMethod === 'express' ? 'Express Priority Air (1–2 Days Flight Transit)' : 'Standard Surface Delivery (1–2 Days Express Transit)'}
                           </p>
                           <p className="text-slate-500 mt-1">
                             Shipping fee: ₹{(selectedShippingPaise / 100).toFixed(2)}
