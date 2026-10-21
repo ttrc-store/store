@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AllCategoriesPage() {
-  const categories = await getStoreCategories();
+  const categories = await getStoreCategories({ mainOnly: true });
 
   const breadcrumbs = [
     { name: 'Home', url: 'https://www.ttrc.store' },

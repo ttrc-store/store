@@ -203,7 +203,7 @@ function TrustStrip() {
 // ─── Categories section ────────────────────────────────────────────────────────
 
 async function CategoriesSection() {
-  const categories = await getStoreCategories();
+  const categories = await getStoreCategories({ mainOnly: true });
   // Only show categories that have products or have a configured image
   const visibleCategories = categories.filter((cat) => cat.productCount > 0 || cat.imageUrl);
 

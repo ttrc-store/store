@@ -269,9 +269,12 @@ async function getAllCategoriesCached(): Promise<any[]> {
   return all;
 }
 
-export async function getStoreCategories(): Promise<StoreCategoryItem[]> {
+export async function getStoreCategories(opts?: { mainOnly?: boolean }): Promise<StoreCategoryItem[]> {
   const now = Date.now();
   if (cachedCategories && now - cachedCategoriesTime < CATEGORIES_CACHE_TTL_MS) {
+    if (opts?.mainOnly) {
+      return cachedCategories.filter((c) => !c.parentId);
+    }
     return cachedCategories;
   }
 
@@ -319,6 +322,9 @@ export async function getStoreCategories(): Promise<StoreCategoryItem[]> {
 
     cachedCategories = categoryItems;
     cachedCategoriesTime = Date.now();
+    if (opts?.mainOnly) {
+      return categoryItems.filter((c) => !c.parentId);
+    }
     return categoryItems;
   } catch (err) {
     console.error('[MongoDB Catalog] Error loading store categories:', err);
