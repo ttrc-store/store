@@ -432,18 +432,16 @@ export function EnterpriseProductForm({
   );
   const [bulkTiers, setBulkTiers] = React.useState<
     Array<{ minQuantity: number; maxQuantity?: number; unitPrice: string }>
-  >(
-    initialData?.bulkPriceTiers && initialData.bulkPriceTiers.length > 0
-      ? initialData.bulkPriceTiers.map((t: any) => ({
-          minQuantity: t.minQuantity,
-          maxQuantity: t.maxQuantity,
-          unitPrice: (t.unitPricePaise / 100).toString(),
-        }))
-      : [
-          { minQuantity: 5, maxQuantity: 9, unitPrice: '1199' },
-          { minQuantity: 10, unitPrice: '1099' },
-        ]
-  );
+  >(() => {
+    if (initialData?.bulkPriceTiers && Array.isArray(initialData.bulkPriceTiers)) {
+      return initialData.bulkPriceTiers.map((t: any) => ({
+        minQuantity: t.minQuantity,
+        maxQuantity: t.maxQuantity,
+        unitPrice: (t.unitPricePaise / 100).toString(),
+      }));
+    }
+    return [];
+  });
 
   // Inventory
   const [stock, setStock] = React.useState(
@@ -1605,82 +1603,92 @@ export function EnterpriseProductForm({
             </Button>
           </div>
 
-          <div className="space-y-2">
-            {bulkTiers.map((tier, idx) => (
-              <div
-                key={idx}
-                className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center p-3 rounded-xl bg-slate-50 border border-slate-200"
-              >
-                <div className="sm:col-span-5 space-y-1">
-                  <label className="text-[10px] font-bold text-slate-600">Minimum Quantity Threshold</label>
-                  <Input
-                    type="number"
-                    min="2"
-                    value={tier.minQuantity}
-                    onChange={(e) => {
-                      const updated = [...bulkTiers];
-                      updated[idx].minQuantity = parseInt(e.target.value, 10) || 2;
-                      setBulkTiers(updated);
-                    }}
-                    className="h-8 text-xs bg-white font-mono"
-                  />
-                </div>
-
-                <div className="sm:col-span-6 space-y-1">
-                  <label className="text-[10px] font-bold text-slate-600">Tier Unit Price (₹)</label>
-                  <div className="relative">
-                    <span className="absolute left-2.5 top-1.5 text-slate-400 font-bold text-xs">₹</span>
+          {bulkTiers.length === 0 ? (
+            <div className="p-4 rounded-xl border border-dashed border-slate-200 text-center bg-slate-50/50">
+              <p className="text-xs text-slate-500 font-medium">No quantity bulk pricing tiers configured.</p>
+              <p className="text-[11px] text-slate-400 mt-0.5">Base selling price of ₹{price || '0'} will apply to all customer purchase quantities.</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {bulkTiers.map((tier, idx) => (
+                <div
+                  key={idx}
+                  className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center p-3 rounded-xl bg-slate-50 border border-slate-200"
+                >
+                  <div className="sm:col-span-5 space-y-1">
+                    <label className="text-[10px] font-bold text-slate-600">Minimum Quantity Threshold</label>
                     <Input
                       type="number"
-                      min="1"
-                      step="any"
-                      value={tier.unitPrice}
+                      min="2"
+                      value={tier.minQuantity}
                       onChange={(e) => {
                         const updated = [...bulkTiers];
-                        updated[idx].unitPrice = e.target.value;
+                        updated[idx].minQuantity = parseInt(e.target.value, 10) || 2;
                         setBulkTiers(updated);
                       }}
-                      className="pl-6 h-8 text-xs bg-white font-mono font-bold text-purple-900"
+                      className="h-8 text-xs bg-white font-mono"
                     />
                   </div>
-                </div>
 
-                <div className="sm:col-span-1 flex justify-end pt-3 sm:pt-4">
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveBulkTier(idx)}
-                    className="text-slate-400 hover:text-red-600 p-1 transition-colors"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+                  <div className="sm:col-span-6 space-y-1">
+                    <label className="text-[10px] font-bold text-slate-600">Tier Unit Price (₹)</label>
+                    <div className="relative">
+                      <span className="absolute left-2.5 top-1.5 text-slate-400 font-bold text-xs">₹</span>
+                      <Input
+                        type="number"
+                        min="1"
+                        step="any"
+                        value={tier.unitPrice}
+                        onChange={(e) => {
+                          const updated = [...bulkTiers];
+                          updated[idx].unitPrice = e.target.value;
+                          setBulkTiers(updated);
+                        }}
+                        className="pl-6 h-8 text-xs bg-white font-mono font-bold text-purple-900"
+                      />
+                    </div>
+                  </div>
 
-          {/* Customer Live Preview Table (Requirement 17, 79) */}
-          <div className="p-3.5 rounded-xl bg-purple-50/60 border border-purple-200 space-y-2">
-            <span className="text-[11px] font-bold text-purple-900 uppercase tracking-wider block">
-              Storefront Customer Bulk Pricing Preview:
-            </span>
-            <div className="divide-y divide-purple-100 text-xs">
-              <div className="py-1.5 flex justify-between font-semibold text-slate-700">
-                <span>Quantity 1 – {bulkTiers[0]?.minQuantity ? bulkTiers[0].minQuantity - 1 : 'any'} {unit.toLowerCase()}s:</span>
-                <span className="font-mono font-bold text-slate-900">₹{price} / {unit.toLowerCase()}</span>
-              </div>
-              {bulkTiers.map((tier, i) => (
-                <div key={i} className="py-1.5 flex justify-between font-semibold text-purple-900">
-                  <span>
-                    Quantity {tier.minQuantity}
-                    {tier.maxQuantity ? `–${tier.maxQuantity}` : '+'} {unit.toLowerCase()}s:
-                  </span>
-                  <span className="font-mono font-bold text-[#6721F2]">
-                    ₹{tier.unitPrice} / {unit.toLowerCase()} (Save ₹{Math.max(0, parseFloat(price) - parseFloat(tier.unitPrice))})
-                  </span>
+                  <div className="sm:col-span-1 flex justify-end pt-3 sm:pt-4">
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveBulkTier(idx)}
+                      className="text-slate-400 hover:text-red-600 p-1 transition-colors"
+                      title="Delete tier"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
-          </div>
+          )}
+
+          {/* Customer Live Preview Table (Shown only when tiers exist) */}
+          {bulkTiers.length > 0 && (
+            <div className="p-3.5 rounded-xl bg-purple-50/60 border border-purple-200 space-y-2">
+              <span className="text-[11px] font-bold text-purple-900 uppercase tracking-wider block">
+                Storefront Customer Bulk Pricing Preview:
+              </span>
+              <div className="divide-y divide-purple-100 text-xs">
+                <div className="py-1.5 flex justify-between font-semibold text-slate-700">
+                  <span>Quantity 1 – {bulkTiers[0]?.minQuantity ? bulkTiers[0].minQuantity - 1 : 'any'} {unit.toLowerCase()}s:</span>
+                  <span className="font-mono font-bold text-slate-900">₹{price} / {unit.toLowerCase()}</span>
+                </div>
+                {bulkTiers.map((tier, i) => (
+                  <div key={i} className="py-1.5 flex justify-between font-semibold text-purple-900">
+                    <span>
+                      Quantity {tier.minQuantity}
+                      {tier.maxQuantity ? `–${tier.maxQuantity}` : '+'} {unit.toLowerCase()}s:
+                    </span>
+                    <span className="font-mono font-bold text-[#6721F2]">
+                      ₹{tier.unitPrice} / {unit.toLowerCase()} (Save ₹{Math.max(0, parseFloat(price) - parseFloat(tier.unitPrice))})
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
