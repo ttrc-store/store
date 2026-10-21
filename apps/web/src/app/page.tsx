@@ -258,9 +258,9 @@ async function CategoriesSection() {
 
 async function ProductCollectionsSection() {
   const [featuredRes, bestSellersRes, newArrivalsRes] = await Promise.all([
-    getStoreProducts({ isFeatured: true, limit: 8, sort: 'order_added' }),
-    getStoreProducts({ isBestseller: true, limit: 8, sort: 'order_added' }),
-    getStoreProducts({ isNewArrival: true, limit: 8, sort: 'order_added' }),
+    getStoreProducts({ isFeatured: true, limit: 60, sort: 'order_added' }),
+    getStoreProducts({ isBestseller: true, limit: 60, sort: 'order_added' }),
+    getStoreProducts({ isNewArrival: true, limit: 60, sort: 'order_added' }),
   ]);
 
   const needsFallback =
@@ -269,24 +269,18 @@ async function ProductCollectionsSection() {
     newArrivalsRes.products.length === 0;
 
   const fallbackProducts = needsFallback
-    ? (await getStoreProducts({ limit: 8, sort: 'order_added' })).products
+    ? (await getStoreProducts({ limit: 60, sort: 'order_added' })).products
     : [];
 
   const featuredCards = (
     featuredRes.products.length > 0 ? featuredRes.products : fallbackProducts
-  )
-    .map(toStoreProductCardProps)
-    .slice(0, 8);
+  ).map(toStoreProductCardProps);
   const bestSellerCards = (
     bestSellersRes.products.length > 0 ? bestSellersRes.products : fallbackProducts
-  )
-    .map(toStoreProductCardProps)
-    .slice(0, 8);
+  ).map(toStoreProductCardProps);
   const newArrivalCards = (
     newArrivalsRes.products.length > 0 ? newArrivalsRes.products : fallbackProducts
-  )
-    .map(toStoreProductCardProps)
-    .slice(0, 8);
+  ).map(toStoreProductCardProps);
 
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5">

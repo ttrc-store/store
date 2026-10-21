@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { Package, Sparkles, Flame, Clock, ArrowRight } from 'lucide-react';
+import { Package, Sparkles, Flame, Clock, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ProductCard, ProductCardProps } from '@/components/store/product-card';
 import { Button } from '@/components/ui/button';
 
@@ -12,8 +12,11 @@ interface HomeTabsProps {
   newArrivals: ProductCardProps[];
 }
 
+const ITEMS_PER_PAGE = 8;
+
 export function HomeTabs({ featuredProducts, bestSellers, newArrivals }: HomeTabsProps) {
   const [activeTab, setActiveTab] = React.useState<'featured' | 'bestsellers' | 'new'>('featured');
+  const [currentPage, setCurrentPage] = React.useState<number>(0);
 
   const products = React.useMemo(() => {
     switch (activeTab) {
@@ -27,9 +30,27 @@ export function HomeTabs({ featuredProducts, bestSellers, newArrivals }: HomeTab
     }
   }, [activeTab, featuredProducts, bestSellers, newArrivals]);
 
+  // Reset to first page whenever tab changes
+  React.useEffect(() => {
+    setCurrentPage(0);
+  }, [activeTab]);
+
+  const totalPages = Math.max(1, Math.ceil(products.length / ITEMS_PER_PAGE));
+  const safePage = Math.min(currentPage, totalPages - 1);
+  const startIndex = safePage * ITEMS_PER_PAGE;
+  const currentProducts = products.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+  const handlePrev = () => {
+    setCurrentPage((prev) => Math.max(0, prev - 1));
+  };
+
+  const handleNext = () => {
+    setCurrentPage((prev) => Math.min(totalPages - 1, prev + 1));
+  };
+
   return (
     <div className="space-y-5">
-      {/* Section header + tabs */}
+      {/* Section header + tabs + right/left arrows */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div className="space-y-2">
           <p className="text-xs font-bold text-[#844AFB] uppercase tracking-widest">Products</p>
@@ -67,22 +88,87 @@ export function HomeTabs({ featuredProducts, bestSellers, newArrivals }: HomeTab
           </div>
         </div>
 
-        <Link
-          href="/category"
-          className="text-xs font-bold text-[#844AFB] hover:text-[#6721F2] inline-flex items-center gap-1 group self-end"
-          aria-label="View all products"
-        >
-          <span>View All</span>
-          <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
-        </Link>
+        <div className="flex items-center gap-3 self-end sm:self-auto">
+          {totalPages > 1 && (
+            <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200/80 rounded-xl p-1 shadow-sm">
+              <button
+                onClick={handlePrev}
+                disabled={safePage === 0}
+                aria-label="Previous products"
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-700 hover:bg-white hover:text-[#844AFB] hover:shadow-sm disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-slate-700 disabled:cursor-not-allowed transition-all"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <span className="text-xs font-bold text-slate-600 px-2 select-none">
+                {safePage + 1} / {totalPages}
+              </span>
+              <button
+                onClick={handleNext}
+                disabled={safePage >= totalPages - 1}
+                aria-label="Next products"
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-700 hover:bg-white hover:text-[#844AFB] hover:shadow-sm disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-slate-700 disabled:cursor-not-allowed transition-all"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          )}
+
+          <Link
+            href="/category"
+            className="text-xs font-bold text-[#844AFB] hover:text-[#6721F2] inline-flex items-center gap-1 group py-2"
+            aria-label="View all products"
+          >
+            <span>View All</span>
+            <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
+          </Link>
+        </div>
       </div>
 
       {/* Product Grid or Empty State */}
-      {products.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4 sm:gap-6">
-          {products.slice(0, 8).map((product) => (
-            <ProductCard key={product.id} {...product} />
-          ))}
+      {currentProducts.length > 0 ? (
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4 sm:gap-6">
+            {currentProducts.map((product) => (
+              <ProductCard key={product.id} {...product} />
+            ))}
+          </div>
+
+          {/* Bottom pagination controls when multiple pages exist */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 pt-2">
+              <button
+                onClick={handlePrev}
+                disabled={safePage === 0}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-bold text-slate-700 hover:bg-[#EEE8FA] hover:text-[#844AFB] hover:border-purple-300 disabled:opacity-30 disabled:hover:bg-white disabled:hover:text-slate-700 disabled:cursor-not-allowed transition-all shadow-sm"
+              >
+                <ChevronLeft size={14} /> Previous
+              </button>
+
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }).map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setCurrentPage(idx)}
+                    className={`w-7 h-7 rounded-lg text-xs font-bold transition-all ${
+                      safePage === idx
+                        ? 'bg-[#844AFB] text-white shadow-sm'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    {idx + 1}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                onClick={handleNext}
+                disabled={safePage >= totalPages - 1}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-bold text-slate-700 hover:bg-[#EEE8FA] hover:text-[#844AFB] hover:border-purple-300 disabled:opacity-30 disabled:hover:bg-white disabled:hover:text-slate-700 disabled:cursor-not-allowed transition-all shadow-sm"
+              >
+                Next <ChevronRight size={14} />
+              </button>
+            </div>
+          )}
         </div>
       ) : (
         <div className="p-12 sm:p-16 text-center rounded-2xl bg-[#EEE8FA]/40 border border-purple-100 space-y-4">
