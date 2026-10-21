@@ -245,7 +245,36 @@ async function findManufacturerSafely(manufacturerId?: string): Promise<any> {
   }
 }
 
+let cachedCategories: StoreCategoryItem[] | null = null;
+let cachedCategoriesTime = 0;
+let cachedAllCategories: any[] | null = null;
+let cachedAllCategoriesTime = 0;
+const CATEGORIES_CACHE_TTL_MS = 60 * 1000;
+
+export function invalidateCatalogCache() {
+  cachedCategories = null;
+  cachedCategoriesTime = 0;
+  cachedAllCategories = null;
+  cachedAllCategoriesTime = 0;
+}
+
+async function getAllCategoriesCached(): Promise<any[]> {
+  const now = Date.now();
+  if (cachedAllCategories && now - cachedAllCategoriesTime < CATEGORIES_CACHE_TTL_MS) {
+    return cachedAllCategories;
+  }
+  const all = await CategoryModel.find().lean();
+  cachedAllCategories = all;
+  cachedAllCategoriesTime = now;
+  return all;
+}
+
 export async function getStoreCategories(): Promise<StoreCategoryItem[]> {
+  const now = Date.now();
+  if (cachedCategories && now - cachedCategoriesTime < CATEGORIES_CACHE_TTL_MS) {
+    return cachedCategories;
+  }
+
   try {
     await connectToDatabase();
     await ensureDatabaseSeeded();
@@ -288,6 +317,8 @@ export async function getStoreCategories(): Promise<StoreCategoryItem[]> {
       })
     );
 
+    cachedCategories = categoryItems;
+    cachedCategoriesTime = Date.now();
     return categoryItems;
   } catch (err) {
     console.error('[MongoDB Catalog] Error loading store categories:', err);
@@ -472,12 +503,16 @@ export async function getStoreProducts(opts?: {
       sortOption.price = -1;
     } else if (opts?.sort === 'rating') {
       sortOption.rating = -1;
-      sortOption.created_at = -1;
+      sortOption.created_at = 1;
     } else if (opts?.sort === 'newest') {
       sortOption.created_at = -1;
+    } else if (opts?.sort === 'oldest' || opts?.sort === 'order_added') {
+      sortOption.created_at = 1;
+      sortOption._id = 1;
     } else {
-      sortOption.is_featured = -1;
-      sortOption.created_at = -1;
+      // Default: order-wise added (first added first, newly added products appear at the end/last)
+      sortOption.created_at = 1;
+      sortOption._id = 1;
     }
 
     const limit = opts?.limit ?? 50;
@@ -489,7 +524,7 @@ export async function getStoreProducts(opts?: {
       ProductModel.countDocuments(query),
     ]);
 
-    const allCategories = await CategoryModel.find().lean();
+    const allCategories = await getAllCategoriesCached();
     const catMap = new Map<string, any>();
     allCategories.forEach((c) => {
       catMap.set(c._id.toString(), c);

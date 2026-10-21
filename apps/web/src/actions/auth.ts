@@ -6,7 +6,7 @@ import bcrypt from 'bcryptjs';
 import { connectToDatabase } from '@/lib/mongodb/client';
 import { UserModel, AuditLogModel } from '@/lib/mongodb/models';
 import { ensureDatabaseSeeded } from '@/lib/mongodb/seed';
-import { createSessionCookie, clearSessionCookie, requireAuth } from '@/lib/auth-helpers';
+import { createSessionCookie, clearSessionCookie, requireAuth, getAuthenticatedUser } from '@/lib/auth-helpers';
 import { checkRateLimit } from '@/lib/security/rate-limiter';
 import { getNextSequenceId } from '@/lib/id-generator';
 import {
@@ -576,3 +576,16 @@ export async function changePasswordAction(formData: FormData) {
     return { error: 'Failed to change password. Please try again.' };
   }
 }
+
+/**
+ * Lightweight session user action for client header hydration without opting root layout into dynamic rendering.
+ */
+export async function getCurrentUserAction() {
+  try {
+    const auth = await getAuthenticatedUser();
+    return 'user' in auth ? auth.user : null;
+  } catch {
+    return null;
+  }
+}
+

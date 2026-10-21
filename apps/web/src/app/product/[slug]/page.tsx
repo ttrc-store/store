@@ -1,5 +1,4 @@
-import * as React from 'react';
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -60,6 +59,15 @@ interface ProductPageProps {
   params: Promise<{ slug: string }>;
 }
 
+export async function generateStaticParams() {
+  try {
+    const { products } = await getStoreProducts({ limit: 50 });
+    return products.map((p) => ({ slug: p.slug }));
+  } catch {
+    return [];
+  }
+}
+
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;
   const product = await getProductBySlug(slug);
@@ -110,9 +118,17 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 
 export default async function ProductDetailPage({ params }: ProductPageProps) {
   const { slug } = await params;
-  const auth = await getAuthenticatedUser();
-  const isAdminOrStaff = 'user' in auth && (auth.user?.role === 'admin' || auth.user?.role === 'staff');
-  const product = await getProductBySlug(slug, isAdminOrStaff);
+  let isAdminOrStaff = false;
+  let product = await getProductBySlug(slug, false);
+
+  if (!product) {
+    // If not found in public catalog, check if an admin or staff member is previewing a draft/inactive product
+    const auth = await getAuthenticatedUser();
+    isAdminOrStaff = 'user' in auth && (auth.user?.role === 'admin' || auth.user?.role === 'staff');
+    if (isAdminOrStaff) {
+      product = await getProductBySlug(slug, true);
+    }
+  }
 
   if (!product) {
     notFound();

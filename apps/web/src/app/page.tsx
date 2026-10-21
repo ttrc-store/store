@@ -1,5 +1,5 @@
 import * as React from 'react';
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 import Link from 'next/link';
 import Image from 'next/image';
@@ -31,8 +31,8 @@ import { OrganizationJsonLd, WebSiteJsonLd } from '@/components/seo/json-ld';
 
 function ProductGridSkeleton() {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
-      {Array.from({ length: 5 }).map((_, i) => (
+    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4 sm:gap-6">
+      {Array.from({ length: 8 }).map((_, i) => (
         <div key={i} className="rounded-2xl bg-slate-100 animate-pulse aspect-[3/4]" />
       ))}
     </div>
@@ -258,9 +258,9 @@ async function CategoriesSection() {
 
 async function ProductCollectionsSection() {
   const [featuredRes, bestSellersRes, newArrivalsRes] = await Promise.all([
-    getStoreProducts({ isFeatured: true, limit: 10 }),
-    getStoreProducts({ isBestseller: true, limit: 10 }),
-    getStoreProducts({ isNewArrival: true, limit: 10 }),
+    getStoreProducts({ isFeatured: true, limit: 8, sort: 'order_added' }),
+    getStoreProducts({ isBestseller: true, limit: 8, sort: 'order_added' }),
+    getStoreProducts({ isNewArrival: true, limit: 8, sort: 'order_added' }),
   ]);
 
   const needsFallback =
@@ -269,18 +269,24 @@ async function ProductCollectionsSection() {
     newArrivalsRes.products.length === 0;
 
   const fallbackProducts = needsFallback
-    ? (await getStoreProducts({ limit: 10 })).products
+    ? (await getStoreProducts({ limit: 8, sort: 'order_added' })).products
     : [];
 
   const featuredCards = (
     featuredRes.products.length > 0 ? featuredRes.products : fallbackProducts
-  ).map(toStoreProductCardProps);
+  )
+    .map(toStoreProductCardProps)
+    .slice(0, 8);
   const bestSellerCards = (
     bestSellersRes.products.length > 0 ? bestSellersRes.products : fallbackProducts
-  ).map(toStoreProductCardProps);
+  )
+    .map(toStoreProductCardProps)
+    .slice(0, 8);
   const newArrivalCards = (
     newArrivalsRes.products.length > 0 ? newArrivalsRes.products : fallbackProducts
-  ).map(toStoreProductCardProps);
+  )
+    .map(toStoreProductCardProps)
+    .slice(0, 8);
 
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5">

@@ -2,6 +2,7 @@
 
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
+import { invalidateCatalogCache } from '@/lib/mongodb/catalog';
 import { connectToDatabase } from '@/lib/mongodb/client';
 import { CategoryModel, ProductModel, AuditLogModel, ICategory } from '@/lib/mongodb/models';
 import { requireAdmin } from '@/lib/auth-helpers';
@@ -129,6 +130,7 @@ export async function createAdminCategoryAction(rawInput: z.infer<typeof Categor
       },
     });
 
+    invalidateCatalogCache();
     revalidatePath('/admin/categories');
     revalidatePath('/category');
     revalidatePath('/');
@@ -207,6 +209,7 @@ export async function updateAdminCategoryAction(
       },
     });
 
+    invalidateCatalogCache();
     revalidatePath('/admin/categories');
     revalidatePath('/category');
     revalidatePath('/');
@@ -267,6 +270,7 @@ export async function deleteAdminCategoryAction(categoryId: string) {
       },
     });
 
+    invalidateCatalogCache();
     revalidatePath('/admin/categories');
     revalidatePath('/category');
     revalidatePath('/');

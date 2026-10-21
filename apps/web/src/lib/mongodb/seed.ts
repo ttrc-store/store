@@ -37,12 +37,15 @@ export async function ensureDatabaseSeeded() {
   try {
     await connectToDatabase();
 
-    // 1. Seed Categories if empty
-    const categoryCount = await CategoryModel.countDocuments();
-    if (categoryCount === 0) {
-      console.log('[MongoDB Seed] Seeding initial categories into MongoDB Atlas...');
-      await CategoryModel.insertMany(INITIAL_CATEGORIES);
+    // Fast-path: if database has already been seeded, skip cold-start upserts immediately
+    const categoryCount = await CategoryModel.estimatedDocumentCount();
+    if (categoryCount > 0) {
+      seeded = true;
+      return;
     }
+
+    console.log('[MongoDB Seed] Seeding initial categories into MongoDB Atlas...');
+    await CategoryModel.insertMany(INITIAL_CATEGORIES);
 
     // 2. Seed Settings if empty
     for (const setting of DEFAULT_SETTINGS) {

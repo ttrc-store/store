@@ -68,7 +68,7 @@ export function HomeTabs({ featuredProducts, bestSellers, newArrivals }: HomeTab
         </div>
 
         <Link
-          href="/category/gamified-robots"
+          href="/category"
           className="text-xs font-bold text-[#844AFB] hover:text-[#6721F2] inline-flex items-center gap-1 group self-end"
           aria-label="View all products"
         >
@@ -79,8 +79,8 @@ export function HomeTabs({ featuredProducts, bestSellers, newArrivals }: HomeTab
 
       {/* Product Grid or Empty State */}
       {products.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-          {products.map((product) => (
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4 sm:gap-6">
+          {products.slice(0, 8).map((product) => (
             <ProductCard key={product.id} {...product} />
           ))}
         </div>

@@ -11,7 +11,7 @@ import { MegaMenu } from './mega-menu';
 import { PriceTag } from '@/components/store/price-tag';
 import { useCartStore } from '@/store/use-cart';
 import { useCompareStore } from '@/store/use-compare';
-import { signOutAction } from '@/actions/auth';
+import { signOutAction, getCurrentUserAction } from '@/actions/auth';
 import type { AuthenticatedUser } from '@/lib/auth-helpers';
 import { cn } from '@/lib/utils';
 
@@ -49,14 +49,29 @@ interface HeaderProps {
   categories?: HeaderCategoryItem[];
 }
 
-export default function Header({ user, categories }: HeaderProps) {
+export default function Header({ user: initialUser, categories }: HeaderProps) {
   const router = useRouter();
+  const [user, setUser] = React.useState<AuthenticatedUser | null | undefined>(initialUser);
   const [isMegaMenuOpen, setIsMegaMenuOpen] = React.useState(false);
   const [isAccountMenuOpen, setIsAccountMenuOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState('');
   const [isSearchFocused, setIsSearchFocused] = React.useState(false);
   const [suggestions, setSuggestions] = React.useState<SearchResultItem[]>([]);
   const [isSearching, setIsSearching] = React.useState(false);
+
+  React.useEffect(() => {
+    if (initialUser !== undefined) {
+      setUser(initialUser);
+      return;
+    }
+    let isMounted = true;
+    getCurrentUserAction().then((u) => {
+      if (isMounted) setUser(u);
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, [initialUser]);
 
   const { items, openDrawer } = useCartStore();
   const totalCartQty = items.reduce((acc, i) => acc + i.quantity, 0);

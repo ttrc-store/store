@@ -47,12 +47,14 @@ export default async function AdminOrdersPage({
       </div>
 
       {/* Client component handles search/filter/modal without losing server data */}
-      <AdminOrdersClient
-        orders={result.orders ?? []}
-        total={result.total ?? 0}
-        currentStatus={status}
-        currentSearch={search}
-      />
+      <React.Suspense fallback={<div className="p-8 text-center text-xs text-slate-400">Loading orders...</div>}>
+        <AdminOrdersClient
+          orders={result.orders ?? []}
+          total={result.total ?? 0}
+          currentStatus={status}
+          currentSearch={search}
+        />
+      </React.Suspense>
     </div>
   );
 }

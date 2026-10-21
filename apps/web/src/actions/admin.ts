@@ -7,11 +7,13 @@ import { ProductModel, CategoryModel, OrderModel, UserModel, CouponModel, AuditL
 import { requireAdmin, requireAdminReauth, revokeUserSessions } from '@/lib/auth-helpers';
 import { ProductSchema, sanitizeVideoEmbedUrl } from '@/lib/video-utils';
 import { revalidatePath } from 'next/cache';
+import { invalidateCatalogCache } from '@/lib/mongodb/catalog';
 import { notifySubscribersOnRestock } from '@/actions/stock-subscriptions';
 import { sendOrderStatusUpdate } from '@/lib/email/resend';
 
 function revalidateCatalog(slug?: string, oldSlug?: string) {
   try {
+    invalidateCatalogCache();
     revalidatePath('/admin/products');
     revalidatePath('/');
     revalidatePath('/categories');

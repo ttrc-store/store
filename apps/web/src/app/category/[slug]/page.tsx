@@ -1,5 +1,5 @@
 import * as React from 'react';
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
@@ -16,6 +16,16 @@ import { connectToDatabase } from '@/lib/mongodb/client';
 interface CategoryPageProps {
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export async function generateStaticParams() {
+  try {
+    const { getStoreCategories } = await import('@/lib/mongodb/catalog');
+    const categories = await getStoreCategories();
+    return categories.map((c) => ({ slug: c.slug }));
+  } catch {
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {

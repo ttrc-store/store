@@ -32,7 +32,7 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 
-export default function RegisterPage() {
+function RegisterForm() {
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirect') || '';
 
@@ -434,3 +434,12 @@ export default function RegisterPage() {
     </div>
   );
 }
+
+export default function RegisterPage() {
+  return (
+    <React.Suspense fallback={<div className="min-h-screen bg-slate-50 flex items-center justify-center"><div className="w-8 h-8 rounded-full border-2 border-purple-600 border-t-transparent animate-spin" /></div>}>
+      <RegisterForm />
+    </React.Suspense>
+  );
+}
+

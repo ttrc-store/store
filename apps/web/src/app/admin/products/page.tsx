@@ -68,14 +68,16 @@ export default async function AdminProductsPage({
       </div>
 
       {/* Client search/filter + table */}
-      <AdminProductsClient
-        products={products}
-        total={result.total ?? 0}
-        currentSearch={search}
-        currentType={type}
-        typeLabel={TYPE_LABEL}
-        typeColor={TYPE_COLOR}
-      />
+      <React.Suspense fallback={<div className="p-8 text-center text-xs text-slate-400">Loading products...</div>}>
+        <AdminProductsClient
+          products={products}
+          total={result.total ?? 0}
+          currentSearch={search}
+          currentType={type}
+          typeLabel={TYPE_LABEL}
+          typeColor={TYPE_COLOR}
+        />
+      </React.Suspense>
     </div>
   );
 }
