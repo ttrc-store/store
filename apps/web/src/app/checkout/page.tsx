@@ -140,11 +140,21 @@ export default function CheckoutPage() {
   // Active Pending Order ID for safe payment retries without duplicate stock deductions
   const [activePendingOrderId, setActivePendingOrderId] = React.useState<string | null>(null);
 
+  React.useEffect(() => {
+    try {
+      const saved = typeof window !== 'undefined' ? sessionStorage.getItem('ttrc_pending_order_id') : null;
+      if (saved) setActivePendingOrderId(saved);
+    } catch {}
+  }, []);
+
   const handleCancelPendingAttempt = async () => {
     if (!activePendingOrderId) return;
     setLoading(true);
     await releasePendingOrderAction(activePendingOrderId, !isAuthenticated ? email : undefined);
     setActivePendingOrderId(null);
+    try {
+      if (typeof window !== 'undefined') sessionStorage.removeItem('ttrc_pending_order_id');
+    } catch {}
     setError('Previous payment attempt was cancelled and reserved stock was restored.');
     setLoading(false);
   };
@@ -394,6 +404,8 @@ export default function CheckoutPage() {
 
   // Place Order Handler
   const handlePlaceOrder = async () => {
+    if (loading) return;
+
     if (!termsAccepted) {
       setError('Please agree to the Terms of Service & Privacy Policy before placing your order.');
       return;
@@ -456,6 +468,9 @@ export default function CheckoutPage() {
 
     if (res.orderId) {
       setActivePendingOrderId(res.orderId);
+      try {
+        if (typeof window !== 'undefined') sessionStorage.setItem('ttrc_pending_order_id', res.orderId);
+      } catch {}
     }
 
     const orderNum = res.orderNumber || 'TTRC/25-26/100001';
@@ -533,6 +548,9 @@ export default function CheckoutPage() {
 
               clearCart();
               setActivePendingOrderId(null);
+              try {
+                if (typeof window !== 'undefined') sessionStorage.removeItem('ttrc_pending_order_id');
+              } catch {}
               router.push(`/checkout/success?orderNumber=${encodeURIComponent(orderNum)}`);
             } catch (err: any) {
               setError(err.message || 'Error communicating with payment verification service.');

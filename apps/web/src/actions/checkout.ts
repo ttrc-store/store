@@ -107,6 +107,45 @@ export async function createOrderAction(raw: CreateOrderInput) {
     } catch {
       // Continue with standard creation if reuse check encounters an issue
     }
+  } else {
+    // Automatic deduplication for fresh retries where client activePendingOrderId was lost on page reload
+    try {
+      await connectToDatabase();
+      const recentThreshold = new Date(Date.now() - 15 * 60 * 1000);
+      const recentQuery: any = {
+        status: 'pending',
+        payment_status: 'pending',
+        created_at: { $gt: recentThreshold },
+      };
+      if (user) {
+        recentQuery.user_id = user.id;
+      } else if (guestEmail) {
+        recentQuery.guest_email = guestEmail.toLowerCase().trim();
+      }
+      const recentOrder = await OrderModel.findOne(recentQuery).sort({ created_at: -1 });
+      if (recentOrder) {
+        const existingItems = recentOrder.items || [];
+        const isExactMatch =
+          existingItems.length > 0 &&
+          existingItems.length === items.length &&
+          items.every((it) => {
+            const match = existingItems.find((e: any) => e.product_id === it.productId);
+            return match && match.quantity === it.quantity;
+          });
+
+        if (isExactMatch) {
+          return {
+            success: true,
+            orderNumber: recentOrder.order_number,
+            orderId: recentOrder._id.toString(),
+            paymentMethod: 'razorpay',
+            amountPaise: recentOrder.total,
+          };
+        }
+      }
+    } catch {
+      // Continue with standard creation
+    }
   }
 
   // Rate limit: 5 order attempts per minute per user / guest phone
@@ -300,6 +339,7 @@ export async function createOrderAction(raw: CreateOrderInput) {
       billing_address: billingAddress || shippingAddress,
       guest_invoice_token_hash: guestInvoiceTokenHash,
       notes: companyGst ? `GST Invoice Request: ${companyGst.companyName} (GSTIN: ${companyGst.gstin})` : undefined,
+      items: orderItems,
     });
 
     return {
