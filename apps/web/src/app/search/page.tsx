@@ -39,6 +39,10 @@ export async function generateMetadata({ searchParams }: SearchPageProps): Promi
     alternates: {
       canonical: `https://www.ttrc.store/search${query ? `?q=${encodeURIComponent(query)}` : ''}`,
     },
+    robots: {
+      index: false,
+      follow: true,
+    },
   };
 }
 

@@ -60,7 +60,7 @@ export function ProductOrderBox({
   configurations = [],
 }: ProductOrderBoxProps) {
   const router = useRouter();
-  const { addItem, openDrawer } = useCartStore();
+  const { addItem, openDrawer, gstEnabled } = useCartStore();
   const [quantity, setQuantity] = React.useState(1);
   const [added, setAdded] = React.useState(false);
   const [subEmail, setSubEmail] = React.useState('');
@@ -202,10 +202,16 @@ export function ProductOrderBox({
             </div>
           )}
           <span className="text-[11px] text-slate-500 mt-1 flex items-center gap-1.5 flex-wrap">
-            <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-bold text-[10px] uppercase tracking-wider">
-              Excl. GST
-            </span>
-            <span>+{gstPercent}% GST added on invoice at checkout • Delivery calculated at checkout</span>
+            {gstEnabled ? (
+              <>
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-bold text-[10px] uppercase tracking-wider">
+                  Excl. GST
+                </span>
+                <span>+{gstPercent}% GST added on invoice at checkout • Delivery calculated at checkout</span>
+              </>
+            ) : (
+              <span>Delivery calculated at checkout</span>
+            )}
           </span>
         </div>
 

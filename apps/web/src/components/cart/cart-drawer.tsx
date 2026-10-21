@@ -122,10 +122,12 @@ export function CartDrawer() {
                 <span>Standard Delivery</span>
                 <span>₹{(totals.shippingPaise / 100).toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-slate-500">
-                <span>GST (Taxes)</span>
-                <span>₹{((totals.gstBreakdown?.gstAmountPaise || 0) / 100).toFixed(2)}</span>
-              </div>
+              {(totals.gstBreakdown?.gstAmountPaise || 0) > 0 && (
+                <div className="flex justify-between text-slate-500">
+                  <span>GST (Taxes)</span>
+                  <span>₹{((totals.gstBreakdown?.gstAmountPaise || 0) / 100).toFixed(2)}</span>
+                </div>
+              )}
               {totals.discountPaise > 0 && (
                 <div className="flex justify-between text-[#844AFB] font-semibold">
                   <span>Coupon Discount</span>

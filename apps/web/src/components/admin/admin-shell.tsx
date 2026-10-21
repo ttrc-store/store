@@ -31,6 +31,7 @@ const NAV_ITEMS = [
   { name: 'Orders', href: '/admin/orders', icon: ShoppingBag },
   { name: 'Enquiries & RFQ', href: '/admin/enquiries', icon: MessageSquareQuote },
   { name: 'Reports & Analytics', href: '/admin/reports', icon: BarChart3 },
+  { name: 'SEO & Search Console', href: '/admin/seo', icon: Search },
   { name: 'Customers', href: '/admin/customers', icon: Users },
   { name: 'Coupons', href: '/admin/coupons', icon: Ticket },
   { name: 'Store Settings', href: '/admin/settings', icon: Settings },

@@ -100,6 +100,7 @@ export function generateInvoiceHtml(data: InvoicePayload): string {
   const signatureDataUri = getBase64Image('public/signature.png') || '/signature.png';
   const logoDataUri = getBase64Image('public/brand/ttrc-logo.png') || '/brand/ttrc-logo.png';
 
+  const isGst = Boolean(data.gstEnabled);
   let computedSubtotalPaise = 0;
   let totalCgstPaise = 0;
   let totalSgstPaise = 0;
@@ -110,18 +111,36 @@ export function generateInvoiceHtml(data: InvoicePayload): string {
     const lineSubtotalPaise = item.pricePaise * item.quantity;
     computedSubtotalPaise += lineSubtotalPaise;
 
-    const lineTaxPaise = Math.round((lineSubtotalPaise * (item.gstPercent || 18)) / 100);
-    totalTaxPaise += lineTaxPaise;
+    let lineTaxPaise = 0;
+    if (isGst) {
+      lineTaxPaise = Math.round((lineSubtotalPaise * (item.gstPercent || 18)) / 100);
+      totalTaxPaise += lineTaxPaise;
 
-    if (isIntraState) {
-      const half = Math.round(lineTaxPaise / 2);
-      totalCgstPaise += half;
-      totalSgstPaise += (lineTaxPaise - half);
-    } else {
-      totalIgstPaise += lineTaxPaise;
+      if (isIntraState) {
+        const half = Math.round(lineTaxPaise / 2);
+        totalCgstPaise += half;
+        totalSgstPaise += (lineTaxPaise - half);
+      } else {
+        totalIgstPaise += lineTaxPaise;
+      }
     }
 
-    const lineTotalAmountPaise = lineSubtotalPaise + lineTaxPaise;
+    const lineTotalAmountPaise = isGst ? (lineSubtotalPaise + lineTaxPaise) : lineSubtotalPaise;
+
+    if (!isGst) {
+      return `
+        <tr>
+          <td style="padding: 10px 8px; border: 1px solid #d1d5db; text-align: center; vertical-align: middle;">${idx + 1}</td>
+          <td style="padding: 10px 10px; border: 1px solid #d1d5db; vertical-align: middle;">
+            <div style="font-weight: 700; color: #111827;">${item.name}</div>
+          </td>
+          <td style="padding: 10px 8px; border: 1px solid #d1d5db; text-align: center; font-family: monospace; vertical-align: middle;">${item.hsnCode || '8479'}</td>
+          <td style="padding: 10px 8px; border: 1px solid #d1d5db; text-align: center; font-weight: 600; vertical-align: middle;">${item.quantity}</td>
+          <td style="padding: 10px 10px; border: 1px solid #d1d5db; text-align: right; vertical-align: middle;">₹${(item.pricePaise / 100).toFixed(2)}</td>
+          <td style="padding: 10px 10px; border: 1px solid #d1d5db; text-align: right; font-weight: 700; color: #111827; vertical-align: middle;">₹${(lineTotalAmountPaise / 100).toFixed(2)}</td>
+        </tr>
+      `;
+    }
 
     return `
       <tr>
@@ -142,7 +161,7 @@ export function generateInvoiceHtml(data: InvoicePayload): string {
   const subtotalPaise = data.subtotalPaise ?? computedSubtotalPaise;
   const shippingPaise = data.shippingPaise || 0;
   const discountPaise = data.discountPaise || 0;
-  const grandTotalPaise = Math.max(0, subtotalPaise + shippingPaise + totalTaxPaise - discountPaise);
+  const grandTotalPaise = Math.max(0, subtotalPaise + shippingPaise + (isGst ? totalTaxPaise : 0) - discountPaise);
   const totalRupees = Math.round(grandTotalPaise / 100);
   const amountWords = convertAmountToIndianWords(totalRupees);
 
@@ -416,8 +435,8 @@ export function generateInvoiceHtml(data: InvoicePayload): string {
           </div>
         </td>
         <td class="doc-type">
-          <div class="doc-title">TAX INVOICE</div>
-          <div class="doc-subtitle">Original For Recipient</div>
+          <div class="doc-title">${isGst ? 'TAX INVOICE' : 'BILL OF SUPPLY / SALE RECEIPT'}</div>
+          <div class="doc-subtitle">${isGst ? 'Original For Recipient' : 'Composition / Unregistered under GST Law — Section 31(3)(c)'}</div>
         </td>
       </tr>
     </table>
@@ -456,6 +475,19 @@ export function generateInvoiceHtml(data: InvoicePayload): string {
     <!-- Items Table -->
     <table class="items-table">
       <thead>
+        ${
+          !isGst
+            ? `
+        <tr>
+          <th style="width: 36px; text-align: center;">#</th>
+          <th style="text-align: left;">ITEM &amp; DESCRIPTION</th>
+          <th style="width: 90px; text-align: center;">HSN/SAC</th>
+          <th style="width: 50px; text-align: center;">QTY</th>
+          <th style="width: 100px; text-align: right;">RATE</th>
+          <th style="width: 110px; text-align: right;">AMOUNT</th>
+        </tr>
+            `
+            : `
         <tr>
           <th style="width: 32px; text-align: center;">#</th>
           <th style="text-align: left;">ITEM &amp; DESCRIPTION</th>
@@ -466,6 +498,8 @@ export function generateInvoiceHtml(data: InvoicePayload): string {
           <th style="width: 76px; text-align: right;">TAX AMT</th>
           <th style="width: 90px; text-align: right;">AMOUNT</th>
         </tr>
+            `
+        }
       </thead>
       <tbody>
         ${itemRowsHtml}
@@ -508,23 +542,25 @@ export function generateInvoiceHtml(data: InvoicePayload): string {
             <td class="val">₹${(shippingPaise / 100).toFixed(2)}</td>
           </tr>
           ${
-            isIntraState
-              ? `
-          <tr>
-            <td>CGST (${data.items[0]?.gstPercent ? (data.items[0].gstPercent / 2) : '9'}%)</td>
-            <td class="val">₹${(totalCgstPaise / 100).toFixed(2)}</td>
-          </tr>
-          <tr>
-            <td>SGST (${data.items[0]?.gstPercent ? (data.items[0].gstPercent / 2) : '9'}%)</td>
-            <td class="val">₹${(totalSgstPaise / 100).toFixed(2)}</td>
-          </tr>
-              `
-              : `
-          <tr>
-            <td>IGST (${data.items[0]?.gstPercent || '18'}%)</td>
-            <td class="val">₹${(totalIgstPaise / 100).toFixed(2)}</td>
-          </tr>
-              `
+            isGst
+              ? (isIntraState
+                  ? `
+              <tr>
+                <td>CGST (${data.items[0]?.gstPercent ? (data.items[0].gstPercent / 2) : '9'}%)</td>
+                <td class="val">₹${(totalCgstPaise / 100).toFixed(2)}</td>
+              </tr>
+              <tr>
+                <td>SGST (${data.items[0]?.gstPercent ? (data.items[0].gstPercent / 2) : '9'}%)</td>
+                <td class="val">₹${(totalSgstPaise / 100).toFixed(2)}</td>
+              </tr>
+                  `
+                  : `
+              <tr>
+                <td>IGST (${data.items[0]?.gstPercent || '18'}%)</td>
+                <td class="val">₹${(totalIgstPaise / 100).toFixed(2)}</td>
+              </tr>
+                  `)
+              : ''
           }
           ${
             discountPaise > 0

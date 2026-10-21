@@ -84,6 +84,12 @@ export const ProductSchema = z
     certifications: z.array(z.string()).optional(),
     seoTitle: z.string().optional(),
     seoDescription: z.string().optional(),
+    primaryKeyword: z.string().optional(),
+    secondaryKeywords: z.array(z.string()).optional(),
+    searchQuestions: z.array(z.object({ question: z.string(), answer: z.string() })).optional(),
+    seoReadinessScore: z.number().optional(),
+    aiSeoStatus: z.enum(['pending', 'generated', 'reviewed']).optional(),
+    lastSeoAudit: z.string().optional(),
     specs: z.array(z.object({ key: z.string(), value: z.string() })).optional(),
     documents: z
       .array(

@@ -29,6 +29,8 @@ import {
   AlertTriangle,
   Loader2,
   ExternalLink,
+  HelpCircle,
+  Check,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -556,9 +558,35 @@ export function EnterpriseProductForm({
   const [newInBoxQty, setNewInBoxQty] = React.useState('1');
   const [newInBoxNotes, setNewInBoxNotes] = React.useState('');
 
-  // SEO
+  // SEO, AEO & GEO Metadata
   const [seoTitle, setSeoTitle] = React.useState(initialData?.seoTitle || '');
   const [seoDescription, setSeoDescription] = React.useState(initialData?.seoDescription || '');
+  const [primaryKeyword, setPrimaryKeyword] = React.useState(initialData?.primaryKeyword || '');
+  const [secondaryKeywords, setSecondaryKeywords] = React.useState<string[]>(initialData?.secondaryKeywords || []);
+  const [newKeywordInput, setNewKeywordInput] = React.useState('');
+  const [searchQuestions, setSearchQuestions] = React.useState<
+    Array<{ question: string; answer: string; isApproved?: boolean }>
+  >(initialData?.searchQuestions || []);
+  const [newQuestion, setNewQuestion] = React.useState('');
+  const [newAnswer, setNewAnswer] = React.useState('');
+  const [missingSpecsWarnings, setMissingSpecsWarnings] = React.useState<string[]>([]);
+  const [imageAltSuggestions, setImageAltSuggestions] = React.useState<string[]>([]);
+
+  // Transparent & Measurable SEO Readiness Score (0-100)
+  const seoReadiness = React.useMemo(() => {
+    const checks = [
+      { id: 'title', label: 'Meta Title Length (30–65 chars)', passed: seoTitle.trim().length >= 30 && seoTitle.trim().length <= 65, weight: 15 },
+      { id: 'desc', label: 'Meta Description Length (100–165 chars)', passed: seoDescription.trim().length >= 100 && seoDescription.trim().length <= 165, weight: 15 },
+      { id: 'primary_kw', label: 'Primary Search Phrase Set', passed: Boolean(primaryKeyword.trim()), weight: 15 },
+      { id: 'secondary_kw', label: 'Secondary Keywords (≥ 3)', passed: secondaryKeywords.length >= 3, weight: 10 },
+      { id: 'aeo_faq', label: 'Verified AEO / FAQ Answer (≥ 1)', passed: searchQuestions.filter(q => q.isApproved !== false).length >= 1, weight: 10 },
+      { id: 'slug', label: 'Clean URL Slug Present', passed: Boolean(slug.trim() && !slug.includes(' ')), weight: 10 },
+      { id: 'specs', label: 'Technical Specifications (≥ 2 items)', passed: specs.filter(s => s.key && s.value).length >= 2, weight: 15 },
+      { id: 'images', label: 'Product Imagery (≥ 1 visual)', passed: imageUrls.length > 0, weight: 10 },
+    ];
+    const score = checks.reduce((acc, c) => acc + (c.passed ? c.weight : 0), 0);
+    return { score, checks };
+  }, [seoTitle, seoDescription, primaryKeyword, secondaryKeywords, searchQuestions, slug, specs, imageUrls]);
 
   // Form State
   const [saving, setSaving] = React.useState(false);
@@ -671,8 +699,14 @@ export function EnterpriseProductForm({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: name,
+          brand: brand || 'TTRC',
+          sku: sku || undefined,
+          price: price ? `₹${price}` : undefined,
           categoryId,
+          subCategoryId,
+          existingSpecs: specs.map((s) => `${s.key}: ${s.value}`).join('; '),
           rawNotes: shortDescription || longDescription || internalNotes,
+          imagesCount: imageUrls.length,
         }),
       });
 
@@ -684,6 +718,25 @@ export function EnterpriseProductForm({
       const { data } = json;
       if (data.seoTitle) setSeoTitle(data.seoTitle);
       if (data.seoDescription) setSeoDescription(data.seoDescription);
+      if (data.primaryKeyword) setPrimaryKeyword(data.primaryKeyword);
+      if (data.secondaryKeywords && Array.isArray(data.secondaryKeywords)) {
+        setSecondaryKeywords(data.secondaryKeywords);
+      }
+      if (data.searchQuestions && Array.isArray(data.searchQuestions)) {
+        setSearchQuestions(
+          data.searchQuestions.map((q: any) => ({
+            question: q.question,
+            answer: q.answer,
+            isApproved: q.isApproved ?? true,
+          }))
+        );
+      }
+      if (data.missingSpecsWarnings && Array.isArray(data.missingSpecsWarnings)) {
+        setMissingSpecsWarnings(data.missingSpecsWarnings);
+      }
+      if (data.imageAltSuggestions && Array.isArray(data.imageAltSuggestions)) {
+        setImageAltSuggestions(data.imageAltSuggestions);
+      }
       if (data.shortDescription && !shortDescription) setShortDescription(data.shortDescription);
       if (data.longDescription && !longDescription) setLongDescription(data.longDescription);
       if (data.specs && data.specs.length > 0 && specs.length === 0) setSpecs(data.specs);
@@ -696,7 +749,7 @@ export function EnterpriseProductForm({
         });
       }
 
-      setAiSuccessMsg('✨ AI Product Details & SEO generated! Review and verify before saving.');
+      setAiSuccessMsg('✨ AI Product Details, SEO Keywords & AEO FAQs generated! Review and verify before saving.');
     } catch (err: any) {
       const errMsg = `AI Generation error: ${err.message}`;
       setErrorMsg(errMsg);
@@ -1066,6 +1119,18 @@ export function EnterpriseProductForm({
       })),
       seoTitle: seoTitle.trim() || `${name} | TTRC Store`,
       seoDescription: seoDescription.trim() || shortDescription,
+      primaryKeyword: primaryKeyword.trim() || undefined,
+      secondaryKeywords: secondaryKeywords.filter(Boolean),
+      searchQuestions: searchQuestions
+        .filter((q) => q.question.trim() && q.answer.trim())
+        .map((q) => ({
+          question: q.question.trim(),
+          answer: q.answer.trim(),
+          isApproved: q.isApproved ?? true,
+        })),
+      seoReadinessScore: seoReadiness.score,
+      aiSeoStatus: primaryKeyword ? 'reviewed' : 'draft',
+      lastSeoAudit: new Date().toISOString(),
     };
 
     try {
@@ -2330,35 +2395,40 @@ export function EnterpriseProductForm({
         </div>
       </div>
 
-      {/* SECTION 10: SEO Metadata */}
-      <div className="p-6 rounded-2xl bg-white border border-slate-200 space-y-4 shadow-xs">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-          <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-            <Tag size={16} className="text-[#844AFB]" /> 10. Search Engine Optimization (SEO)
-          </h2>
+      {/* SECTION 10: AI-Powered SEO, AEO & GEO Growth System */}
+      <div className="p-6 rounded-2xl bg-white border border-slate-200 space-y-6 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+          <div>
+            <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+              <Tag size={16} className="text-[#E3132A]" /> 10. AI-Assisted SEO, AEO &amp; Discoverability
+            </h2>
+            <p className="text-xs text-slate-500 mt-1">
+              Optimized for Google Search, Indian robotics queries, and Answer Engine Optimization (AEO/GEO).
+            </p>
+          </div>
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={handleGenerateWithAi}
             disabled={aiGenerating || !name.trim()}
-            className="text-xs font-bold text-[#844AFB] border-purple-200 bg-purple-50/50 hover:bg-[#844AFB] hover:text-white transition-all"
+            className="text-xs font-bold text-[#E3132A] border-red-200 bg-red-50/50 hover:bg-[#E3132A] hover:text-white transition-all gap-1.5 self-start sm:self-auto"
           >
             <Sparkles size={13} className={aiGenerating ? 'animate-spin' : ''} />
-            {aiGenerating ? 'Generating...' : '✨ Generate SEO with AI'}
+            {aiGenerating ? 'Generating Analysis...' : '✨ Generate SEO with AI'}
           </Button>
         </div>
 
         {aiSuccessMsg && (
-          <div className="p-3 rounded-xl bg-purple-50 border border-purple-200 text-xs text-purple-900 font-semibold flex items-center justify-between animate-in fade-in">
+          <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-900 font-semibold flex items-center justify-between animate-in fade-in">
             <span className="flex items-center gap-2">
-              <Sparkles size={14} className="text-[#844AFB] shrink-0" />
+              <Sparkles size={14} className="text-[#E3132A] shrink-0" />
               {aiSuccessMsg}
             </span>
             <button
               type="button"
               onClick={() => setAiSuccessMsg(null)}
-              className="text-purple-600 hover:text-purple-900 font-bold ml-2 text-sm"
+              className="text-red-600 hover:text-red-900 font-bold ml-2 text-sm"
             >
               ×
             </button>
@@ -2381,12 +2451,99 @@ export function EnterpriseProductForm({
           </div>
         )}
 
-        <div className="space-y-3 text-xs">
+        {/* Missing Engineering Specs Alert */}
+        {missingSpecsWarnings.length > 0 && (
+          <div className="p-4 rounded-xl bg-amber-50/80 border border-amber-200 space-y-2">
+            <div className="flex items-center gap-2 text-amber-900 font-bold text-xs">
+              <AlertTriangle size={15} className="text-amber-600 shrink-0" />
+              <span>Technical Data Gaps Detected (Admin Action Recommended)</span>
+            </div>
+            <p className="text-[11px] text-amber-800">
+              To ensure verified factuality and prevent AI hallucinations in answer engines, consider adding these specifications in Section 8:
+            </p>
+            <ul className="list-disc pl-5 text-[11px] text-amber-800 space-y-0.5">
+              {missingSpecsWarnings.map((warn, i) => (
+                <li key={i}>{warn}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Editorial Content Readiness Score & Quality Checklist */}
+        <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                  Content Readiness Score:
+                </span>
+                <span
+                  className={`text-sm font-extrabold px-2 py-0.5 rounded-full ${
+                    seoReadiness.score >= 80
+                      ? 'bg-emerald-100 text-emerald-800'
+                      : seoReadiness.score >= 50
+                      ? 'bg-amber-100 text-amber-800'
+                      : 'bg-red-100 text-red-800'
+                  }`}
+                >
+                  {seoReadiness.score}/100
+                </span>
+              </div>
+              <p className="text-[10px] text-slate-500 mt-0.5">
+                Internal editorial checklist to ensure metadata completeness. Not an external search engine ranking metric.
+              </p>
+            </div>
+            <span className="text-[11px] text-slate-500 shrink-0">
+              {seoReadiness.checks.filter((c) => c.passed).length}/{seoReadiness.checks.length} checks passed
+            </span>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+            <div
+              className={`h-full transition-all duration-300 ${
+                seoReadiness.score >= 80 ? 'bg-emerald-600' : seoReadiness.score >= 50 ? 'bg-amber-500' : 'bg-red-600'
+              }`}
+              style={{ width: `${seoReadiness.score}%` }}
+            />
+          </div>
+
+          {/* Checklist Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+            {seoReadiness.checks.map((check) => (
+              <div
+                key={check.id}
+                className="flex items-center gap-2 text-[11px] p-1.5 rounded-lg bg-white border border-slate-100"
+              >
+                {check.passed ? (
+                  <CheckCircle2 size={13} className="text-emerald-600 shrink-0" />
+                ) : (
+                  <div className="w-3.5 h-3.5 rounded-full border border-slate-300 shrink-0" />
+                )}
+                <span className={check.passed ? 'text-slate-800 font-medium' : 'text-slate-500'}>
+                  {check.label}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Metadata Inputs */}
+        <div className="space-y-4 text-xs">
+          {/* SEO Meta Title */}
           <div className="space-y-1">
             <div className="flex items-center justify-between">
-              <label className="font-bold text-slate-700">SEO Meta Title</label>
-              <span className={`text-[10px] ${seoTitle.length > 60 ? 'text-amber-600 font-bold' : 'text-slate-400'}`}>
-                {seoTitle.length}/60 chars
+              <label className="font-bold text-slate-700">SEO Meta Title *</label>
+              <span
+                className={`text-[10px] ${
+                  seoTitle.length >= 30 && seoTitle.length <= 65
+                    ? 'text-emerald-600 font-bold'
+                    : seoTitle.length > 65
+                    ? 'text-red-600 font-bold'
+                    : 'text-slate-400'
+                }`}
+              >
+                {seoTitle.length}/60 chars (ideal: 30–65)
               </span>
             </div>
             <Input
@@ -2397,21 +2554,237 @@ export function EnterpriseProductForm({
             />
           </div>
 
+          {/* SEO Meta Description */}
           <div className="space-y-1">
             <div className="flex items-center justify-between">
-              <label className="font-bold text-slate-700">SEO Meta Description</label>
-              <span className={`text-[10px] ${seoDescription.length > 160 ? 'text-amber-600 font-bold' : 'text-slate-400'}`}>
-                {seoDescription.length}/160 chars
+              <label className="font-bold text-slate-700">SEO Meta Description *</label>
+              <span
+                className={`text-[10px] ${
+                  seoDescription.length >= 100 && seoDescription.length <= 165
+                    ? 'text-emerald-600 font-bold'
+                    : seoDescription.length > 165
+                    ? 'text-red-600 font-bold'
+                    : 'text-slate-400'
+                }`}
+              >
+                {seoDescription.length}/160 chars (ideal: 100–165)
               </span>
             </div>
             <textarea
               rows={2}
               value={seoDescription}
               onChange={(e) => setSeoDescription(e.target.value)}
-              placeholder="e.g. Industrial-grade 2-way normally closed brass solenoid valve for fluid automation. Fast India-wide delivery and GST invoices."
-              className="w-full p-2.5 rounded-md border border-slate-200 text-xs bg-white focus:border-purple-600 focus:outline-none"
+              placeholder="e.g. High-speed line follower robot kit engineered for robotics competitions in India. Includes 8-channel IR sensor array, dual TB6612FNG drivers, and fast India-wide shipping."
+              className="w-full p-2.5 rounded-md border border-slate-200 text-xs bg-white focus:border-[#E3132A] focus:outline-none"
             />
           </div>
+
+          {/* Primary Search Phrase */}
+          <div className="space-y-1">
+            <label className="font-bold text-slate-700">Primary Search Phrase (Target Query)</label>
+            <Input
+              value={primaryKeyword}
+              onChange={(e) => setPrimaryKeyword(e.target.value)}
+              placeholder="e.g. line follower robot kit"
+              className="h-9 text-xs"
+            />
+            <p className="text-[10px] text-slate-400">
+              The single high-intent transactional search phrase this product is tailored to rank for.
+            </p>
+          </div>
+
+          {/* Secondary Keywords & Technical Synonyms */}
+          <div className="space-y-2">
+            <label className="font-bold text-slate-700">
+              Secondary Keywords &amp; Technical Synonyms ({secondaryKeywords.length})
+            </label>
+            <div className="flex flex-wrap gap-1.5 min-h-[32px] p-2 rounded-xl bg-slate-50 border border-slate-200">
+              {secondaryKeywords.length > 0 ? (
+                secondaryKeywords.map((kw, i) => (
+                  <Badge
+                    key={i}
+                    variant="outline"
+                    className="text-xs bg-white border-slate-300 text-slate-800 gap-1.5 py-0.5 px-2"
+                  >
+                    <span>{kw}</span>
+                    <button
+                      type="button"
+                      onClick={() => setSecondaryKeywords((prev) => prev.filter((_, idx) => idx !== i))}
+                      className="text-slate-400 hover:text-red-600 text-xs"
+                    >
+                      ×
+                    </button>
+                  </Badge>
+                ))
+              ) : (
+                <span className="text-[11px] text-slate-400 italic">No secondary keywords added yet.</span>
+              )}
+            </div>
+
+            <div className="flex gap-2">
+              <Input
+                placeholder="Add keyword (e.g. competition robot chassis, TB6612FNG driver)..."
+                value={newKeywordInput}
+                onChange={(e) => setNewKeywordInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (newKeywordInput.trim()) {
+                      setSecondaryKeywords((prev) => Array.from(new Set([...prev, newKeywordInput.trim()])));
+                      setNewKeywordInput('');
+                    }
+                  }
+                }}
+                className="h-8 text-xs bg-white flex-1"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  if (newKeywordInput.trim()) {
+                    setSecondaryKeywords((prev) => Array.from(new Set([...prev, newKeywordInput.trim()])));
+                    setNewKeywordInput('');
+                  }
+                }}
+                disabled={!newKeywordInput.trim()}
+                className="h-8 text-xs font-semibold"
+              >
+                Add
+              </Button>
+            </div>
+          </div>
+
+          {/* AEO / Answer Engine Optimization (Verified FAQ Section) */}
+          <div className="space-y-3 pt-4 border-t border-slate-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                  <HelpCircle size={14} className="text-[#E3132A]" /> Answer Engine Optimization (AEO / FAQ)
+                </h3>
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  Factual, specification-derived answers for AI search engines &amp; customers. Approved answers are injected into Product FAQs &amp; Schema.org FAQPage.
+                </p>
+              </div>
+            </div>
+
+            {searchQuestions.length > 0 && (
+              <div className="space-y-2">
+                {searchQuestions.map((qa, index) => (
+                  <div
+                    key={index}
+                    className="p-3 rounded-xl border border-slate-200 bg-white space-y-2 shadow-2xs hover:border-slate-300 transition-colors"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 flex-1">
+                        <input
+                          type="checkbox"
+                          id={`qa-approved-${index}`}
+                          checked={qa.isApproved !== false}
+                          onChange={(e) => {
+                            const updated = [...searchQuestions];
+                            updated[index].isApproved = e.target.checked;
+                            setSearchQuestions(updated);
+                          }}
+                          className="h-4 w-4 rounded border-slate-300 text-[#E3132A] focus:ring-[#E3132A]"
+                        />
+                        <label
+                          htmlFor={`qa-approved-${index}`}
+                          className="text-xs font-bold text-slate-800 cursor-pointer select-none"
+                        >
+                          Approved for Storefront &amp; FAQ Schema
+                        </label>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setSearchQuestions((prev) => prev.filter((_, idx) => idx !== index))}
+                        className="text-slate-400 hover:text-red-600 p-1"
+                        title="Remove question"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+
+                    <Input
+                      value={qa.question}
+                      onChange={(e) => {
+                        const updated = [...searchQuestions];
+                        updated[index].question = e.target.value;
+                        setSearchQuestions(updated);
+                      }}
+                      placeholder="Question (e.g. Which voltage does this motor driver support?)"
+                      className="h-8 text-xs font-medium"
+                    />
+
+                    <textarea
+                      rows={2}
+                      value={qa.answer}
+                      onChange={(e) => {
+                        const updated = [...searchQuestions];
+                        updated[index].answer = e.target.value;
+                        setSearchQuestions(updated);
+                      }}
+                      placeholder="Factual answer based on verified specifications..."
+                      className="w-full p-2 rounded-md border border-slate-200 text-xs bg-slate-50/50 focus:bg-white focus:border-[#E3132A] focus:outline-none"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Add Custom Question Box */}
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+              <span className="text-[11px] font-bold text-slate-700 block">Add Verified Technical FAQ</span>
+              <Input
+                placeholder="Question (e.g. Is this module compatible with Arduino Uno?)"
+                value={newQuestion}
+                onChange={(e) => setNewQuestion(e.target.value)}
+                className="h-8 text-xs bg-white"
+              />
+              <textarea
+                rows={2}
+                placeholder="Factual answer grounded in verified specifications..."
+                value={newAnswer}
+                onChange={(e) => setNewAnswer(e.target.value)}
+                className="w-full p-2 rounded-md border border-slate-200 text-xs bg-white focus:border-[#E3132A] focus:outline-none"
+              />
+              <div className="flex justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (newQuestion.trim() && newAnswer.trim()) {
+                      setSearchQuestions((prev) => [
+                        ...prev,
+                        { question: newQuestion.trim(), answer: newAnswer.trim(), isApproved: true },
+                      ]);
+                      setNewQuestion('');
+                      setNewAnswer('');
+                    }
+                  }}
+                  disabled={!newQuestion.trim() || !newAnswer.trim()}
+                  className="h-7 text-xs font-semibold"
+                >
+                  <Plus size={12} className="mr-1" /> Add QA
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Image Alt Text Suggestions Helper */}
+          {imageAltSuggestions.length > 0 && (
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5">
+              <span className="text-[11px] font-bold text-slate-700 block">
+                Suggested Image Alt-Texts (Generative Engine Optimization)
+              </span>
+              <ul className="text-[11px] text-slate-600 list-disc pl-4 space-y-0.5">
+                {imageAltSuggestions.map((alt, i) => (
+                  <li key={i}>{alt}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       </div>
 

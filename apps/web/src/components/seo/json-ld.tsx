@@ -63,6 +63,8 @@ export function ProductJsonLd({
         merchantReturnDays: 7,
         returnMethod: 'https://schema.org/ReturnByMail',
         returnFees: 'https://schema.org/FreeReturn',
+        refundType: 'https://schema.org/ExchangeRefund',
+        merchantReturnLink: `${CANONICAL_ORIGIN}/return-refund-policy`,
       },
       shippingDetails: {
         '@type': 'OfferShippingDetails',
@@ -80,13 +82,13 @@ export function ProductJsonLd({
           handlingTime: {
             '@type': 'QuantitativeValue',
             minValue: 1,
-            maxValue: 2,
+            maxValue: 10,
             unitCode: 'd',
           },
           transitTime: {
             '@type': 'QuantitativeValue',
             minValue: 2,
-            maxValue: 5,
+            maxValue: 7,
             unitCode: 'd',
           },
         },

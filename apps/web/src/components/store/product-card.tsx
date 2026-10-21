@@ -168,9 +168,6 @@ export function ProductCard({
               <span className="font-extrabold text-base sm:text-lg text-slate-900 tracking-tight tabular-nums">
                 {formatRupees(pricePaise)}
               </span>
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">
-                (Excl. GST)
-              </span>
               {mrpPaise && mrpPaise > pricePaise && (
                 <span className="text-[11px] text-slate-400 line-through tabular-nums font-medium">
                   {formatRupees(mrpPaise)}

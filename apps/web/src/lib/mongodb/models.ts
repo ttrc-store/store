@@ -169,6 +169,12 @@ export interface IProduct extends Document {
   weight_grams: number;
   meta_title?: string;
   meta_description?: string;
+  primary_keyword?: string;
+  secondary_keywords?: string[];
+  search_questions?: Array<{ question: string; answer: string }>;
+  seo_readiness_score?: number;
+  ai_seo_status?: 'pending' | 'generated' | 'reviewed';
+  last_seo_audit?: Date;
   created_at: Date;
   updated_at: Date;
 }
@@ -286,6 +292,17 @@ const ProductSchema = new Schema<IProduct>(
     weight_grams: { type: Number, default: 100 },
     meta_title: { type: String },
     meta_description: { type: String },
+    primary_keyword: { type: String },
+    secondary_keywords: [{ type: String }],
+    search_questions: [
+      {
+        question: { type: String, required: true },
+        answer: { type: String, required: true },
+      },
+    ],
+    seo_readiness_score: { type: Number, default: 0 },
+    ai_seo_status: { type: String, enum: ['pending', 'generated', 'reviewed'], default: 'pending' },
+    last_seo_audit: { type: Date },
   },
   { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } }
 );

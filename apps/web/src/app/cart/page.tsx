@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { PriceTag } from '@/components/store/price-tag';
 import { QuantitySelector } from '@/components/store/quantity-selector';
 import { validateCouponAction } from '@/actions/checkout';
+import { getSiteSettingsAction } from '@/actions/settings';
 
 export default function FullCartPage() {
   const {
@@ -20,7 +21,17 @@ export default function FullCartPage() {
     setCoupon,
     removeCoupon,
     getTotals,
+    gstEnabled,
+    setGstEnabled,
   } = useCartStore();
+
+  React.useEffect(() => {
+    getSiteSettingsAction()
+      .then((s) => {
+        setGstEnabled(Boolean(s.gst_enabled));
+      })
+      .catch(() => {});
+  }, [setGstEnabled]);
 
   const [inputCoupon, setInputCoupon] = React.useState('');
   const [isCheckingCoupon, setIsCheckingCoupon] = React.useState(false);
@@ -81,7 +92,7 @@ export default function FullCartPage() {
                           {item.name}
                         </Link>
                         <p className="text-[11px] text-slate-500 font-mono">
-                          Type: {item.productType.toUpperCase()} • GST: {item.gstPercent}%
+                          Type: {item.productType.toUpperCase()}{gstEnabled ? ` • GST: ${item.gstPercent}%` : ''}
                         </p>
                         <div className="flex items-center gap-2">
                           <PriceTag pricePaise={item.pricePaise} size="sm" />
@@ -183,7 +194,7 @@ export default function FullCartPage() {
 
                 <div className="space-y-2.5 text-xs text-slate-700">
                   <div className="flex justify-between">
-                    <span>Item Subtotal (Excl. GST)</span>
+                    <span>Item Subtotal{gstEnabled ? ' (Excl. GST)' : ''}</span>
                     <PriceTag pricePaise={totals.subtotalPaise} size="sm" />
                   </div>
 
@@ -194,21 +205,23 @@ export default function FullCartPage() {
                     </div>
                   )}
 
-                  {/* GST Breakdown (Added on Invoice) */}
-                  <div className="py-2 border-y border-slate-100 space-y-1 text-[11px] text-slate-500">
-                    <div className="flex justify-between text-slate-700 font-semibold">
-                      <span>GST (Added on Invoice)</span>
-                      <span>+ ₹{(totals.gstBreakdown.gstAmountPaise / 100).toFixed(2)}</span>
+                  {/* GST Breakdown (Only when GST is active) */}
+                  {gstEnabled && totals.gstBreakdown && totals.gstBreakdown.gstAmountPaise > 0 && (
+                    <div className="py-2 border-y border-slate-100 space-y-1 text-[11px] text-slate-500">
+                      <div className="flex justify-between text-slate-700 font-semibold">
+                        <span>GST (Added on Invoice)</span>
+                        <span>+ ₹{(totals.gstBreakdown.gstAmountPaise / 100).toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between pl-2">
+                        <span>CGST (Intra-state TN)</span>
+                        <span>₹{(totals.gstBreakdown.cgstPaise / 100).toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between pl-2">
+                        <span>SGST (Intra-state TN)</span>
+                        <span>₹{(totals.gstBreakdown.sgstPaise / 100).toFixed(2)}</span>
+                      </div>
                     </div>
-                    <div className="flex justify-between pl-2">
-                      <span>CGST (Intra-state TN)</span>
-                      <span>₹{(totals.gstBreakdown.cgstPaise / 100).toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between pl-2">
-                      <span>SGST (Intra-state TN)</span>
-                      <span>₹{(totals.gstBreakdown.sgstPaise / 100).toFixed(2)}</span>
-                    </div>
-                  </div>
+                  )}
 
                   <div className="flex justify-between">
                     <span>Shipping Charges (Standard)</span>

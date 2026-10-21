@@ -32,6 +32,7 @@ import {
   toStoreProductCardProps,
 } from '@/lib/mongodb/catalog';
 import { getAuthenticatedUser } from '@/lib/auth-helpers';
+import { getSiteSettingsAction } from '@/actions/settings';
 import { ReviewModel } from '@/lib/mongodb/models';
 import { PriceTag } from '@/components/store/price-tag';
 import { RatingStars } from '@/components/store/rating-stars';
@@ -113,6 +114,13 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
           : `https://www.ttrc.store${product.imageUrls?.[0] || '/brand/ttrc-logo.png'}`,
       ],
     },
+    keywords: [
+      ...(product.primaryKeyword ? [product.primaryKeyword] : []),
+      ...(product.secondaryKeywords || []),
+      'robotics components India',
+      'Tamizh Tech',
+      'TTRC Store',
+    ],
   };
 }
 
@@ -135,9 +143,12 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
   }
 
   // Fetch real verified buyer reviews from MongoDB
-  const reviews = await ReviewModel.find({ product_id: product.id, status: 'approved' })
-    .sort({ created_at: -1 })
-    .lean();
+  const [reviews, settings] = await Promise.all([
+    ReviewModel.find({ product_id: product.id, status: 'approved' })
+      .sort({ created_at: -1 })
+      .lean(),
+    getSiteSettingsAction(),
+  ]);
 
   // Find real compatible spare parts & kits from MongoDB
   const { compatibleSpares, compatibleKits } = await getCompatibleProducts(product.id, product.type);
@@ -168,7 +179,13 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
     { name: product.name, url: `https://www.ttrc.store/product/${slug}` },
   ];
 
+  const customFaqs = (product.searchQuestions || []).map((q) => ({
+    question: q.question,
+    answer: q.answer,
+  }));
+
   const productFaqs = [
+    ...customFaqs,
     {
       question: `What is included in the ${product.name} package?`,
       answer: product.type === 'kit'
@@ -193,7 +210,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
     },
     {
       question: `What are shipping timelines and delivery coverage across India?`,
-      answer: `Orders dispatch within 10 days from Coimbatore, Tamil Nadu with India-wide tracked express shipping (typically 2-5 days delivery transit across all serviceable Indian pincodes). TTRC Store operates exclusively with secure online payments via Razorpay. GST tax invoices are provided.`,
+      answer: `Orders dispatch within 10 days from Coimbatore, Tamil Nadu with India-wide tracked express shipping (typically 2-5 days delivery transit across all serviceable Indian pincodes). TTRC Store operates exclusively with secure online payments via Razorpay. ${settings.gst_enabled ? 'Official GST tax invoices are provided.' : 'Official Bills of Supply / Sale Receipts are provided.'}`,
     },
   ];
 
@@ -666,10 +683,12 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
                   <span className="font-semibold text-slate-500">Harmonized Tariff (HSN)</span>
                   <span className="font-mono text-slate-900">{product.hsnCode}</span>
                 </div>
-                <div className="py-2.5 flex justify-between items-center">
-                  <span className="font-semibold text-slate-500">Applicable GST Rate</span>
-                  <span className="font-mono text-slate-900">{product.gstPercent}% (Inclusive)</span>
-                </div>
+                {settings.gst_enabled && (
+                  <div className="py-2.5 flex justify-between items-center">
+                    <span className="font-semibold text-slate-500">Applicable GST Rate</span>
+                    <span className="font-mono text-slate-900">{product.gstPercent}% (Inclusive)</span>
+                  </div>
+                )}
                 <div className="py-2.5 flex justify-between items-center">
                   <span className="font-semibold text-slate-500">Country of Origin</span>
                   <span className="font-mono text-slate-900">{product.countryOfOrigin}</span>

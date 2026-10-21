@@ -73,7 +73,7 @@ interface PincodeCheckResult {
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { items, getTotals, clearCart, couponCode, discountPaise, setCoupon, removeCoupon } = useCartStore();
+  const { items, getTotals, clearCart, couponCode, discountPaise, setCoupon, removeCoupon, setGstEnabled } = useCartStore();
   const totals = getTotals();
 
   // Authentication & Gate State
@@ -88,6 +88,7 @@ export default function CheckoutPage() {
 
   // Payment gateway settings
   const [isRazorpayEnabled, setIsRazorpayEnabled] = React.useState<boolean>(false);
+  const [isGstEnabled, setIsGstEnabled] = React.useState<boolean>(false);
   const [razorpayKey, setRazorpayKey] = React.useState<string>('');
   const paymentMethod = 'razorpay' as const;
   const [termsAccepted, setTermsAccepted] = React.useState(true);
@@ -230,6 +231,9 @@ export default function CheckoutPage() {
         const hasKeys = Boolean(keyId);
         const active = Boolean(settings.razorpay_enabled && hasKeys);
         setIsRazorpayEnabled(active);
+        const gstActive = Boolean(settings.gst_enabled);
+        setIsGstEnabled(gstActive);
+        setGstEnabled(gstActive);
 
         // Authentication status
         if (accountData && !accountData.error && accountData.profile) {
@@ -383,18 +387,20 @@ export default function CheckoutPage() {
   let totalSgstPaise = 0;
   let totalIgstPaise = 0;
 
-  for (const item of items) {
-    const gstPercent = Number(item.gstPercent || 18);
-    const lineTax = Math.round((item.pricePaise * item.quantity * gstPercent) / 100);
-    if (isIntraState) {
-      const half = Math.round(lineTax / 2);
-      totalCgstPaise += half;
-      totalSgstPaise += (lineTax - half);
-    } else {
-      totalIgstPaise += lineTax;
+  if (isGstEnabled) {
+    for (const item of items) {
+      const gstPercent = Number(item.gstPercent || 18);
+      const lineTax = Math.round((item.pricePaise * item.quantity * gstPercent) / 100);
+      if (isIntraState) {
+        const half = Math.round(lineTax / 2);
+        totalCgstPaise += half;
+        totalSgstPaise += (lineTax - half);
+      } else {
+        totalIgstPaise += lineTax;
+      }
     }
   }
-  const totalTaxPaise = totalCgstPaise + totalSgstPaise + totalIgstPaise;
+  const totalTaxPaise = isGstEnabled ? (totalCgstPaise + totalSgstPaise + totalIgstPaise) : 0;
 
   // Final Payable Calculation: Subtotal + Shipping + GST - Discount
   const finalPayablePaise = Math.max(
@@ -1120,54 +1126,61 @@ export default function CheckoutPage() {
                     </div>
 
                     {/* Optional Business / GST Details */}
-                    <div className="pt-3 border-t border-slate-100">
-                      <button
-                        type="button"
-                        onClick={() => setShowGstForm(!showGstForm)}
-                        className="flex items-center gap-2 text-xs font-bold text-[#844AFB] hover:text-[#6721F2] transition-colors"
-                      >
-                        <Building size={14} />
-                        <span>{showGstForm ? '— Remove Business / GST Details' : '+ Add Business / GST Details for Tax Invoice'}</span>
-                      </button>
+                    {isGstEnabled ? (
+                      <div className="pt-3 border-t border-slate-100">
+                        <button
+                          type="button"
+                          onClick={() => setShowGstForm(!showGstForm)}
+                          className="flex items-center gap-2 text-xs font-bold text-[#844AFB] hover:text-[#6721F2] transition-colors"
+                        >
+                          <Building size={14} />
+                          <span>{showGstForm ? '— Remove Business / GST Details' : '+ Add Business / GST Details for Tax Invoice'}</span>
+                        </button>
 
-                      {showGstForm && (
-                        <div className="mt-3 p-4 rounded-xl bg-purple-50/50 border border-purple-200 space-y-3">
-                          <p className="text-[11px] text-slate-600">
-                            Enter your registered business credentials to receive an official B2B GST tax invoice with input tax credit eligibility.
-                          </p>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div className="space-y-1">
-                              <label className="font-bold text-slate-700">Company / Entity Name *</label>
-                              <Input
-                                placeholder="e.g. Acme Robotics Pvt Ltd"
-                                value={companyName}
-                                onChange={(e) => setCompanyName(e.target.value)}
-                                className="bg-white border-slate-300 h-9 rounded-lg"
-                              />
-                            </div>
-                            <div className="space-y-1">
-                              <label className="font-bold text-slate-700">GSTIN (15 Digits) *</label>
-                              <Input
-                                placeholder="e.g. 33ABCDE1234F1Z5"
-                                value={gstin}
-                                maxLength={15}
-                                onChange={(e) => {
-                                  const val = e.target.value.toUpperCase().trim();
-                                  setGstin(val);
-                                  if (val && !validateGst(val)) {
-                                    setGstError('Invalid 15-character GST format');
-                                  } else {
-                                    setGstError(null);
-                                  }
-                                }}
-                                className="bg-white border-slate-300 h-9 rounded-lg font-mono uppercase"
-                              />
-                              {gstError && <p className="text-[10px] text-red-500">{gstError}</p>}
+                        {showGstForm && (
+                          <div className="mt-3 p-4 rounded-xl bg-purple-50/50 border border-purple-200 space-y-3">
+                            <p className="text-[11px] text-slate-600">
+                              Enter your registered business credentials to receive an official B2B GST tax invoice with input tax credit eligibility.
+                            </p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              <div className="space-y-1">
+                                <label className="font-bold text-slate-700">Company / Entity Name *</label>
+                                <Input
+                                  placeholder="e.g. Acme Robotics Pvt Ltd"
+                                  value={companyName}
+                                  onChange={(e) => setCompanyName(e.target.value)}
+                                  className="bg-white border-slate-300 h-9 rounded-lg"
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <label className="font-bold text-slate-700">GSTIN (15 Digits) *</label>
+                                <Input
+                                  placeholder="e.g. 33ABCDE1234F1Z5"
+                                  value={gstin}
+                                  maxLength={15}
+                                  onChange={(e) => {
+                                    const val = e.target.value.toUpperCase().trim();
+                                    setGstin(val);
+                                    if (val && !validateGst(val)) {
+                                      setGstError('Invalid 15-character GST format');
+                                    } else {
+                                      setGstError(null);
+                                    }
+                                  }}
+                                  className="bg-white border-slate-300 h-9 rounded-lg font-mono uppercase"
+                                />
+                                {gstError && <p className="text-[10px] text-red-500">{gstError}</p>}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      )}
-                    </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="pt-3 border-t border-slate-100 text-[11px] text-slate-500 flex items-center gap-2">
+                        <Building size={14} className="text-slate-400 shrink-0" />
+                        <span>Invoices for this order are issued as an official Bill of Supply / Sale Receipt.</span>
+                      </div>
+                    )}
 
                     {/* Action Button */}
                     <div className="pt-4">
@@ -1731,7 +1744,7 @@ export default function CheckoutPage() {
                 {/* Totals Breakdown */}
                 <div className="space-y-2 text-xs pt-3 border-t border-slate-100">
                   <div className="flex justify-between text-slate-600">
-                    <span>Subtotal (Excl. GST)</span>
+                    <span>Subtotal{isGstEnabled ? ' (Excl. GST)' : ''}</span>
                     <PriceTag pricePaise={totals.subtotalPaise} size="sm" />
                   </div>
 
@@ -1749,21 +1762,25 @@ export default function CheckoutPage() {
                     </span>
                   </div>
 
-                  <div className="flex justify-between text-slate-600 font-medium">
-                    <span>GST (Added on Invoice — {stateName === 'Tamil Nadu' ? 'CGST + SGST' : 'IGST'})</span>
-                    <span className="font-semibold text-slate-800">
-                      + ₹{(totalTaxPaise / 100).toFixed(2)}
-                    </span>
-                  </div>
+                  {isGstEnabled && totalTaxPaise > 0 && (
+                    <>
+                      <div className="flex justify-between text-slate-600 font-medium">
+                        <span>GST (Added on Invoice — {stateName === 'Tamil Nadu' ? 'CGST + SGST' : 'IGST'})</span>
+                        <span className="font-semibold text-slate-800">
+                          + ₹{(totalTaxPaise / 100).toFixed(2)}
+                        </span>
+                      </div>
 
-                  <div className="flex justify-between text-slate-500 text-[11px] pl-2 border-l-2 border-purple-200">
-                    <span>{stateName === 'Tamil Nadu' ? 'CGST (9%) + SGST (9%)' : 'IGST (18%)'}</span>
-                    <span>
-                      {stateName === 'Tamil Nadu'
-                        ? `CGST: ₹${(totalCgstPaise / 100).toFixed(2)} | SGST: ₹${(totalSgstPaise / 100).toFixed(2)}`
-                        : `IGST: ₹${(totalTaxPaise / 100).toFixed(2)}`}
-                    </span>
-                  </div>
+                      <div className="flex justify-between text-slate-500 text-[11px] pl-2 border-l-2 border-purple-200">
+                        <span>{stateName === 'Tamil Nadu' ? 'CGST (9%) + SGST (9%)' : 'IGST (18%)'}</span>
+                        <span>
+                          {stateName === 'Tamil Nadu'
+                            ? `CGST: ₹${(totalCgstPaise / 100).toFixed(2)} | SGST: ₹${(totalSgstPaise / 100).toFixed(2)}`
+                            : `IGST: ₹${(totalTaxPaise / 100).toFixed(2)}`}
+                        </span>
+                      </div>
+                    </>
+                  )}
 
                   <div className="flex justify-between items-baseline text-base font-extrabold text-[#050507] pt-3 border-t border-slate-200">
                     <span>Total Payable</span>

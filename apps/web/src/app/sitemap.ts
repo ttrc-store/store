@@ -16,12 +16,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 1.0,
     },
     {
-      url: `${BASE_URL}/search`,
-      lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 0.8,
-    },
-    {
       url: `${BASE_URL}/bulk-orders`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
@@ -32,6 +26,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.7,
+    },
+    {
+      url: `${BASE_URL}/about`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.6,
+    },
+    {
+      url: `${BASE_URL}/faq`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.6,
     },
     {
       url: `${BASE_URL}/contact`,
@@ -58,13 +64,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.5,
     },
     {
-      url: `${BASE_URL}/return-refund`,
+      url: `${BASE_URL}/return-refund-policy`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.5,
     },
     {
       url: `${BASE_URL}/cancellation-policy`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.5,
+    },
+    {
+      url: `${BASE_URL}/warranty`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.5,
+    },
+    {
+      url: `${BASE_URL}/grievance-officer`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.5,

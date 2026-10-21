@@ -255,19 +255,21 @@ export async function createOrderAction(raw: CreateOrderInput) {
     let totalSgst = 0;
     let totalIgst = 0;
 
-    for (const item of validatedItems) {
-      const gstPercent = Number(item.product.gst_percent || 18);
-      const lineTax = Math.round((item.lineTotal * gstPercent) / 100);
-      if (isIntraState) {
-        const half = Math.round(lineTax / 2);
-        totalCgst += half;
-        totalSgst += (lineTax - half);
-      } else {
-        totalIgst += lineTax;
+    if (settings.gst_enabled) {
+      for (const item of validatedItems) {
+        const gstPercent = Number(item.product.gst_percent || 18);
+        const lineTax = Math.round((item.lineTotal * gstPercent) / 100);
+        if (isIntraState) {
+          const half = Math.round(lineTax / 2);
+          totalCgst += half;
+          totalSgst += (lineTax - half);
+        } else {
+          totalIgst += lineTax;
+        }
       }
     }
 
-    const totalTaxPaise = totalCgst + totalSgst + totalIgst;
+    const totalTaxPaise = settings.gst_enabled ? (totalCgst + totalSgst + totalIgst) : 0;
     const finalOrderTotalPaise = Math.max(0, subtotalPaise + shippingPaise + totalTaxPaise - couponDiscountPaise);
 
     // Atomic stock deduction to prevent race condition / overselling

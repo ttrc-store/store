@@ -83,6 +83,10 @@ export interface StoreProductItem {
   attributes?: Record<string, any>;
   metaTitle?: string;
   metaDescription?: string;
+  primaryKeyword?: string;
+  secondaryKeywords?: string[];
+  searchQuestions?: Array<{ question: string; answer: string }>;
+  seoReadinessScore?: number;
   manufacturer?: {
     id: string;
     name: string;
@@ -193,6 +197,10 @@ function mapProductDoc(
     attributes: p.attributes || {},
     metaTitle: p.meta_title,
     metaDescription: p.meta_description,
+    primaryKeyword: p.primary_keyword,
+    secondaryKeywords: p.secondary_keywords || [],
+    searchQuestions: p.search_questions || [],
+    seoReadinessScore: p.seo_readiness_score,
     manufacturer:
       showManufacturer && (manufacturerDoc || p.manufacturer_id)
         ? {

@@ -70,6 +70,7 @@ interface CartStore {
   couponCode: string | null;
   discountPaise: number;
   stateCode: string; // Default '33' for Tamil Nadu
+  gstEnabled: boolean; // Site settings flag
 
   // Actions
   addItem: (item: CartItem) => void;
@@ -82,6 +83,7 @@ interface CartStore {
   applyCoupon: (code: string) => { success: boolean; message: string };
   removeCoupon: () => void;
   setStateCode: (code: string) => void;
+  setGstEnabled: (enabled: boolean) => void;
 
   // Computed totals helper
   getTotals: () => {
@@ -102,6 +104,7 @@ export const useCartStore = create<CartStore>()(
       couponCode: null,
       discountPaise: 0,
       stateCode: '33', // Tamil Nadu default
+      gstEnabled: false, // Default false until enabled via site_settings
 
       addItem: (newItem) => {
         set((state) => {
@@ -203,9 +206,10 @@ export const useCartStore = create<CartStore>()(
       },
 
       setStateCode: (code) => set({ stateCode: code }),
+      setGstEnabled: (enabled) => set({ gstEnabled: enabled }),
 
       getTotals: () => {
-        const { items, discountPaise, stateCode } = get();
+        const { items, discountPaise, stateCode, gstEnabled } = get();
         const subtotalPaise = items.reduce((sum, i) => sum + i.pricePaise * i.quantity, 0);
         // Standard delivery is charged on all orders (no free shipping)
         const shippingPaise = 12000;
@@ -215,18 +219,20 @@ export const useCartStore = create<CartStore>()(
         let totalSgst = 0;
         let totalIgst = 0;
 
-        for (const item of items) {
-          const gstPercent = Number(item.gstPercent || 18);
-          const lineTax = Math.round((item.pricePaise * item.quantity * gstPercent) / 100);
-          if (isIntraState) {
-            const half = Math.round(lineTax / 2);
-            totalCgst += half;
-            totalSgst += (lineTax - half);
-          } else {
-            totalIgst += lineTax;
+        if (gstEnabled) {
+          for (const item of items) {
+            const gstPercent = Number(item.gstPercent || 18);
+            const lineTax = Math.round((item.pricePaise * item.quantity * gstPercent) / 100);
+            if (isIntraState) {
+              const half = Math.round(lineTax / 2);
+              totalCgst += half;
+              totalSgst += (lineTax - half);
+            } else {
+              totalIgst += lineTax;
+            }
           }
         }
-        const totalTaxPaise = totalCgst + totalSgst + totalIgst;
+        const totalTaxPaise = gstEnabled ? (totalCgst + totalSgst + totalIgst) : 0;
         const totalPaise = Math.max(0, subtotalPaise + shippingPaise + totalTaxPaise - discountPaise);
 
         return {

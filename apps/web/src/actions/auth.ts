@@ -23,7 +23,9 @@ import {
 } from '@/lib/email/resend';
 
 const LoginSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
+  identifier: z
+    .string()
+    .min(3, 'Please enter your registered email address or 10-digit mobile number'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
@@ -56,17 +58,23 @@ const RegisterSchema = z
  * Unverified users are redirected to complete 6-digit OTP verification.
  */
 export async function loginAction(formData: FormData) {
-  const email = (formData.get('email') as string)?.trim().toLowerCase();
-  const password = formData.get('password') as string;
+  const rawIdentifier = (
+    (formData.get('identifier') as string) ||
+    (formData.get('email') as string) ||
+    (formData.get('phone') as string) ||
+    ''
+  ).trim();
+  const password = (formData.get('password') as string) || '';
 
-  const validation = LoginSchema.safeParse({ email, password });
+  const validation = LoginSchema.safeParse({ identifier: rawIdentifier, password });
   if (!validation.success) {
     return { error: validation.error.errors[0].message };
   }
 
-  // Rate limit: 5 attempts per 5 minutes per email
+  // Rate limit: 5 attempts per 5 minutes per identifier
+  const sanitizedKey = `login:${rawIdentifier.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
   const rateLimit = await checkRateLimit({
-    key: `login:${email}`,
+    key: sanitizedKey,
     limit: 5,
     windowMs: 5 * 60 * 1000,
   });
@@ -80,7 +88,42 @@ export async function loginAction(formData: FormData) {
     await connectToDatabase();
     await ensureDatabaseSeeded();
 
-    const user = await UserModel.findOne({ email });
+    let userQuery: any;
+    if (rawIdentifier.includes('@')) {
+      userQuery = { email: rawIdentifier.toLowerCase() };
+    } else {
+      const cleanDigits = rawIdentifier.replace(/\D/g, '');
+      if (cleanDigits.length === 10) {
+        userQuery = {
+          $or: [
+            { phone: cleanDigits },
+            { phone: `+91${cleanDigits}` },
+            { phone: `91${cleanDigits}` },
+            { email: rawIdentifier.toLowerCase() },
+          ],
+        };
+      } else if (cleanDigits.length >= 10) {
+        const last10 = cleanDigits.slice(-10);
+        userQuery = {
+          $or: [
+            { phone: cleanDigits },
+            { phone: `+${cleanDigits}` },
+            { phone: last10 },
+            { phone: `+91${last10}` },
+            { email: rawIdentifier.toLowerCase() },
+          ],
+        };
+      } else {
+        userQuery = {
+          $or: [
+            { email: rawIdentifier.toLowerCase() },
+            { phone: rawIdentifier },
+          ],
+        };
+      }
+    }
+
+    const user = await UserModel.findOne(userQuery);
 
     if (!user || !user.password_hash) {
       return { error: 'Invalid email or password.' };
@@ -93,25 +136,13 @@ export async function loginAction(formData: FormData) {
 
     const isAdmin = user.role === 'admin' || user.role === 'staff';
 
-    // Enforcement: If customer account is not verified, require OTP verification before logging in
-    if (!isAdmin && user.email_verified === false) {
-      // Issue OTP challenge and dispatch email
-      const challenge = await createOtpChallenge({
-        email: user.email,
-        purpose: 'registration',
-      });
-
-      if (challenge.success && challenge.otpForSending) {
-        await sendVerificationOtp({
-          toEmail: user.email,
-          otp: challenge.otpForSending,
-          expiresSeconds: challenge.expiresInSeconds,
-        });
-      }
-
-      const rawRedirect = formData.get('redirectTo') as string;
-      const redirectParam = rawRedirect && rawRedirect.startsWith('/') ? `&redirect=${encodeURIComponent(rawRedirect)}` : '';
-      redirect(`/verify-email?email=${encodeURIComponent(user.email)}&pending=1${redirectParam}`);
+    // Auto-verify user since OTP verification is paused/on hold
+    if (!user.email_verified) {
+      await UserModel.updateOne(
+        { _id: user._id },
+        { $set: { email_verified: true, email_verified_at: new Date() } }
+      );
+      user.email_verified = true;
     }
 
     await createSessionCookie(user);
@@ -203,45 +234,52 @@ export async function registerAction(formData: FormData) {
     const password_hash = await bcrypt.hash(password, 10);
     const customer_id = await getNextSequenceId('CUS');
 
-    // Create user with explicit email_verified = false
-    await UserModel.create({
+    // If phone number is supplied, ensure it is not already used
+    if (phone) {
+      const cleanDigits = phone.replace(/\D/g, '');
+      const last10 = cleanDigits.slice(-10);
+      const existingPhoneUser = await UserModel.findOne({
+        $or: [
+          { phone },
+          { phone: cleanDigits },
+          { phone: last10 },
+          { phone: `+91${last10}` },
+        ],
+      });
+      if (existingPhoneUser) {
+        return { error: 'An account with this mobile number already exists. Please sign in.' };
+      }
+    }
+
+    // Create user with email_verified: true (OTP verification on hold)
+    const newUser = await UserModel.create({
       customer_id,
       email,
       full_name: fullName || email.split('@')[0],
       phone: phone || undefined,
       password_hash,
       role: 'customer',
-      email_verified: false,
+      email_verified: true,
+      email_verified_at: new Date(),
     });
 
-    // Create 120s OTP Challenge for Registration
-    const challenge = await createOtpChallenge({
-      email,
-      purpose: 'registration',
+    await AuditLogModel.create({
+      actor_id: newUser._id.toString(),
+      action: 'user.registered',
+      entity: 'user',
+      entity_id: newUser._id.toString(),
+      metadata: { email, phone, autoVerified: true },
     });
 
-    if (challenge.success && challenge.otpForSending) {
-      const sendRes = await sendVerificationOtp({
-        toEmail: email,
-        otp: challenge.otpForSending,
-        expiresSeconds: challenge.expiresInSeconds,
-      });
-
-      if (!sendRes.success && !sendRes.simulated) {
-        console.warn(`[Registration] Email dispatch failed for ${email}: ${sendRes.error}`);
-      }
-    }
+    // Automatically sign in the newly registered customer
+    await createSessionCookie(newUser);
 
     const destination =
       redirectTo && redirectTo.startsWith('/') && !redirectTo.startsWith('//')
         ? redirectTo
         : '/account';
 
-    redirect(
-      `/verify-email?email=${encodeURIComponent(email)}&challenge=${encodeURIComponent(
-        challenge.challengeId || ''
-      )}&redirect=${encodeURIComponent(destination)}`
-    );
+    redirect(destination);
   } catch (err: any) {
     if (err?.digest?.startsWith('NEXT_REDIRECT') || err?.message === 'NEXT_REDIRECT') {
       throw err;

@@ -227,7 +227,7 @@ function RegisterForm() {
                     <label className="text-xs font-bold text-slate-700">
                       Mobile Number (India)
                     </label>
-                    <span className="text-[11px] text-slate-400">For SMS delivery OTP</span>
+                    <span className="text-[11px] text-slate-400">For order updates &amp; mobile sign-in</span>
                   </div>
                   <div className="relative">
                     <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500 font-mono">
