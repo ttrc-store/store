@@ -156,14 +156,19 @@ export function CategoryCard({
           <div className="min-w-0">
             <h3 className="font-heading text-sm font-bold text-[#050507] group-hover:text-[#6721F2] transition-colors leading-snug truncate">
               {name}
+              <span className="sr-only">. </span>
             </h3>
             {description && (
-              <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-1">{description}</p>
+              <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-1">
+                {description}
+                <span className="sr-only">. </span>
+              </p>
             )}
             <p className="text-[11px] font-mono font-semibold text-[#844AFB] mt-1">
               {itemCount !== undefined
                 ? `${itemCount} Product${itemCount === 1 ? '' : 's'}`
                 : 'Browse'}
+              <span className="sr-only">. </span>
             </p>
           </div>
           <div className="w-7 h-7 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 group-hover:text-[#844AFB] group-hover:bg-[#EEE8FA] group-hover:border-purple-200 transition-all flex-shrink-0">

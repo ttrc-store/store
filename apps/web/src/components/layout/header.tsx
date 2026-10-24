@@ -121,12 +121,12 @@ export default function Header({ user: initialUser, categories }: HeaderProps) {
             <Truck size={12} className="text-[#AF87F8]" />
             Fast Dispatch &amp; Delivery Across India
           </span>
-          <span className="text-purple-900">·</span>
+          <span className="text-purple-900" aria-hidden="true"> · </span>
           <span className="flex items-center gap-1.5 font-medium">
             <ShieldCheck size={12} className="text-[#AF87F8]" />
             Official Tamizh Tech Store
           </span>
-          <span className="text-purple-900">·</span>
+          <span className="text-purple-900" aria-hidden="true"> · </span>
           <a href="tel:+917904902978" className="flex items-center gap-1.5 font-medium hover:text-white transition-colors">
             <Phone size={12} className="text-[#AF87F8]" />
             <span>Support: +91 7904902978</span>
@@ -136,9 +136,11 @@ export default function Header({ user: initialUser, categories }: HeaderProps) {
           <Link href={user ? '/account/orders' : '/login?redirect=/account/orders'} className="hover:text-white transition-colors">
             Track Order
           </Link>
+          <span className="sr-only">. </span>
           <Link href="/bulk-enquiry" className="hover:text-white transition-colors">
             Institutional Orders
           </Link>
+          <span className="sr-only">. </span>
           <Link href="/compare" className="flex items-center gap-1.5 hover:text-white transition-colors">
             <GitCompare size={12} className="text-[#AF87F8]" />
             <span>Compare</span>
@@ -148,9 +150,11 @@ export default function Header({ user: initialUser, categories }: HeaderProps) {
               </span>
             )}
           </Link>
+          <span className="sr-only">. </span>
           <Link href="/contact" className="hover:text-white transition-colors">
             Support
           </Link>
+          <span className="sr-only">. </span>
           <span className="font-bold text-white bg-[#844AFB] px-2 py-0.5 rounded text-[10px] font-mono">INR ₹</span>
         </div>
       </div>

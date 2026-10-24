@@ -12,6 +12,7 @@ import { BreadcrumbJsonLd, ItemListJsonLd } from '@/components/seo/json-ld';
 import { CATEGORY_TREE } from '@ttrc/shared';
 import { CategoryModel } from '@/lib/mongodb/models';
 import { connectToDatabase } from '@/lib/mongodb/client';
+import { getClusterMappingForRoute } from '@/lib/seo/keyword-engine';
 
 interface CategoryPageProps {
   params: Promise<{ slug: string }>;
@@ -38,8 +39,12 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
     return { title: 'Category Not Found | TTRC Store' };
   }
 
-  const title = `${category.name} — Robotics & STEM Components | TTRC Store`;
-  const description = `Buy high quality ${category.name} components, kits, and spare parts online at Tamizh Tech Store. 100% genuine components with GST invoice & fast shipping across India.`;
+  const cluster = getClusterMappingForRoute(`/category/${slug}`);
+  const title = cluster
+    ? `${category.name} — ${cluster.primaryKeyword} | TTRC Store`
+    : `${category.name} — Robotics & STEM Components | TTRC Store`;
+
+  const description = `Shop high quality ${category.name.toLowerCase()} in India. 100% genuine parts, GST tax invoice, fast dispatch, and technical support from Tamizh Tech.`;
   const canonicalUrl = `https://www.ttrc.store/category/${slug}`;
 
   return {
@@ -97,6 +102,30 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
     { name: category.name, url: `https://www.ttrc.store/category/${slug}` },
   ];
 
+  const cluster = getClusterMappingForRoute(`/category/${slug}`);
+  let relatedGuide: { title: string; href: string } | undefined;
+  if (slug === 'gamified-robots') {
+    relatedGuide = {
+      title: 'Line Follower Robot Components Engineering Guide',
+      href: '/guides/line-follower-robot-components',
+    };
+  } else if (slug === 'motors') {
+    relatedGuide = {
+      title: 'Motor Driver Selection Guide: TB6612FNG vs L298N',
+      href: '/guides/motor-driver-selection-guide',
+    };
+  } else if (slug === 'sensors') {
+    relatedGuide = {
+      title: 'Robotics Sensors Guide: IR, Ultrasonic & Gyro',
+      href: '/guides/robotics-sensors-guide',
+    };
+  } else if (slug === 'stem-kits') {
+    relatedGuide = {
+      title: 'How to Choose a Robotics Kit for Students',
+      href: '/guides/how-to-choose-robotics-kit',
+    };
+  }
+
   return (
     <div className="min-h-screen bg-white text-slate-900 pb-20 pt-6">
       <BreadcrumbJsonLd items={breadcrumbItems} />
@@ -125,31 +154,49 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
         </Breadcrumb>
 
         {/* Category Header Banner */}
-        <div className="relative rounded-2xl p-6 sm:p-10 mb-10 overflow-hidden bg-gradient-to-r from-purple-950 via-slate-900 to-purple-950 border border-purple-900 shadow-xl text-white">
-          <div className="absolute right-0 top-0 translate-x-12 -translate-y-12 w-64 h-64 bg-purple-600/20 rounded-full blur-3xl pointer-events-none" />
-          
-          <div className="relative z-10 max-w-2xl space-y-3">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-purple-500/20 text-purple-300 border border-purple-400/30">
-              Official TTRC Catalogue
-            </span>
+        <div className="relative rounded-2xl p-6 sm:p-10 mb-8 bg-[#14141A] border border-slate-800 text-white shadow-md">
+          <div className="relative z-10 max-w-3xl space-y-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#FDECEE] text-[#E3132A]">
+                Official TTRC Catalogue
+              </span>
+              {cluster && (
+                <span className="text-xs text-slate-400">
+                  Target Cluster: {cluster.cluster}
+                </span>
+              )}
+            </div>
+
             <h1 className="font-heading text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
               {category.name}
             </h1>
+
             <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-              Explore high-performance {category.name.toLowerCase()} designed for Robo Race, STEM education, and DIY electronics. Every part tested with 100% compatibility guarantee.
+              Explore high-performance {category.name.toLowerCase()} engineered for Robo Race, STEM education, and DIY electronics. Tested by Tamizh Tech engineers with guaranteed compatibility and fast pan-India dispatch.
             </p>
+
+            {relatedGuide && (
+              <div className="pt-2">
+                <Link
+                  href={relatedGuide.href}
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-[#E3132A] hover:underline bg-white/10 px-3 py-1.5 rounded-lg border border-white/10"
+                >
+                  Read Engineering Guide: {relatedGuide.title} →
+                </Link>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Kits vs Spare Parts Tabs for Competition Categories */}
         {category.slug === 'gamified-robots' && (
-          <div className="flex border-b border-purple-100 mb-8 overflow-x-auto">
+          <div className="flex border-b border-[#E5E7EB] mb-8 overflow-x-auto">
             <Link
               href={`/category/${slug}`}
               className={`px-6 py-3 font-heading font-bold text-sm border-b-2 transition-colors whitespace-nowrap ${
                 typeFilter === 'all'
-                  ? 'border-purple-700 text-purple-700'
-                  : 'border-transparent text-slate-500 hover:text-purple-950'
+                  ? 'border-[#E3132A] text-[#E3132A]'
+                  : 'border-transparent text-slate-500 hover:text-[#14141A]'
               }`}
             >
               All Products
@@ -158,8 +205,8 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
               href={`/category/${slug}?type=kit`}
               className={`px-6 py-3 font-heading font-bold text-sm border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${
                 typeFilter === 'kit'
-                  ? 'border-purple-700 text-purple-700'
-                  : 'border-transparent text-slate-500 hover:text-purple-950'
+                  ? 'border-[#E3132A] text-[#E3132A]'
+                  : 'border-transparent text-slate-500 hover:text-[#14141A]'
               }`}
             >
               <Package size={16} />
@@ -169,8 +216,8 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
               href={`/category/${slug}?type=spare_part`}
               className={`px-6 py-3 font-heading font-bold text-sm border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${
                 typeFilter === 'spare_part'
-                  ? 'border-purple-700 text-purple-700'
-                  : 'border-transparent text-slate-500 hover:text-purple-950'
+                  ? 'border-[#E3132A] text-[#E3132A]'
+                  : 'border-transparent text-slate-500 hover:text-[#14141A]'
               }`}
             >
               <Cpu size={16} />
@@ -206,15 +253,15 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                 ))}
               </div>
             ) : (
-              <div className="p-12 text-center rounded-2xl bg-purple-50/30 border border-purple-100 space-y-4">
-                <Package size={48} className="mx-auto text-purple-300" />
+              <div className="p-12 text-center rounded-2xl bg-[#F7F7F8] border border-[#E5E7EB] space-y-4">
+                <Package size={48} className="mx-auto text-slate-400" />
                 <h3 className="font-heading text-lg font-bold text-slate-900">No products found</h3>
                 <p className="text-xs text-slate-500 max-w-sm mx-auto">
                   There are no products currently matching the selected filters. Try clearing your filters.
                 </p>
                 <Link
                   href={`/category/${slug}`}
-                  className="inline-block px-5 py-2 rounded-xl bg-purple-700 text-white font-bold text-xs hover:bg-purple-800 transition-colors shadow-sm"
+                  className="inline-block px-5 py-2 rounded-xl bg-[#E3132A] text-white font-bold text-xs hover:bg-[#B80F21] transition-colors shadow-xs"
                 >
                   Clear Filters
                 </Link>

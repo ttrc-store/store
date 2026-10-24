@@ -194,9 +194,18 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
     },
     {
       question: `Is a battery included with ${product.name}?`,
-      answer: product.attributes?.configurations?.some((c: any) => c.name?.toLowerCase().includes('battery') && c.is_default)
-        ? `Yes, the default package includes the matching battery pack.`
-        : `By default, this platform is supplied in the standard competition package without a battery so builders can use their preferred LiPo battery packs (7.4V 2S / 11.1V 3S compatible).`,
+      answer:
+        product.name.toLowerCase().includes('without battery') ||
+        product.name.toLowerCase().includes('no battery')
+          ? `No, this platform is supplied without a battery so builders can use their preferred LiPo battery packs (7.4V 2S / 11.1V 3S compatible).`
+          : product.attributes?.configurations?.some(
+              (c: any) =>
+                c.name?.toLowerCase().includes('with battery') &&
+                !c.name?.toLowerCase().includes('without') &&
+                c.is_default
+            )
+          ? `Yes, this package includes the matching competition battery pack.`
+          : `By default, this platform is supplied in the standard competition package without a battery so builders can use their preferred LiPo battery packs (7.4V 2S / 11.1V 3S compatible).`,
     },
     {
       question: `Who is this ${product.name} designed for?`,

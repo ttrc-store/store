@@ -4,6 +4,9 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Return & Refund Policy | TTRC Store',
   description: 'Return guidelines, replacement, and refund policies for robotics components on TTRC Store.',
+  alternates: {
+    canonical: 'https://www.ttrc.store/return-refund-policy',
+  },
 };
 
 export default function ReturnRefundPolicyPage() {

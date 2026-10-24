@@ -4,6 +4,9 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Cancellation Policy | TTRC Store',
   description: 'Order cancellation rules and timeline for TTRC Store orders.',
+  alternates: {
+    canonical: 'https://www.ttrc.store/cancellation-policy',
+  },
 };
 
 export default function CancellationPolicyPage() {

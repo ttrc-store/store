@@ -5,6 +5,9 @@ import { ShieldCheck, Mail, MapPin } from 'lucide-react';
 export const metadata: Metadata = {
   title: 'Grievance Officer | Consumer Protection Compliance | TTRC Store',
   description: 'Grievance Redressal Mechanism and Grievance Officer details under Consumer Protection (E-Commerce) Rules 2020.',
+  alternates: {
+    canonical: 'https://www.ttrc.store/grievance-officer',
+  },
 };
 
 export default function GrievanceOfficerPage() {

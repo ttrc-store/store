@@ -247,3 +247,59 @@ export function FAQJsonLd({ faqs }: { faqs: FAQItem[] }) {
     />
   );
 }
+
+interface ArticleJsonLdProps {
+  headline: string;
+  description: string;
+  url: string;
+  datePublished: string;
+  dateModified?: string;
+  authorName?: string;
+  imageUrl?: string;
+}
+
+export function ArticleJsonLd({
+  headline,
+  description,
+  url,
+  datePublished,
+  dateModified,
+  authorName = 'Tamizh Tech Engineering Team',
+  imageUrl = `${CANONICAL_ORIGIN}/brand/ttrc-logo.png`,
+}: ArticleJsonLdProps) {
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'TechArticle',
+    headline,
+    description,
+    url: url.startsWith('http') ? url : `${CANONICAL_ORIGIN}${url}`,
+    image: imageUrl.startsWith('http') ? imageUrl : `${CANONICAL_ORIGIN}${imageUrl}`,
+    datePublished,
+    dateModified: dateModified || datePublished,
+    author: {
+      '@type': 'Organization',
+      name: authorName,
+      url: CANONICAL_ORIGIN,
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'Tamizh Tech',
+      logo: {
+        '@type': 'ImageObject',
+        url: `${CANONICAL_ORIGIN}/brand/ttrc-logo.png`,
+      },
+    },
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': url.startsWith('http') ? url : `${CANONICAL_ORIGIN}${url}`,
+    },
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
+}
+

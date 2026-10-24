@@ -4,6 +4,9 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Privacy Policy | DPDP Compliance | TTRC Store',
   description: 'Privacy Policy for TTRC Store in accordance with India Digital Personal Data Protection (DPDP) Act 2023.',
+  alternates: {
+    canonical: 'https://www.ttrc.store/privacy-policy',
+  },
 };
 
 export default function PrivacyPolicyPage() {

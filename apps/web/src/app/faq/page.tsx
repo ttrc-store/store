@@ -4,6 +4,9 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Frequently Asked Questions (FAQ) | TTRC Store',
   description: 'Common questions about shipping, spare parts compatibility, payment methods, and robotics kits.',
+  alternates: {
+    canonical: 'https://www.ttrc.store/faq',
+  },
 };
 
 export default function FAQPage() {

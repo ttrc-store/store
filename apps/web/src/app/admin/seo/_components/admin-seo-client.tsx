@@ -18,10 +18,13 @@ import {
   Layers,
   ArrowUpRight,
   Info,
+  Database,
+  Tag,
+  Filter,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import type { SeoCatalogAudit } from '@/actions/seo';
+import { getAdminKeywordResearchAction, type SeoCatalogAudit, type KeywordResearchResult } from '@/actions/seo';
 
 interface AdminSeoClientProps {
   initialAudit: SeoCatalogAudit;
@@ -85,7 +88,39 @@ const REPRESENTATIVE_QUERIES = [
 
 export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
   const [audit, setAudit] = React.useState<SeoCatalogAudit>(initialAudit);
-  const [activeTab, setActiveTab] = React.useState<'overview' | 'queries' | 'products' | 'launch'>('overview');
+  const [activeTab, setActiveTab] = React.useState<'overview' | 'queries' | 'products' | 'launch' | 'keywords'>('overview');
+
+  const [keywordResult, setKeywordResult] = React.useState<KeywordResearchResult | null>(null);
+  const [keywordLoading, setKeywordLoading] = React.useState(false);
+  const [keywordQuery, setKeywordQuery] = React.useState('');
+  const [keywordCluster, setKeywordCluster] = React.useState('all');
+  const [keywordPriority, setKeywordPriority] = React.useState('all');
+  const [keywordIntent, setKeywordIntent] = React.useState('all');
+
+  const loadKeywordData = React.useCallback(async (params?: {
+    query?: string;
+    cluster?: string;
+    priority?: string;
+    intent?: string;
+  }) => {
+    setKeywordLoading(true);
+    try {
+      const res = await getAdminKeywordResearchAction({
+        query: params?.query ?? keywordQuery,
+        cluster: params?.cluster ?? keywordCluster,
+        priority: params?.priority ?? keywordPriority,
+        intent: params?.intent ?? keywordIntent,
+        limit: 100,
+      });
+      if (res.data) {
+        setKeywordResult(res.data);
+      }
+    } catch (e) {
+      console.error('Failed to load keywords', e);
+    } finally {
+      setKeywordLoading(false);
+    }
+  }, [keywordQuery, keywordCluster, keywordPriority, keywordIntent]);
 
   const checklistItems = [
     {
@@ -161,11 +196,11 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+      <div className="flex items-center gap-2 border-b border-slate-200 pb-2 overflow-x-auto">
         <button
           type="button"
           onClick={() => setActiveTab('overview')}
-          className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${
+          className={`px-4 py-2 text-xs font-bold rounded-xl transition-all whitespace-nowrap ${
             activeTab === 'overview'
               ? 'bg-[#E3132A] text-white shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -175,8 +210,25 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
         </button>
         <button
           type="button"
+          onClick={() => {
+            setActiveTab('keywords');
+            if (!keywordResult) {
+              loadKeywordData();
+            }
+          }}
+          className={`px-4 py-2 text-xs font-bold rounded-xl transition-all whitespace-nowrap flex items-center gap-1.5 ${
+            activeTab === 'keywords'
+              ? 'bg-[#E3132A] text-white shadow-xs'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+          }`}
+        >
+          <Database size={13} />
+          Keyword Intelligence &amp; Mapping (1,473)
+        </button>
+        <button
+          type="button"
           onClick={() => setActiveTab('queries')}
-          className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${
+          className={`px-4 py-2 text-xs font-bold rounded-xl transition-all whitespace-nowrap ${
             activeTab === 'queries'
               ? 'bg-[#E3132A] text-white shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -187,7 +239,7 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
         <button
           type="button"
           onClick={() => setActiveTab('products')}
-          className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${
+          className={`px-4 py-2 text-xs font-bold rounded-xl transition-all whitespace-nowrap ${
             activeTab === 'products'
               ? 'bg-[#E3132A] text-white shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -198,7 +250,7 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
         <button
           type="button"
           onClick={() => setActiveTab('launch')}
-          className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${
+          className={`px-4 py-2 text-xs font-bold rounded-xl transition-all whitespace-nowrap ${
             activeTab === 'launch'
               ? 'bg-[#E3132A] text-white shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -556,6 +608,259 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
                   )}
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 5: KEYWORD INTELLIGENCE & MAPPING */}
+      {activeTab === 'keywords' && (
+        <div className="space-y-6 animate-in fade-in duration-150">
+          {/* Key Metrics Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-1">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                Total Keyword Ideas
+              </span>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-extrabold text-slate-900">
+                  {keywordResult?.stats.totalRows ?? 1473}
+                </span>
+                <span className="text-xs text-emerald-600 font-bold">100% Unique</span>
+              </div>
+              <p className="text-[11px] text-slate-500">Source: India Keyword Research DB</p>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-1">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                Mapped Topic Clusters
+              </span>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-extrabold text-slate-900">
+                  {keywordResult?.clusters.length ?? 24}
+                </span>
+                <span className="text-xs text-slate-400">Clusters</span>
+              </div>
+              <p className="text-[11px] text-slate-500">All mapped to canonical destinations</p>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-1">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                High Commercial Priority
+              </span>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-extrabold text-[#E3132A]">
+                  {keywordResult?.stats.priorityCounts['High'] ?? 154}
+                </span>
+                <span className="text-xs text-slate-400">Keywords</span>
+              </div>
+              <p className="text-[11px] text-slate-500">Product &amp; Category landing pages</p>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-1">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                Content &amp; AEO Ideas
+              </span>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-extrabold text-slate-900">
+                  {keywordResult?.stats.priorityCounts['Content'] ?? 242}
+                </span>
+                <span className="text-xs text-emerald-600 font-bold">4 Guides Active</span>
+              </div>
+              <p className="text-[11px] text-slate-500">Informational queries &amp; FAQs</p>
+            </div>
+          </div>
+
+          {/* Search & Filter Bar */}
+          <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1">
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search 1,473 keywords, clusters, or target URLs..."
+                  value={keywordQuery}
+                  onChange={(e) => setKeywordQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      loadKeywordData();
+                    }
+                  }}
+                  className="w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-hidden focus:ring-1 focus:ring-[#E3132A] transition-all"
+                />
+              </div>
+
+              <select
+                value={keywordCluster}
+                onChange={(e) => {
+                  setKeywordCluster(e.target.value);
+                  loadKeywordData({ cluster: e.target.value });
+                }}
+                className="px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 text-slate-700 font-medium"
+              >
+                <option value="all">All Clusters (24)</option>
+                {keywordResult?.clusters.map((c) => (
+                  <option key={c.cluster} value={c.cluster}>
+                    {c.cluster} ({c.totalKeywords})
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={keywordPriority}
+                onChange={(e) => {
+                  setKeywordPriority(e.target.value);
+                  loadKeywordData({ priority: e.target.value });
+                }}
+                className="px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 text-slate-700 font-medium"
+              >
+                <option value="all">All Priorities</option>
+                <option value="High">High Priority</option>
+                <option value="Content">Content / AEO</option>
+                <option value="Research">Research</option>
+              </select>
+
+              <Button
+                type="button"
+                onClick={() => loadKeywordData()}
+                disabled={keywordLoading}
+                className="bg-[#E3132A] hover:bg-[#B80F21] text-white text-xs font-bold px-4 py-2 rounded-xl"
+              >
+                {keywordLoading ? (
+                  <RefreshCw size={14} className="animate-spin" />
+                ) : (
+                  'Filter'
+                )}
+              </Button>
+            </div>
+
+            {/* Cluster Quick Pills */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[11px]">
+              <span className="text-slate-400 font-bold uppercase tracking-wider shrink-0 text-[10px] mr-1">
+                Top Clusters:
+              </span>
+              {keywordResult?.clusters.slice(0, 8).map((c) => (
+                <button
+                  key={c.cluster}
+                  type="button"
+                  onClick={() => {
+                    const next = keywordCluster === c.cluster ? 'all' : c.cluster;
+                    setKeywordCluster(next);
+                    loadKeywordData({ cluster: next });
+                  }}
+                  className={`px-2.5 py-1 rounded-lg border font-medium shrink-0 transition-colors ${
+                    keywordCluster === c.cluster
+                      ? 'bg-[#E3132A] text-white border-[#E3132A]'
+                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                  }`}
+                >
+                  {c.cluster} ({c.totalKeywords})
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Keywords Table */}
+          <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="font-heading text-base font-bold text-slate-900">
+                  Search Keyword Mapping Table
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Showing {keywordResult?.keywords.length ?? 0} of {keywordResult?.totalFiltered ?? 1473} keywords matching active criteria.
+                </p>
+              </div>
+              <Badge variant="outline" className="text-xs font-semibold bg-slate-50">
+                100% Client-Side Safe (Internal Admin Only)
+              </Badge>
+            </div>
+
+            <div className="overflow-x-auto rounded-xl border border-slate-200">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[10px]">
+                  <tr>
+                    <th className="p-3">#</th>
+                    <th className="p-3">Keyword Idea</th>
+                    <th className="p-3">Cluster</th>
+                    <th className="p-3">Intent</th>
+                    <th className="p-3">Priority</th>
+                    <th className="p-3">Canonical Destination</th>
+                    <th className="p-3">Mapping Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {keywordResult?.keywords.map((kw) => {
+                    const isGuide = kw.targetUrl.startsWith('/guides/');
+                    const isCategory = kw.targetUrl.startsWith('/category/');
+                    return (
+                      <tr key={`${kw.no}-${kw.normalizedKeyword}`} className="hover:bg-slate-50/70 transition-colors">
+                        <td className="p-3 font-mono text-slate-400">{kw.no}</td>
+                        <td className="p-3 font-bold text-slate-900">
+                          {kw.keyword}
+                        </td>
+                        <td className="p-3 text-slate-600">{kw.cluster}</td>
+                        <td className="p-3">
+                          <span className="inline-block px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-700">
+                            {kw.intent}
+                          </span>
+                        </td>
+                        <td className="p-3">
+                          <span
+                            className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold ${
+                              kw.priority === 'High'
+                                ? 'bg-[#FDECEE] text-[#E3132A]'
+                                : kw.priority === 'Content'
+                                ? 'bg-amber-50 text-amber-800'
+                                : 'bg-slate-100 text-slate-600'
+                            }`}
+                          >
+                            {kw.priority}
+                          </span>
+                        </td>
+                        <td className="p-3">
+                          <a
+                            href={kw.targetUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-mono text-[#E3132A] hover:underline flex items-center gap-1"
+                          >
+                            {kw.targetUrl}
+                            <ArrowUpRight size={12} />
+                          </a>
+                        </td>
+                        <td className="p-3">
+                          <span
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                              isGuide
+                                ? 'bg-emerald-50 text-emerald-800'
+                                : isCategory
+                                ? 'bg-blue-50 text-blue-800'
+                                : 'bg-slate-100 text-slate-700'
+                            }`}
+                          >
+                            {isGuide
+                              ? 'Engineering Guide'
+                              : isCategory
+                              ? 'Catalog Category'
+                              : 'Store Catalog'}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="pt-2 flex items-center justify-between text-xs text-slate-500">
+              <span className="flex items-center gap-1">
+                <Info size={14} className="text-slate-400" />
+                Preserves internal research distinction: these represent keyword ideas for content and catalog discovery.
+              </span>
+              <span>
+                Search volume telemetry is fetched live from Google Search Console once authenticated.
+              </span>
             </div>
           </div>
         </div>

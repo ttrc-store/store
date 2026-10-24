@@ -49,12 +49,14 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   title: {
-    default: 'TTRC Store – Robotics, STEM Kits & Electronics | Tamizh Tech',
+    default: 'TTRC Store – Robotics, Electronics & Components | Tamizh Tech',
     template: '%s | TTRC Store',
   },
   description:
-    'Official online store of Tamizh Tech (tamizhtech.in). High-quality robotics kits, STEM components, motors, sensors, LiPo batteries and fasteners with India-wide delivery and GST invoices.',
+    'Official store for robotics kits, STEM electronics & components in India. Buy motors, sensors, batteries, fasteners, and tools with fast shipping.',
   keywords: [
+    'Electronics & Components',
+    'robotics electronics and components',
     'robotics store India',
     'STEM kits',
     'robo race kit',
@@ -78,9 +80,9 @@ export const metadata: Metadata = {
   },
   manifest: '/manifest.json',
   openGraph: {
-    title: 'TTRC Store – Robotics & Electronics India',
+    title: 'TTRC Store – Robotics, Electronics & Components | Tamizh Tech',
     description:
-      'High-quality robotics kits and spare parts with fast India-wide delivery. GST invoices included.',
+      'Official store for robotics kits, STEM electronics & components in India. Buy motors, sensors, batteries, fasteners, and tools with fast shipping.',
     url: 'https://ttrc.store',
     siteName: 'TTRC Store',
     images: [{ url: '/brand/og-image.jpg', width: 1200, height: 630, alt: 'TTRC Store' }],
@@ -89,8 +91,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'TTRC Store – Robotics & Electronics India',
-    description: 'High-quality robotics kits and spare parts with fast India-wide delivery.',
+    title: 'TTRC Store – Robotics, Electronics & Components | Tamizh Tech',
+    description:
+      'Official store for robotics kits, STEM electronics & components in India. Fast pan-India delivery.',
     images: ['/brand/og-image.jpg'],
   },
   robots: {

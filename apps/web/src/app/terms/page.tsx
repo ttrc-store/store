@@ -4,6 +4,9 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Terms & Conditions | TTRC Store',
   description: 'Terms and Conditions governing e-commerce transactions on ttrc.store by Tamizh Tech.',
+  alternates: {
+    canonical: 'https://www.ttrc.store/terms',
+  },
 };
 
 export default function TermsPage() {

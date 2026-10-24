@@ -112,3 +112,76 @@ export async function getAdminSeoAuditAction(): Promise<{ data?: SeoCatalogAudit
     return { error: err.message || 'Failed to load SEO audit data' };
   }
 }
+
+export interface KeywordResearchResult {
+  stats: import('@/lib/seo/types').KeywordStats;
+  clusters: import('@/lib/seo/types').ClusterMapping[];
+  totalFiltered: number;
+  keywords: import('@/lib/seo/types').KeywordRecord[];
+}
+
+export async function getAdminKeywordResearchAction(params?: {
+  query?: string;
+  cluster?: string;
+  priority?: string;
+  intent?: string;
+  limit?: number;
+  offset?: number;
+}): Promise<{ data?: KeywordResearchResult; error?: string }> {
+  const auth = await requireAdmin();
+  if ('error' in auth) return { error: auth.error };
+
+  try {
+    const { getKeywordStats, getClusterMappings, loadAndParseKeywords } = await import(
+      '@/lib/seo/keyword-engine'
+    );
+
+    const stats = getKeywordStats();
+    const clusters = getClusterMappings();
+    let records = loadAndParseKeywords();
+
+    const query = params?.query?.trim().toLowerCase();
+    const cluster = params?.cluster;
+    const priority = params?.priority;
+    const intent = params?.intent;
+
+    if (query) {
+      records = records.filter(
+        (r) =>
+          r.normalizedKeyword.includes(query) ||
+          r.cluster.toLowerCase().includes(query) ||
+          r.targetUrl.toLowerCase().includes(query)
+      );
+    }
+
+    if (cluster && cluster !== 'all') {
+      records = records.filter((r) => r.cluster.toLowerCase() === cluster.toLowerCase());
+    }
+
+    if (priority && priority !== 'all') {
+      records = records.filter((r) => r.priority.toLowerCase() === priority.toLowerCase());
+    }
+
+    if (intent && intent !== 'all') {
+      records = records.filter((r) => r.intent.toLowerCase() === intent.toLowerCase());
+    }
+
+    const totalFiltered = records.length;
+    const limit = params?.limit ?? 50;
+    const offset = params?.offset ?? 0;
+    const paginatedKeywords = records.slice(offset, offset + limit);
+
+    return {
+      data: {
+        stats,
+        clusters,
+        totalFiltered,
+        keywords: paginatedKeywords,
+      },
+    };
+  } catch (err: any) {
+    console.error('[Keyword Research Action Error]', err);
+    return { error: err.message || 'Failed to load keyword research data' };
+  }
+}
+

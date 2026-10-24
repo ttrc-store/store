@@ -4,6 +4,9 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Shipping Policy | TTRC Store',
   description: 'Shipping timeline, rates, and restricted components policy for TTRC Store.',
+  alternates: {
+    canonical: 'https://www.ttrc.store/shipping-policy',
+  },
 };
 
 export default function ShippingPolicyPage() {

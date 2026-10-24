@@ -5,6 +5,9 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: 'About Us | Tamizh Tech & TTRC Store',
   description: 'Learn about Tamizh Tech (tamizhtech.in) and TTRC Store — India\'s trusted robotics & STEM kits platform.',
+  alternates: {
+    canonical: 'https://www.ttrc.store/about',
+  },
 };
 
 export default function AboutPage() {

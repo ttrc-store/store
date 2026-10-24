@@ -4,6 +4,9 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Warranty & Guarantee Policy | TTRC Store',
   description: 'Warranty terms and quality testing process for electronic components on TTRC Store.',
+  alternates: {
+    canonical: 'https://www.ttrc.store/warranty',
+  },
 };
 
 export default function WarrantyPage() {

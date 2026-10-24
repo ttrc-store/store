@@ -77,13 +77,12 @@ function HeroSection() {
 
             {/* H1 */}
             <h1 className="font-heading text-3xl sm:text-4xl lg:text-[2.65rem] font-extrabold tracking-tight text-[#050507] leading-[1.12]">
-              Engineering Products<br />
-              <span className="text-[#844AFB]">Built to Create More</span>
+              Engineering Robotics &amp;<br />
+              <span className="text-[#844AFB]">Electronics &amp; Components</span>
             </h1>
 
             <p className="text-slate-600 text-sm sm:text-base max-w-lg leading-relaxed">
-              Robotics kits, precision motors, industrial sensors, LiPo batteries, fasteners
-              and STEM hardware — from Tamizh Tech, delivered pan-India.
+              Discover verified robotics kits, STEM electronics &amp; components, precision motors, sensors, and LiPo batteries. Additionally, we test every unit for performance and dispatch quickly across India.
             </p>
 
             {/* CTAs */}
@@ -214,8 +213,11 @@ async function CategoriesSection() {
         <div>
           <p className="text-xs font-bold text-[#844AFB] uppercase tracking-widest mb-1">Catalog</p>
           <h2 className="font-heading text-2xl sm:text-3xl font-extrabold text-[#050507] tracking-tight">
-            Shop by Category
+            Shop Electronics &amp; Components
           </h2>
+          <p className="text-xs text-slate-500 mt-1">
+            Browse verified sensors, motor drivers, controllers, and hardware modules.
+          </p>
         </div>
         {visibleCategories.length > 0 && (
           <Link
@@ -347,10 +349,13 @@ function EngineeringCollections() {
     >
       <div className="flex items-end justify-between">
         <div>
-          <p className="text-xs font-bold text-[#844AFB] uppercase tracking-widest mb-1">Explore</p>
+          <p className="text-xs font-bold text-[#844AFB] uppercase tracking-widest mb-1">Curated Catalog</p>
           <h2 className="font-heading text-2xl sm:text-3xl font-extrabold text-[#050507] tracking-tight">
             Engineering Collections
           </h2>
+          <p className="text-xs text-slate-500 mt-1">
+            Explore engineering electronics &amp; components built for competition robots and STEM projects.
+          </p>
         </div>
         <Link
           href="/category/gamified-robots"
@@ -373,10 +378,10 @@ function EngineeringCollections() {
             <div className="p-5 space-y-3 min-h-[120px] flex flex-col justify-between">
               <div>
                 <p className="font-heading text-sm font-bold leading-snug">{col.title}</p>
-                <p className="text-[11px] text-purple-200/80 mt-1 leading-relaxed">{col.sub}</p>
+                <p className="text-[11px] text-purple-200/80 mt-1 leading-relaxed">{col.sub}. </p>
               </div>
               <div className="flex items-center gap-1 text-[11px] font-bold text-[#AF87F8] group-hover:text-white transition-colors">
-                <span>Explore</span>
+                <span>Explore {col.title}</span>
                 <ChevronRight
                   size={12}
                   className="group-hover:translate-x-0.5 transition-transform"
@@ -411,8 +416,7 @@ function EngineeringSpotlight() {
             </span>
             <h3 className="font-heading text-xl font-bold">M2 / M3 / M4 Screws,<br />Standoffs & Spacers</h3>
             <p className="text-xs text-purple-200/90 leading-relaxed max-w-xs">
-              Engineering-standard fasteners for competition chassis, PCB standoffs and
-              structural robotics. Never strip a screw during a match.
+              Engineering-grade fasteners for robot chassis, PCB standoffs, and frames. Therefore, you can build securely without stripped screws.
             </p>
             <Link href="/category/fasteners">
               <Button className="bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold text-xs rounded-xl h-9 px-5 mt-2">
@@ -431,8 +435,7 @@ function EngineeringSpotlight() {
             </span>
             <h3 className="font-heading text-xl font-bold">LiPo Batteries<br />& Charging Systems</h3>
             <p className="text-xs text-purple-200/90 leading-relaxed max-w-xs">
-              High-C LiPo 2S/3S/4S packs, Li-ion 18650 cells, balance chargers and
-              BMS modules selected for robotics competition stress.
+              Power your competition robots with high-C LiPo packs and Li-ion cells. Moreover, we test every charger and BMS module for safety.
             </p>
             <Link href="/category/batteries">
               <Button
@@ -467,8 +470,7 @@ function B2BSection() {
             Buying for a Team, Lab or School?
           </h2>
           <p className="text-xs text-slate-600 leading-relaxed max-w-lg">
-            We provide formal quotations, institutional POs, GST tax invoices and customised kit
-            bundles for schools, colleges and innovation labs across India.
+            Need robotics electronics &amp; components for an innovation lab or team? We provide formal quotations and institutional POs. Furthermore, we issue GST invoices and custom bundles for schools across India.
           </p>
         </div>
         <div className="flex-shrink-0 flex flex-col sm:flex-row gap-3 w-full md:w-auto relative z-10">
@@ -510,8 +512,7 @@ function ReviewsNote() {
           Verified Buyer Reviews — Displayed After Purchase Verification
         </h2>
         <p className="text-xs text-slate-500 max-w-lg mx-auto leading-relaxed">
-          In compliance with Consumer Protection E-Commerce Rules 2020, TTRC Store only displays
-          reviews authenticated through customer order records. No incentivised or mock reviews.
+          In compliance with Consumer Protection E-Commerce Rules 2020, TTRC Store only displays reviews from authenticated customer orders. Consequently, buyers receive honest feedback without incentivised or mock ratings.
         </p>
       </div>
     </section>
@@ -540,8 +541,7 @@ function NewsletterSection() {
               Get TTRC Updates
             </h2>
             <p className="text-xs sm:text-sm text-purple-200/90 leading-relaxed">
-              Product launches, new motor batches, sensor arrays, competition kit releases
-              and engineering resources. Zero spam.
+              Get timely updates on new motor batches, sensor arrays, and STEM electronics &amp; components. We guarantee zero spam.
             </p>
           </div>
           <div className="w-full md:w-auto md:min-w-[360px]">
