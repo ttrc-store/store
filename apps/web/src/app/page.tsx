@@ -15,6 +15,8 @@ import {
   Award,
   Sparkles,
   ChevronRight,
+  Target,
+  Rocket,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CategoryCard } from '@/components/store/category-card';
@@ -452,6 +454,78 @@ function EngineeringSpotlight() {
   );
 }
 
+// ─── Vision & Mission section ─────────────────────────────────────────────────
+
+function VisionMissionSection() {
+  return (
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" aria-label="Our Vision and Mission">
+      <div className="rounded-3xl border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-[#FDECEE]/40 p-6 sm:p-10 shadow-sm space-y-8">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div className="space-y-2 text-left">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 border border-red-200 text-red-600 text-xs font-bold uppercase tracking-wider">
+              <Sparkles size={13} className="text-red-600" />
+              <span>Platform Purpose</span>
+            </div>
+            <h2 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#050507] tracking-tight">
+              Our Vision &amp; Mission
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600 max-w-xl leading-relaxed">
+              Empowering India&apos;s robotics competitors, students, and engineers through one comprehensive, trusted hardware ecosystem.
+            </p>
+          </div>
+          <Link
+            href="/about"
+            className="text-xs sm:text-sm font-bold text-red-600 hover:text-red-700 inline-flex items-center gap-1.5 group self-start md:self-auto"
+          >
+            <span>Read Complete Mission &amp; Pillars</span>
+            <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
+          {/* Vision Card */}
+          <div className="rounded-2xl bg-white border border-slate-200 p-6 sm:p-7 space-y-4 shadow-xs hover:border-red-300 hover:shadow-md transition-all">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-red-600 text-white flex items-center justify-center shadow-sm">
+                <Target size={20} />
+              </div>
+              <div>
+                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-red-600">The Goal</span>
+                <h3 className="font-heading text-lg sm:text-xl font-extrabold text-slate-900">OUR VISION</h3>
+              </div>
+            </div>
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+              To establish TTRC as <strong className="text-slate-900">India&apos;s leading competition-robotics platform</strong> and a globally recognized robotics brand, empowering students, engineers, and innovators to design, build, repair, and advance robots through <strong className="text-slate-900">one trusted ecosystem</strong>.
+            </p>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Bringing everything needed to build a robot—from the smallest fastener to advanced actuators and complete systems—into one accessible platform.
+            </p>
+          </div>
+
+          {/* Mission Card */}
+          <div className="rounded-2xl bg-white border border-slate-200 p-6 sm:p-7 space-y-4 shadow-xs hover:border-red-300 hover:shadow-md transition-all">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center shadow-sm">
+                <Rocket size={20} className="text-red-500" />
+              </div>
+              <div>
+                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-slate-600">The Action</span>
+                <h3 className="font-heading text-lg sm:text-xl font-extrabold text-slate-900">OUR MISSION</h3>
+              </div>
+            </div>
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+              To design, develop, and deliver <strong className="text-slate-900">innovative, high-quality robotics products</strong> while building a comprehensive, one-stop platform for every component needed to build a robot—from screws, fasteners, wires, and electronics to motor drivers, sensors, and full kits.
+            </p>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Enabling everyone to <strong className="text-slate-900">build, repair, upgrade, and innovate with confidence</strong> through reliable products and fast nationwide delivery.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ─── B2B / Bulk section ────────────────────────────────────────────────────────
 
 function B2BSection() {
@@ -596,7 +670,10 @@ export default function HomePage() {
         {/* 6. Promo blocks */}
         <EngineeringSpotlight />
 
-        {/* 7. B2B / Bulk CTA */}
+        {/* 7. Vision & Mission Section */}
+        <VisionMissionSection />
+
+        {/* 8. B2B / Bulk CTA */}
         <B2BSection />
 
         {/* 8. Reviews policy note */}
