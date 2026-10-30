@@ -459,11 +459,11 @@ function EngineeringSpotlight() {
 function VisionMissionSection() {
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" aria-label="Our Vision and Mission">
-      <div className="rounded-3xl border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-[#FDECEE]/40 p-6 sm:p-10 shadow-sm space-y-8">
+      <div className="rounded-3xl border border-[#AF87F8]/30 bg-gradient-to-br from-white via-slate-50 to-[#EEE8FA]/50 p-6 sm:p-10 shadow-sm space-y-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div className="space-y-2 text-left">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 border border-red-200 text-red-600 text-xs font-bold uppercase tracking-wider">
-              <Sparkles size={13} className="text-red-600" />
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EEE8FA] border border-[#AF87F8]/40 text-[#6721F2] text-xs font-bold uppercase tracking-wider">
+              <Sparkles size={13} className="text-[#844AFB]" />
               <span>Platform Purpose</span>
             </div>
             <h2 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#050507] tracking-tight">
@@ -475,7 +475,7 @@ function VisionMissionSection() {
           </div>
           <Link
             href="/about"
-            className="text-xs sm:text-sm font-bold text-red-600 hover:text-red-700 inline-flex items-center gap-1.5 group self-start md:self-auto"
+            className="text-xs sm:text-sm font-bold text-[#844AFB] hover:text-[#6721F2] inline-flex items-center gap-1.5 group self-start md:self-auto"
           >
             <span>Read Complete Mission &amp; Pillars</span>
             <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
@@ -484,13 +484,13 @@ function VisionMissionSection() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
           {/* Vision Card */}
-          <div className="rounded-2xl bg-white border border-slate-200 p-6 sm:p-7 space-y-4 shadow-xs hover:border-red-300 hover:shadow-md transition-all">
+          <div className="rounded-2xl bg-white border border-slate-200 p-6 sm:p-7 space-y-4 shadow-xs hover:border-[#AF87F8] hover:shadow-md transition-all">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-red-600 text-white flex items-center justify-center shadow-sm">
+              <div className="w-10 h-10 rounded-xl bg-[#844AFB] text-white flex items-center justify-center shadow-sm shadow-purple-900/20">
                 <Target size={20} />
               </div>
               <div>
-                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-red-600">The Goal</span>
+                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#844AFB]">The Goal</span>
                 <h3 className="font-heading text-lg sm:text-xl font-extrabold text-slate-900">OUR VISION</h3>
               </div>
             </div>
@@ -503,10 +503,10 @@ function VisionMissionSection() {
           </div>
 
           {/* Mission Card */}
-          <div className="rounded-2xl bg-white border border-slate-200 p-6 sm:p-7 space-y-4 shadow-xs hover:border-red-300 hover:shadow-md transition-all">
+          <div className="rounded-2xl bg-white border border-slate-200 p-6 sm:p-7 space-y-4 shadow-xs hover:border-[#AF87F8] hover:shadow-md transition-all">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center shadow-sm">
-                <Rocket size={20} className="text-red-500" />
+              <div className="w-10 h-10 rounded-xl bg-[#1E0D45] text-white flex items-center justify-center shadow-sm">
+                <Rocket size={20} className="text-[#AF87F8]" />
               </div>
               <div>
                 <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-slate-600">The Action</span>

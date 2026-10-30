@@ -21,13 +21,13 @@ export default function AboutPage() {
         {/* Header Breadcrumb & Title */}
         <div className="border-b border-slate-200 pb-8 space-y-3">
           <div className="flex items-center gap-2 text-xs text-slate-500 font-mono">
-            <Link href="/" className="hover:text-red-600 transition-colors">Home</Link>
+            <Link href="/" className="hover:text-[#844AFB] transition-colors">Home</Link>
             <span>/</span>
             <span className="text-slate-900 font-semibold">About &amp; Vision</span>
           </div>
 
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-50 border border-red-200 text-red-600 text-xs font-bold uppercase tracking-wider">
-            <Sparkles size={14} className="text-red-600" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EEE8FA] border border-[#AF87F8]/40 text-[#6721F2] text-xs font-bold uppercase tracking-wider">
+            <Sparkles size={14} className="text-[#844AFB]" />
             <span>Tamizh Tech Robotics Company</span>
           </div>
 
@@ -42,7 +42,7 @@ export default function AboutPage() {
         </div>
 
         {/* Visual Showcase Banner: Official Infographic */}
-        <div className="relative rounded-3xl overflow-hidden border border-slate-200 shadow-xl bg-slate-950 p-2 sm:p-4 group">
+        <div className="relative rounded-3xl overflow-hidden border border-purple-200/60 shadow-xl bg-slate-950 p-2 sm:p-4 group">
           <div className="relative w-full aspect-square sm:aspect-[4/3] md:aspect-[16/10] max-h-[620px] rounded-2xl overflow-hidden bg-slate-900">
             <Image
               src="/brand/ttrc-vision-mission.jpg"
@@ -54,7 +54,7 @@ export default function AboutPage() {
             />
           </div>
           <div className="py-3 px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400">
-            <span className="font-mono text-slate-300">Official TTRC Brand Statement &bull; www.ttrc.store</span>
+            <span className="font-mono text-purple-300">Official TTRC Brand Statement &bull; www.ttrc.store</span>
             <span className="text-[11px] text-slate-400">Competition Robotics &bull; STEM Hardware &bull; Nationwide Supply</span>
           </div>
         </div>
@@ -63,13 +63,13 @@ export default function AboutPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
           
           {/* OUR VISION */}
-          <div className="rounded-3xl bg-slate-50/80 border border-slate-200 p-7 sm:p-9 space-y-5 hover:border-red-300 hover:shadow-lg hover:shadow-red-950/5 transition-all">
+          <div className="rounded-3xl bg-slate-50/80 border border-slate-200 p-7 sm:p-9 space-y-5 hover:border-[#AF87F8] hover:shadow-lg hover:shadow-purple-950/5 transition-all">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-red-600 text-white flex items-center justify-center shadow-md shadow-red-600/30">
+              <div className="w-12 h-12 rounded-2xl bg-[#844AFB] text-white flex items-center justify-center shadow-md shadow-purple-900/25">
                 <Target size={24} />
               </div>
               <div>
-                <span className="text-[11px] font-mono font-bold tracking-widest uppercase text-red-600">The North Star</span>
+                <span className="text-[11px] font-mono font-bold tracking-widest uppercase text-[#844AFB]">The North Star</span>
                 <h2 className="font-heading text-2xl sm:text-3xl font-extrabold text-slate-900">OUR VISION</h2>
               </div>
             </div>
@@ -91,10 +91,10 @@ export default function AboutPage() {
           </div>
 
           {/* OUR MISSION */}
-          <div className="rounded-3xl bg-slate-50/80 border border-slate-200 p-7 sm:p-9 space-y-5 hover:border-red-300 hover:shadow-lg hover:shadow-red-950/5 transition-all">
+          <div className="rounded-3xl bg-slate-50/80 border border-slate-200 p-7 sm:p-9 space-y-5 hover:border-[#AF87F8] hover:shadow-lg hover:shadow-purple-950/5 transition-all">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center shadow-md">
-                <Rocket size={24} className="text-red-500" />
+              <div className="w-12 h-12 rounded-2xl bg-[#1E0D45] text-white flex items-center justify-center shadow-md">
+                <Rocket size={24} className="text-[#AF87F8]" />
               </div>
               <div>
                 <span className="text-[11px] font-mono font-bold tracking-widest uppercase text-slate-600">Execution &amp; Commitment</span>
@@ -133,7 +133,7 @@ export default function AboutPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="p-5 rounded-2xl bg-white border border-slate-200 space-y-2.5 hover:border-slate-300 transition-colors">
-              <div className="w-9 h-9 rounded-xl bg-red-50 text-red-600 flex items-center justify-center font-bold">
+              <div className="w-9 h-9 rounded-xl bg-[#EEE8FA] text-[#844AFB] flex items-center justify-center font-bold">
                 <Cpu size={18} />
               </div>
               <h3 className="font-heading font-bold text-slate-900 text-sm">One-Stop Hardware</h3>
@@ -143,7 +143,7 @@ export default function AboutPage() {
             </div>
 
             <div className="p-5 rounded-2xl bg-white border border-slate-200 space-y-2.5 hover:border-slate-300 transition-colors">
-              <div className="w-9 h-9 rounded-xl bg-red-50 text-red-600 flex items-center justify-center font-bold">
+              <div className="w-9 h-9 rounded-xl bg-[#EEE8FA] text-[#844AFB] flex items-center justify-center font-bold">
                 <ShieldCheck size={18} />
               </div>
               <h3 className="font-heading font-bold text-slate-900 text-sm">Bench-Tested Reliability</h3>
@@ -153,7 +153,7 @@ export default function AboutPage() {
             </div>
 
             <div className="p-5 rounded-2xl bg-white border border-slate-200 space-y-2.5 hover:border-slate-300 transition-colors">
-              <div className="w-9 h-9 rounded-xl bg-red-50 text-red-600 flex items-center justify-center font-bold">
+              <div className="w-9 h-9 rounded-xl bg-[#EEE8FA] text-[#844AFB] flex items-center justify-center font-bold">
                 <Wrench size={18} />
               </div>
               <h3 className="font-heading font-bold text-slate-900 text-sm">Kit + Spare Logic</h3>
@@ -163,7 +163,7 @@ export default function AboutPage() {
             </div>
 
             <div className="p-5 rounded-2xl bg-white border border-slate-200 space-y-2.5 hover:border-slate-300 transition-colors">
-              <div className="w-9 h-9 rounded-xl bg-red-50 text-red-600 flex items-center justify-center font-bold">
+              <div className="w-9 h-9 rounded-xl bg-[#EEE8FA] text-[#844AFB] flex items-center justify-center font-bold">
                 <CheckCircle2 size={18} />
               </div>
               <h3 className="font-heading font-bold text-slate-900 text-sm">Pan-India Delivery</h3>
@@ -175,23 +175,23 @@ export default function AboutPage() {
         </div>
 
         {/* Action Callouts */}
-        <div className="p-8 sm:p-10 rounded-3xl bg-slate-900 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
+        <div className="p-8 sm:p-10 rounded-3xl bg-[#1E0D45] text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl border border-purple-900">
           <div className="space-y-2 text-center md:text-left">
             <h3 className="font-heading text-xl sm:text-2xl font-bold">
               Ready to Build, Upgrade, or Partner?
             </h3>
-            <p className="text-xs sm:text-sm text-slate-400 max-w-lg leading-relaxed">
+            <p className="text-xs sm:text-sm text-purple-200/90 max-w-lg leading-relaxed">
               Explore our competition kits and verified electronics, or talk to us for school, college, and STEM lab bulk packages.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <Link href="/category/gamified-robots">
-              <Button className="bg-red-600 hover:bg-red-700 text-white font-bold text-xs h-11 px-6 rounded-xl shadow-md shadow-red-600/30">
+              <Button className="bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold text-xs h-11 px-6 rounded-xl shadow-md shadow-purple-950/30">
                 Explore Catalog
               </Button>
             </Link>
             <Link href="/bulk-enquiry">
-              <Button variant="outline" className="border-slate-700 text-slate-200 hover:bg-slate-800 font-bold text-xs h-11 px-6 rounded-xl">
+              <Button variant="outline" className="border-purple-700/60 text-purple-200 hover:bg-purple-900/50 font-bold text-xs h-11 px-6 rounded-xl">
                 Institutional Enquiry
               </Button>
             </Link>
