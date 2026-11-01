@@ -137,10 +137,6 @@ export default function Header({ user: initialUser, categories }: HeaderProps) {
             Track Order
           </Link>
           <span className="sr-only">. </span>
-          <Link href="/bulk-enquiry" className="hover:text-white transition-colors">
-            Institutional Orders
-          </Link>
-          <span className="sr-only">. </span>
           <Link href="/compare" className="flex items-center gap-1.5 hover:text-white transition-colors">
             <GitCompare size={12} className="text-[#AF87F8]" />
             <span>Compare</span>
@@ -487,10 +483,10 @@ export default function Header({ user: initialUser, categories }: HeaderProps) {
             </span>
           </div>
           <Link
-            href="/bulk-enquiry"
+            href="/bulk-orders"
             className="text-[#844AFB] hover:text-[#6721F2] font-bold flex items-center gap-1 whitespace-nowrap text-[11px] transition-colors"
           >
-            <span>Bulk / Institutional Orders →</span>
+            <span>Bulk Orders →</span>
           </Link>
         </div>
       </div>
