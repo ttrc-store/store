@@ -21,6 +21,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { CategoryCard } from '@/components/store/category-card';
 import { HomeTabs } from '@/components/home/home-tabs';
+import { HeroBannerSlider } from '@/components/home/hero-banner-slider';
 import { NewsletterForm } from '@/components/home/newsletter-form';
 import {
   getStoreCategories,
@@ -128,27 +129,9 @@ function HeroSection() {
             </div>
           </div>
 
-          {/* Right: Hero Product Image */}
+          {/* Right: Auto-rotating Special Offer Poster Slider (3s interval) */}
           <div className="lg:col-span-6 flex items-center justify-center">
-            <div className="relative w-full max-w-[320px] sm:max-w-[380px] lg:max-w-[420px]">
-              {/* Subtle background glow */}
-              <div
-                className="absolute inset-0 rounded-3xl bg-[#844AFB]/10 blur-2xl scale-95 pointer-events-none"
-                aria-hidden="true"
-              />
-              {/* Product image */}
-              <div className="relative rounded-3xl overflow-hidden border border-slate-200/80 shadow-xl bg-white max-h-[calc(100vh-200px)] flex items-center justify-center">
-                <Image
-                  src="/products/lfr6.0.png"
-                  alt="TTRC LFR 6.0 — Line Follower Robot Competition Kit"
-                  width={550}
-                  height={550}
-                  priority
-                  className="w-full h-auto max-h-[calc(100vh-200px)] object-contain block"
-                  sizes="(max-width: 1024px) 100vw, 420px"
-                />
-              </div>
-            </div>
+            <HeroBannerSlider />
           </div>
 
         </div>
