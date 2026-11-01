@@ -100,11 +100,19 @@ export function ProductOrderBox({
   });
 
   const activeConfig = configurations && configurations.length > 0 ? configurations[selectedConfigIdx] : null;
-  const isConfigPriceConfigured = activeConfig ? activeConfig.price_paise != null : true;
+  const isConfigPriceConfigured = activeConfig
+    ? activeConfig.is_default
+      ? true
+      : activeConfig.price_paise != null
+    : true;
   const currentBasePricePaise =
-    activeConfig && activeConfig.price_paise != null ? activeConfig.price_paise : basePricePaise;
+    activeConfig && !activeConfig.is_default && activeConfig.price_paise != null
+      ? activeConfig.price_paise
+      : basePricePaise;
   const currentMrpPaise =
-    activeConfig && activeConfig.mrp_paise != null ? activeConfig.mrp_paise : mrpPaise;
+    activeConfig && !activeConfig.is_default && activeConfig.mrp_paise != null
+      ? activeConfig.mrp_paise
+      : mrpPaise;
 
   // Compute active unit price based on selected quantity and bulk tiers
   const activeUnitPricePaise = React.useMemo(() => {
@@ -258,7 +266,11 @@ export function ProductOrderBox({
                     {isSelected && <CheckCircle2 size={14} className="text-[#844AFB]" />}
                   </div>
                   <div className="mt-1 flex items-baseline gap-1.5">
-                    {hasPrice ? (
+                    {config.is_default ? (
+                      <span className="font-mono font-bold text-slate-900">
+                        ₹{(basePricePaise / 100).toLocaleString('en-IN')}
+                      </span>
+                    ) : hasPrice ? (
                       <span className="font-mono font-bold text-slate-900">
                         ₹{(config.price_paise! / 100).toLocaleString('en-IN')}
                       </span>

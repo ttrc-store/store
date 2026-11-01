@@ -278,10 +278,29 @@ export async function updateProductAction(
       data.categoryIds
     );
 
+    // Synchronize default configuration pricing if variants exist in attributes
+    let updatedAttributes = (existing as any).attributes;
+    if (updatedAttributes?.configurations && Array.isArray(updatedAttributes.configurations)) {
+      updatedAttributes = {
+        ...updatedAttributes,
+        configurations: updatedAttributes.configurations.map((c: any) => {
+          if (c.is_default) {
+            return {
+              ...c,
+              price_paise: data.pricePaise,
+              mrp_paise: data.mrpPaise || data.pricePaise,
+            };
+          }
+          return c;
+        }),
+      };
+    }
+
     const updated = await ProductModel.findByIdAndUpdate(
       id,
       {
         $set: {
+          ...(updatedAttributes ? { attributes: updatedAttributes } : {}),
           name: data.name,
           slug: data.slug,
           sku: data.sku,
