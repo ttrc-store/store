@@ -267,29 +267,28 @@ async function CategoriesSection() {
 // ─── Product collections (Featured / Best Sellers / New Arrivals) ───────────
 
 async function ProductCollectionsSection() {
-  const [featuredRes, bestSellersRes, newArrivalsRes] = await Promise.all([
-    getStoreProducts({ isFeatured: true, limit: 60, sort: 'order_added' }),
-    getStoreProducts({ isBestseller: true, limit: 60, sort: 'order_added' }),
-    getStoreProducts({ isNewArrival: true, limit: 60, sort: 'order_added' }),
+  const [allProductsRes, featuredRes, bestSellersRes, newArrivalsRes] = await Promise.all([
+    getStoreProducts({ limit: 100, sort: 'order_added' }),
+    getStoreProducts({ isFeatured: true, limit: 100, sort: 'order_added' }),
+    getStoreProducts({ isBestseller: true, limit: 100, sort: 'order_added' }),
+    getStoreProducts({ isNewArrival: true, limit: 100, sort: 'order_added' }),
   ]);
 
-  const needsFallback =
-    featuredRes.products.length === 0 &&
-    bestSellersRes.products.length === 0 &&
-    newArrivalsRes.products.length === 0;
+  const allProducts = allProductsRes.products;
 
-  const fallbackProducts = needsFallback
-    ? (await getStoreProducts({ limit: 60, sort: 'order_added' })).products
-    : [];
+  // For Featured tab: Show featured products first, then any other active products so no store products are excluded
+  const featuredMap = new Map(featuredRes.products.map((p) => [p.id, p]));
+  const combinedFeatured = [
+    ...featuredRes.products,
+    ...allProducts.filter((p) => !featuredMap.has(p.id)),
+  ];
 
-  const featuredCards = (
-    featuredRes.products.length > 0 ? featuredRes.products : fallbackProducts
-  ).map(toStoreProductCardProps);
+  const featuredCards = (combinedFeatured.length > 0 ? combinedFeatured : allProducts).map(toStoreProductCardProps);
   const bestSellerCards = (
-    bestSellersRes.products.length > 0 ? bestSellersRes.products : fallbackProducts
+    bestSellersRes.products.length > 0 ? bestSellersRes.products : allProducts
   ).map(toStoreProductCardProps);
   const newArrivalCards = (
-    newArrivalsRes.products.length > 0 ? newArrivalsRes.products : fallbackProducts
+    newArrivalsRes.products.length > 0 ? newArrivalsRes.products : allProducts
   ).map(toStoreProductCardProps);
 
   return (

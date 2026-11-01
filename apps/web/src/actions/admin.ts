@@ -212,6 +212,8 @@ export async function createProductAction(input: z.infer<typeof ProductSchema>) 
       ai_seo_status: data.aiSeoStatus || undefined,
       last_seo_audit: data.lastSeoAudit ? new Date(data.lastSeoAudit) : undefined,
       is_active: data.status !== 'archived',
+      is_featured: true,
+      is_new_arrival: true,
     });
 
     // Record administrative audit log

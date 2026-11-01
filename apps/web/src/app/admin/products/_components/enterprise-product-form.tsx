@@ -1129,7 +1129,7 @@ export function EnterpriseProductForm({
           isApproved: q.isApproved ?? true,
         })),
       seoReadinessScore: seoReadiness.score,
-      aiSeoStatus: primaryKeyword ? 'reviewed' : 'draft',
+      aiSeoStatus: primaryKeyword ? 'reviewed' : (initialData?.aiSeoStatus as any) || 'pending',
       lastSeoAudit: new Date().toISOString(),
     };
 

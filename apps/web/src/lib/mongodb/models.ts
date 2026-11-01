@@ -173,7 +173,7 @@ export interface IProduct extends Document {
   secondary_keywords?: string[];
   search_questions?: Array<{ question: string; answer: string }>;
   seo_readiness_score?: number;
-  ai_seo_status?: 'pending' | 'generated' | 'reviewed';
+  ai_seo_status?: 'pending' | 'generated' | 'reviewed' | 'draft';
   last_seo_audit?: Date;
   created_at: Date;
   updated_at: Date;
@@ -255,9 +255,9 @@ const ProductSchema = new Schema<IProduct>(
     stock_quantity: { type: Number, default: 0 },
     low_stock_threshold: { type: Number, default: 5 },
     is_active: { type: Boolean, default: true },
-    is_featured: { type: Boolean, default: false },
+    is_featured: { type: Boolean, default: true },
     is_bestseller: { type: Boolean, default: false },
-    is_new_arrival: { type: Boolean, default: false },
+    is_new_arrival: { type: Boolean, default: true },
     category_id: { type: String },
     sub_category_id: { type: String },
     category_ids: [{ type: String }],
@@ -301,7 +301,7 @@ const ProductSchema = new Schema<IProduct>(
       },
     ],
     seo_readiness_score: { type: Number, default: 0 },
-    ai_seo_status: { type: String, enum: ['pending', 'generated', 'reviewed'], default: 'pending' },
+    ai_seo_status: { type: String, enum: ['pending', 'generated', 'reviewed', 'draft'], default: 'pending' },
     last_seo_audit: { type: Date },
   },
   { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } }
