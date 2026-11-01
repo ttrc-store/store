@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/button';
 import { CategoryCard } from '@/components/store/category-card';
 import { HomeTabs } from '@/components/home/home-tabs';
 import { HeroBannerSlider } from '@/components/home/hero-banner-slider';
+import { getActiveHeroBannersAction } from '@/actions/banners';
 import { NewsletterForm } from '@/components/home/newsletter-form';
 import {
   getStoreCategories,
@@ -53,9 +54,11 @@ function CategoryGridSkeleton() {
 }
 
 
-// ─── Hero — static, no DB, renders immediately ────────────────────────────────
+// ─── Hero — dynamic banner slider with admin support ──────────────────────────
 
-function HeroSection() {
+async function HeroSection() {
+  const banners = await getActiveHeroBannersAction();
+
   return (
     <section
       className="relative overflow-hidden bg-gradient-to-br from-[#EEE8FA]/70 via-[#FDFDFD] to-[#F8F4FF]/50 border-b border-purple-100/80 lg:min-h-[calc(100vh-140px)] flex items-center"
@@ -131,7 +134,7 @@ function HeroSection() {
 
           {/* Right: Auto-rotating Special Offer Poster Slider (3s interval) */}
           <div className="lg:col-span-6 flex items-center justify-center">
-            <HeroBannerSlider />
+            <HeroBannerSlider banners={banners} />
           </div>
 
         </div>

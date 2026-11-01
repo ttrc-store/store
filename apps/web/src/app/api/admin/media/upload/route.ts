@@ -18,9 +18,13 @@ const ALLOWED_MIME_TYPES = new Set([
   'image/tiff',
   'image/gif',
   'image/svg+xml',
+  'video/mp4',
+  'video/webm',
+  'video/quicktime',
+  'video/ogg',
 ]);
 
-const MAX_UPLOAD_BYTES = 15 * 1024 * 1024; // 15 MB
+const MAX_UPLOAD_BYTES = 50 * 1024 * 1024; // 50 MB
 
 export async function POST(req: NextRequest) {
   const auth = await requireAdmin();
@@ -38,15 +42,20 @@ export async function POST(req: NextRequest) {
 
     if (file.size > MAX_UPLOAD_BYTES) {
       return NextResponse.json(
-        { error: `File size (${(file.size / (1024 * 1024)).toFixed(2)}MB) exceeds maximum allowed limit of 15MB.` },
+        { error: `File size (${(file.size / (1024 * 1024)).toFixed(2)}MB) exceeds maximum allowed limit of 50MB.` },
         { status: 400 }
       );
     }
 
     const declaredType = (file.type || '').toLowerCase();
-    if (declaredType && !ALLOWED_MIME_TYPES.has(declaredType) && !declaredType.startsWith('image/')) {
+    if (
+      declaredType &&
+      !ALLOWED_MIME_TYPES.has(declaredType) &&
+      !declaredType.startsWith('image/') &&
+      !declaredType.startsWith('video/')
+    ) {
       return NextResponse.json(
-        { error: `Unsupported MIME type: "${declaredType}". Supported: JPEG, PNG, WebP, AVIF, TIFF, GIF, SVG.` },
+        { error: `Unsupported MIME type: "${declaredType}". Supported: Images (JPEG, PNG, WebP, AVIF, GIF, SVG) and Videos (MP4, WebM, MOV).` },
         { status: 400 }
       );
     }
@@ -58,6 +67,42 @@ export async function POST(req: NextRequest) {
 
     if (buffer.length === 0) {
       return NextResponse.json({ error: 'Uploaded file is empty.' }, { status: 400 });
+    }
+
+    // Video Handler: Store video directly without Sharp image pipeline
+    if (declaredType.startsWith('video/') || file.name.match(/\.(mp4|webm|mov|ogg)$/i)) {
+      const extMatch = file.name.match(/\.(mp4|webm|mov|ogg)$/i);
+      const ext = extMatch ? extMatch[1].toLowerCase() : 'mp4';
+      const videoFilename = `ttrc-vid-${Date.now()}-${crypto.randomBytes(6).toString('hex')}.${ext}`;
+      const videoMime = declaredType || (ext === 'webm' ? 'video/webm' : 'video/mp4');
+
+      await connectToDatabase();
+      await MediaModel.create({
+        filename: videoFilename,
+        original_name: file.name,
+        mime_type: videoMime,
+        size: buffer.length,
+        data: buffer,
+        original_format: ext,
+        original_size: buffer.length,
+      });
+
+      try {
+        const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'videos');
+        await fs.mkdir(uploadDir, { recursive: true });
+        await fs.writeFile(path.join(uploadDir, videoFilename), buffer);
+      } catch {
+        // Ignored in read-only serverless environment
+      }
+
+      return NextResponse.json({
+        success: true,
+        url: `/api/media/${videoFilename}`,
+        filename: videoFilename,
+        size: buffer.length,
+        mimeType: videoMime,
+        isVideo: true,
+      });
     }
 
     // Verify magic bytes (binary file signatures for PNG, JPEG, WebP)

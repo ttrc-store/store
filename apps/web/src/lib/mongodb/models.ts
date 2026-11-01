@@ -953,5 +953,43 @@ export const EmailQuotaLedgerModel: Model<IEmailQuotaLedger> =
   mongoose.models.EmailQuotaLedger ||
   mongoose.model<IEmailQuotaLedger>('EmailQuotaLedger', EmailQuotaLedgerSchema);
 
+// ---------------------------------------------------------------------------
+// 17. HERO BANNER SCHEMA & MODEL (Homepage promotional posters & video offers)
+// ---------------------------------------------------------------------------
+export interface IHeroBanner extends Document {
+  title: string;
+  type: 'image' | 'video';
+  media_url: string;
+  link_url?: string;
+  offer_price?: string;
+  regular_price?: string;
+  badge?: string;
+  rotation_seconds: number;
+  sort_order: number;
+  is_active: boolean;
+  created_at: Date;
+  updated_at: Date;
+}
+
+const HeroBannerSchema = new Schema<IHeroBanner>(
+  {
+    title: { type: String, required: true },
+    type: { type: String, enum: ['image', 'video'], default: 'image' },
+    media_url: { type: String, required: true },
+    link_url: { type: String, default: '' },
+    offer_price: { type: String },
+    regular_price: { type: String },
+    badge: { type: String },
+    rotation_seconds: { type: Number, default: 3 },
+    sort_order: { type: Number, default: 0 },
+    is_active: { type: Boolean, default: true },
+  },
+  { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } }
+);
+
+export const HeroBannerModel: Model<IHeroBanner> =
+  mongoose.models.HeroBanner ||
+  mongoose.model<IHeroBanner>('HeroBanner', HeroBannerSchema);
+
 
 

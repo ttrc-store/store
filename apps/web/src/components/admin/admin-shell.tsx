@@ -22,11 +22,13 @@ import {
   Bell,
   UserCheck,
   MessageSquareQuote,
+  Sparkles,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
   { name: 'Overview', href: '/admin', icon: LayoutDashboard },
   { name: 'Products', href: '/admin/products', icon: Package },
+  { name: 'Banners & Offers', href: '/admin/banners', icon: Sparkles },
   { name: 'Categories', href: '/admin/categories', icon: FolderTree },
   { name: 'Orders', href: '/admin/orders', icon: ShoppingBag },
   { name: 'Enquiries & RFQ', href: '/admin/enquiries', icon: MessageSquareQuote },
