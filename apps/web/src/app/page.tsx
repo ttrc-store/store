@@ -77,14 +77,20 @@ function HeroSection() {
           {/* Left: Hero Copy */}
           <div className="lg:col-span-6 space-y-4 lg:space-y-4 text-left">
 
+            {/* Brand Tagline Badge */}
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EEE8FA] border border-[#AF87F8]/40 text-[#6721F2] text-xs font-bold tracking-wide">
+              <Sparkles size={13} className="text-[#844AFB]" />
+              <span>Build, repair, upgrade, innovate: one trusted robotics ecosystem</span>
+            </div>
+
             {/* H1 */}
             <h1 className="font-heading text-3xl sm:text-4xl lg:text-[2.65rem] font-extrabold tracking-tight text-[#050507] leading-[1.12]">
               Engineering Robotics &amp;<br />
               <span className="text-[#844AFB]">Electronics &amp; Components</span>
             </h1>
 
-            <p className="text-slate-600 text-sm sm:text-base max-w-lg leading-relaxed">
-              Discover verified robotics kits, STEM electronics &amp; components, precision motors, sensors, and LiPo batteries. Additionally, we test every unit for performance and dispatch quickly across India.
+            <p className="text-slate-600 text-sm sm:text-base max-w-xl leading-relaxed">
+              TTRC is India’s one-stop robotics platform: our own robots plus every compatible component, from the smallest screw to complete robotic systems, so anyone can build, repair, upgrade and innovate from one trusted source.
             </p>
 
             {/* CTAs */}
@@ -462,20 +468,20 @@ function VisionMissionSection() {
       <div className="rounded-3xl border border-[#AF87F8]/30 bg-gradient-to-br from-white via-slate-50 to-[#EEE8FA]/50 p-6 sm:p-10 shadow-sm space-y-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div className="space-y-2 text-left">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EEE8FA] border border-[#AF87F8]/40 text-[#6721F2] text-xs font-bold uppercase tracking-wider">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EEE8FA] border border-[#AF87F8]/40 text-[#6721F2] text-xs font-bold tracking-wide">
               <Sparkles size={13} className="text-[#844AFB]" />
-              <span>Platform Purpose</span>
+              <span>Build, repair, upgrade, innovate: one trusted robotics ecosystem</span>
             </div>
             <h2 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#050507] tracking-tight">
               Our Vision &amp; Mission
             </h2>
-            <p className="text-xs sm:text-sm text-slate-600 max-w-xl leading-relaxed">
-              Empowering India&apos;s robotics competitors, students, and engineers through one comprehensive, trusted hardware ecosystem.
+            <p className="text-xs sm:text-base text-slate-600 max-w-2xl leading-relaxed">
+              TTRC is India’s one-stop robotics platform: our own robots plus every compatible component, from the smallest screw to complete robotic systems, so anyone can build, repair, upgrade and innovate from one trusted source.
             </p>
           </div>
           <Link
             href="/about"
-            className="text-xs sm:text-sm font-bold text-[#844AFB] hover:text-[#6721F2] inline-flex items-center gap-1.5 group self-start md:self-auto"
+            className="text-xs sm:text-sm font-bold text-[#844AFB] hover:text-[#6721F2] inline-flex items-center gap-1.5 group self-start md:self-auto shrink-0"
           >
             <span>Read Complete Mission &amp; Pillars</span>
             <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />

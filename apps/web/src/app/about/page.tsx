@@ -26,18 +26,16 @@ export default function AboutPage() {
             <span className="text-slate-900 font-semibold">About &amp; Vision</span>
           </div>
 
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EEE8FA] border border-[#AF87F8]/40 text-[#6721F2] text-xs font-bold uppercase tracking-wider">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EEE8FA] border border-[#AF87F8]/40 text-[#6721F2] text-xs font-bold tracking-wide">
             <Sparkles size={14} className="text-[#844AFB]" />
-            <span>Tamizh Tech Robotics Company</span>
+            <span>Build, repair, upgrade, innovate: one trusted robotics ecosystem</span>
           </div>
 
           <h1 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight">
             Engineering Robotics for India&apos;s Innovators
           </h1>
           <p className="text-sm sm:text-base text-slate-600 max-w-3xl leading-relaxed">
-            Operated by <strong className="text-slate-900">Tamizh Tech</strong> (tamizhtech.in) in Tamil Nadu, 
-            <strong className="text-slate-900"> TTRC Store</strong> (ttrc.store) is India&apos;s dedicated e-commerce platform 
-            engineered to power students, competitors, robotics clubs, and institutions with high-precision components and complete robotic systems.
+            TTRC is India&apos;s one-stop robotics platform: our own robots plus every compatible component, from the smallest screw to complete robotic systems, so anyone can build, repair, upgrade and innovate from one trusted source. Operated by <strong className="text-slate-900">Tamizh Tech</strong> (tamizhtech.in) in Tamil Nadu.
           </p>
         </div>
 
