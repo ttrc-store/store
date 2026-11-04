@@ -69,6 +69,28 @@ export async function GET(
       return denyResponse();
     }
 
+    // Strict requirement: Bills and Tax Invoices can NEVER be generated for unpaid orders.
+    // Payment must be completed (or confirmed COD where permitted) before issuing a bill or invoice.
+    const isPaid = order.payment_status === 'paid';
+    const isConfirmedCod = order.payment_method === 'cod' && order.status !== 'cancelled';
+    if (!isPaid && !isConfirmedCod) {
+      return NextResponse.json(
+        {
+          error: 'Bill and Tax Invoice cannot be generated for an unpaid order. Payment must be successfully completed.',
+          orderNumber: order.order_number,
+          paymentStatus: order.payment_status,
+        },
+        {
+          status: 400,
+          headers: {
+            'Cache-Control': 'private, no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0',
+          },
+        }
+      );
+    }
+
     // Guest Token Lifecycle & Revocation:
     // If accessing via guest token, access is permanently revoked if order is cancelled, refunded,
     // or if the guest token has been explicitly marked as revoked.

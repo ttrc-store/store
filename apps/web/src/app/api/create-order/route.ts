@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getRazorpayClient, isRazorpayConfigured } from '@/lib/razorpay';
 import { connectToDatabase } from '@/lib/mongodb/client';
-import { OrderModel } from '@/lib/mongodb/models';
+import { OrderModel, CheckoutSessionModel } from '@/lib/mongodb/models';
 import { getAuthenticatedUser } from '@/lib/auth-helpers';
 
 /**
@@ -95,7 +95,26 @@ export async function POST(request: Request) {
 
     const order = await OrderModel.findOne(query);
     if (!order) {
-      return NextResponse.json({ error: 'Order not found.' }, { status: 404 });
+      // Check if it corresponds to a staged checkout session
+      const session = await CheckoutSessionModel.findOne({
+        $or: [
+          ...(orderId ? [{ session_id: orderId }, { razorpay_order_id: orderId }] : []),
+          ...(orderNumber ? [{ session_id: orderNumber }] : []),
+        ],
+      });
+
+      if (session) {
+        return NextResponse.json({
+          success: true,
+          order_id: session.razorpay_order_id,
+          amount: session.total,
+          currency: 'INR',
+          receipt: session.session_id,
+          idempotent: true,
+        });
+      }
+
+      return NextResponse.json({ error: 'Order or checkout session not found.' }, { status: 404 });
     }
 
     // 4. Enforce customer or guest ownership (IDOR defense)

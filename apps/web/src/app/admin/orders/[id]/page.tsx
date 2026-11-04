@@ -94,14 +94,21 @@ export default async function AdminOrderDetailPage({
 
         {/* Invoice & Actions */}
         <div className="flex items-center gap-2">
-          <Link
-            href={`/api/invoice/${order.order_number}`}
-            target="_blank"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50 transition-colors"
-          >
-            <Receipt size={15} className="text-[#E3132A]" />
-            View Tax Invoice / Bill
-          </Link>
+          {order.payment_status === 'paid' || (order.payment_method === 'cod' && order.status !== 'cancelled') ? (
+            <Link
+              href={`/api/invoice/${order.order_number}`}
+              target="_blank"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50 transition-colors"
+            >
+              <Receipt size={15} className="text-[#E3132A]" />
+              View Tax Invoice / Bill
+            </Link>
+          ) : (
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-xl text-xs font-semibold text-amber-800">
+              <AlertCircle size={14} className="text-amber-600" />
+              <span>Bill / Invoice Not Generated (Unpaid)</span>
+            </div>
+          )}
         </div>
       </div>
 

@@ -3,10 +3,11 @@
 import crypto from 'crypto';
 import { z } from 'zod';
 import { connectToDatabase } from '@/lib/mongodb/client';
-import { OrderModel, ProductModel, CouponModel } from '@/lib/mongodb/models';
+import { OrderModel, ProductModel, CouponModel, CheckoutSessionModel } from '@/lib/mongodb/models';
 import { getAuthenticatedUser } from '@/lib/auth-helpers';
 import { computeOrderTotals, calculateGstFromInclusive } from '@ttrc/shared';
 import { getSiteSettingsAction } from './settings';
+import { getRazorpayClient, isRazorpayConfigured } from '@/lib/razorpay';
 
 import { checkRateLimit } from '@/lib/security/rate-limiter';
 import { getNextSequenceId } from '@/lib/id-generator';
@@ -272,41 +273,33 @@ export async function createOrderAction(raw: CreateOrderInput) {
     const totalTaxPaise = settings.gst_enabled ? (totalCgst + totalSgst + totalIgst) : 0;
     const finalOrderTotalPaise = Math.max(0, subtotalPaise + shippingPaise + totalTaxPaise - couponDiscountPaise);
 
-    // Atomic stock deduction to prevent race condition / overselling
-    const decrementedItems: Array<{ productId: any; quantity: number }> = [];
+    // Verify stock availability without prematurely deducting inventory
     for (const item of validatedItems) {
-      const updatedProduct = await ProductModel.findOneAndUpdate(
-        {
-          _id: item.product._id,
-          stock_quantity: { $gte: item.quantity },
-          is_active: true,
-        },
-        { $inc: { stock_quantity: -item.quantity } },
-        { new: true }
-      );
-
-      if (!updatedProduct) {
-        // Rollback any previously decremented items
-        for (const dec of decrementedItems) {
-          await ProductModel.findByIdAndUpdate(dec.productId, {
-            $inc: { stock_quantity: dec.quantity },
-          });
-        }
+      if (item.product.stock_quantity < item.quantity) {
         return {
-          error: `Insufficient stock for "${item.product.name}". Please adjust quantity.`,
+          error: `Insufficient stock for "${item.product.name}". Available: ${item.product.stock_quantity}.`,
         };
       }
-      decrementedItems.push({ productId: item.product._id, quantity: item.quantity });
     }
 
-    // Atomically increment coupon usage if used
-    if (appliedCouponDoc) {
-      await CouponModel.findByIdAndUpdate(appliedCouponDoc._id, {
-        $inc: { usage_count: 1 },
+    const sessionId = `cs_${crypto.randomBytes(16).toString('hex')}`;
+    let razorpayOrderId: string;
+
+    if (isRazorpayConfigured()) {
+      const razorpay = getRazorpayClient();
+      const rpOrder = await razorpay.orders.create({
+        amount: finalOrderTotalPaise,
+        currency: 'INR',
+        receipt: sessionId.slice(0, 40),
+        notes: {
+          sessionId,
+          customer: user?.email || guestEmail || 'guest',
+        },
       });
+      razorpayOrderId = rpOrder.id;
+    } else {
+      razorpayOrderId = `order_${sessionId.slice(3, 19)}`;
     }
-
-    const orderNumber = await getNextSequenceId('ORD');
 
     const orderItems = validatedItems.map((item) => ({
       product_id: item.product._id.toString(),
@@ -323,41 +316,41 @@ export async function createOrderAction(raw: CreateOrderInput) {
       image_url: item.product.images?.[0],
     }));
 
-    // Generate cryptographically secure guest invoice token
-    const guestInvoiceToken = crypto.randomBytes(32).toString('hex');
-    const guestInvoiceTokenHash = crypto.createHash('sha256').update(guestInvoiceToken).digest('hex');
-
-    const order = await OrderModel.create({
-      order_number: orderNumber,
+    // Stage checkout session (expires in 2 hours, auto-purged by MongoDB TTL)
+    // CRITICAL: NO OrderModel record is created yet! NO sequence number is consumed!
+    // NO bill is generated! Stock is NOT decremented until payment succeeds!
+    await CheckoutSessionModel.create({
+      session_id: sessionId,
+      razorpay_order_id: razorpayOrderId,
       user_id: user ? user.id : undefined,
       guest_email: !user && guestEmail ? guestEmail.toLowerCase().trim() : undefined,
       status: 'pending',
-      payment_status: 'pending',
-      payment_method: 'razorpay',
-      shipping_method: shippingMethod,
+      items: orderItems,
       subtotal: subtotalPaise,
       discount_total: couponDiscountPaise,
       tax_total: totalTaxPaise,
       shipping_total: shippingPaise,
+      shipping_method: shippingMethod,
       total: finalOrderTotalPaise,
       shipping_address: shippingAddress,
       billing_address: billingAddress || shippingAddress,
-      guest_invoice_token_hash: guestInvoiceTokenHash,
-      notes: companyGst ? `GST Invoice Request: ${companyGst.companyName} (GSTIN: ${companyGst.gstin})` : undefined,
-      items: orderItems,
+      coupon_code: appliedCouponDoc?.code,
+      company_gst: companyGst,
+      expires_at: new Date(Date.now() + 2 * 60 * 60 * 1000),
     });
 
     return {
       success: true,
-      orderNumber,
-      orderId: order._id.toString(),
+      sessionId,
+      orderId: sessionId,
+      orderNumber: `SESSION_${sessionId.slice(3, 11).toUpperCase()}`,
+      razorpayOrderId,
       paymentMethod,
       amountPaise: finalOrderTotalPaise,
-      invoiceToken: guestInvoiceToken,
     };
   } catch (err: any) {
     console.error('[Create Order Error]', err);
-    return { error: 'Failed to place order. Please try again.' };
+    return { error: 'Failed to initialize payment order. Please try again.' };
   }
 }
 

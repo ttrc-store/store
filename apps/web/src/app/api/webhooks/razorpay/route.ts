@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { connectToDatabase } from '@/lib/mongodb/client';
-import { OrderModel, ProductModel, AuditLogModel } from '@/lib/mongodb/models';
-import { generateBillNumber } from '@/lib/id-generator';
+import { OrderModel, ProductModel, AuditLogModel, CheckoutSessionModel, CouponModel } from '@/lib/mongodb/models';
+import { getNextSequenceId, generateBillNumber } from '@/lib/id-generator';
 import { sendOrderConfirmation, sendPaymentConfirmation } from '@/lib/email/resend';
 
 /**
@@ -142,7 +142,96 @@ export async function POST(request: Request) {
               }
             }
           } else {
-            console.warn(`[Razorpay Webhook] No matching order found for ${rpOrderId}`);
+            // Check if there is a staged CheckoutSession awaiting payment confirmation
+            const session = await CheckoutSessionModel.findOne({ razorpay_order_id: rpOrderId });
+            if (session && session.status !== 'completed') {
+              for (const item of session.items) {
+                await ProductModel.findByIdAndUpdate(item.product_id, {
+                  $inc: { stock_quantity: -item.quantity },
+                });
+              }
+              if (session.coupon_code) {
+                await CouponModel.findOneAndUpdate(
+                  { code: session.coupon_code.toUpperCase().trim() },
+                  { $inc: { usage_count: 1 } }
+                );
+              }
+              const newOrderNumber = await getNextSequenceId('ORD');
+              const newBillNumber = await generateBillNumber();
+
+              const guestInvoiceToken = crypto.randomBytes(32).toString('hex');
+              const guestInvoiceTokenHash = crypto.createHash('sha256').update(guestInvoiceToken).digest('hex');
+
+              const createdOrder = await OrderModel.create({
+                order_number: newOrderNumber,
+                user_id: session.user_id,
+                guest_email: session.guest_email,
+                status: 'processing',
+                payment_status: 'paid',
+                payment_method: 'razorpay',
+                shipping_method: session.shipping_method,
+                subtotal: session.subtotal,
+                discount_total: session.discount_total,
+                tax_total: session.tax_total,
+                shipping_total: session.shipping_total,
+                total: session.total,
+                shipping_address: session.shipping_address,
+                billing_address: session.billing_address || session.shipping_address,
+                razorpay_order_id: rpOrderId,
+                razorpay_payment_id: rpPaymentId,
+                bill_number: newBillNumber,
+                guest_invoice_token_hash: guestInvoiceTokenHash,
+                notes: session.company_gst
+                  ? `GST Invoice Request: ${session.company_gst.companyName} (GSTIN: ${session.company_gst.gstin})`
+                  : undefined,
+                items: session.items,
+              });
+
+              session.status = 'completed';
+              session.order_id = createdOrder._id.toString();
+              session.order_number = newOrderNumber;
+              await session.save();
+
+              console.log(`[Razorpay Webhook] ✅ Created and captured order ${newOrderNumber} from staged session (Bill: ${newBillNumber})`);
+
+              const recipientEmail = createdOrder.shipping_address?.email || createdOrder.guest_email;
+              if (recipientEmail) {
+                try {
+                  await sendOrderConfirmation({
+                    toEmail: recipientEmail,
+                    customerName: createdOrder.shipping_address?.fullName || 'Customer',
+                    orderNumber: createdOrder.order_number,
+                    billNumber: createdOrder.bill_number,
+                    totalAmountPaise: createdOrder.total,
+                    paymentMethod: 'razorpay',
+                    shippingAddress: createdOrder.shipping_address || {},
+                    items: (createdOrder.items || []).map((i: any) => ({
+                      name: i.product_name,
+                      quantity: i.quantity,
+                      pricePaise: i.unit_price,
+                    })),
+                  });
+
+                  await sendPaymentConfirmation({
+                    toEmail: recipientEmail,
+                    customerName: createdOrder.shipping_address?.fullName || 'Customer',
+                    orderNumber: createdOrder.order_number,
+                    billNumber: createdOrder.bill_number,
+                    paymentId: rpPaymentId,
+                    amountPaise: amountPaise || createdOrder.total,
+                    paymentMethod: 'razorpay',
+                  });
+
+                  createdOrder.confirmation_email_sent = true;
+                  createdOrder.confirmation_email_sent_at = new Date();
+                  await createdOrder.save();
+                } catch (emailErr) {
+                  console.warn('[Razorpay Webhook] Email dispatch failed:', emailErr);
+                }
+              }
+            } else {
+              console.warn(`[Razorpay Webhook] No matching order or session found for ${rpOrderId}`);
+            }
           }
         }
         break;

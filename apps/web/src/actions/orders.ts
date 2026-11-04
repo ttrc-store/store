@@ -11,6 +11,7 @@ export interface OrderListItem {
   id: string;
   order_number: string;
   status: string;
+  payment_status: string;
   payment_method: string;
   total_paise: number;
   coupon_code?: string;
@@ -100,6 +101,7 @@ export async function getMyOrdersAction(
       id: o._id.toString(),
       order_number: o.order_number,
       status: o.status,
+      payment_status: o.payment_status || 'pending',
       payment_method: o.payment_method,
       total_paise: o.total,
       shipping_paise: o.shipping_total,
@@ -151,6 +153,7 @@ export async function getMyOrderAction(orderId: string): Promise<{
       id: order._id.toString(),
       order_number: order.order_number,
       status: order.status,
+      payment_status: order.payment_status || 'pending',
       payment_method: order.payment_method,
       total_paise: order.total,
       subtotal_paise: order.subtotal,
@@ -244,6 +247,7 @@ export async function getGuestOrderAction(
       id: order._id.toString(),
       order_number: order.order_number,
       status: order.status,
+      payment_status: order.payment_status || 'pending',
       payment_method: order.payment_method,
       total_paise: order.total,
       subtotal_paise: order.subtotal,
@@ -332,6 +336,7 @@ export async function getAdminOrdersAction(opts?: {
       id: o._id.toString(),
       order_number: o.order_number,
       status: o.status,
+      payment_status: o.payment_status || 'pending',
       payment_method: o.payment_method,
       total_paise: o.total,
       created_at: o.created_at.toISOString(),

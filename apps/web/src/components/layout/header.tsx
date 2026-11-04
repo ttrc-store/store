@@ -4,7 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Search, ShoppingBag, User, Menu, ChevronDown, Truck, ShieldCheck, Heart, GitCompare, Phone, LogOut, Package, MapPin, Star, Shield } from 'lucide-react';
+import { Search, ShoppingBag, User, Menu, ChevronDown, Truck, ShieldCheck, Heart, GitCompare, Phone, LogOut, Package, MapPin, Star, Shield, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { MegaMenu } from './mega-menu';
@@ -133,6 +133,14 @@ export default function Header({ user: initialUser, categories }: HeaderProps) {
           </a>
         </div>
         <div className="flex items-center gap-5 font-medium">
+          <Link
+            href="/offers"
+            className="flex items-center gap-1.5 text-amber-300 hover:text-white font-bold transition-colors"
+          >
+            <Sparkles size={12} className="text-amber-400 animate-pulse" />
+            <span>Diwali Offers</span>
+          </Link>
+          <span className="text-purple-900" aria-hidden="true"> · </span>
           <Link href={user ? '/account/orders' : '/login?redirect=/account/orders'} className="hover:text-white transition-colors">
             Track Order
           </Link>

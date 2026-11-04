@@ -991,5 +991,100 @@ export const HeroBannerModel: Model<IHeroBanner> =
   mongoose.models.HeroBanner ||
   mongoose.model<IHeroBanner>('HeroBanner', HeroBannerSchema);
 
+// ---------------------------------------------------------------------------
+// 18. CHECKOUT SESSION SCHEMA & MODEL (Pre-payment checkout staging)
+// ---------------------------------------------------------------------------
+export interface ICheckoutSessionItem {
+  product_id: string;
+  product_name: string;
+  sku: string;
+  unit_price: number;
+  mrp_price?: number;
+  bulk_tier_applied?: string;
+  quantity: number;
+  total_price: number;
+  gst_percent: number;
+  hsn_code: string;
+  is_spare_part?: boolean;
+  image_url?: string;
+}
+
+export interface ICheckoutSession extends Document {
+  session_id: string;
+  razorpay_order_id: string;
+  user_id?: string;
+  guest_email?: string;
+  status: 'pending' | 'completed' | 'expired' | 'failed';
+  order_number?: string;
+  order_id?: string;
+  items: ICheckoutSessionItem[];
+  subtotal: number;
+  discount_total: number;
+  tax_total: number;
+  shipping_total: number;
+  shipping_method: 'standard' | 'express';
+  total: number;
+  shipping_address: any;
+  billing_address?: any;
+  coupon_code?: string;
+  company_gst?: { companyName: string; gstin: string };
+  expires_at: Date;
+  created_at: Date;
+  updated_at: Date;
+}
+
+const CheckoutSessionSchema = new Schema<ICheckoutSession>(
+  {
+    session_id: { type: String, required: true, unique: true },
+    razorpay_order_id: { type: String, required: true, unique: true, index: true },
+    user_id: { type: String, index: true },
+    guest_email: { type: String },
+    status: {
+      type: String,
+      enum: ['pending', 'completed', 'expired', 'failed'],
+      default: 'pending',
+      index: true,
+    },
+    order_number: { type: String },
+    order_id: { type: String },
+    items: [
+      {
+        product_id: { type: String, required: true },
+        product_name: { type: String, default: '' },
+        sku: { type: String, default: '' },
+        unit_price: { type: Number, required: true },
+        mrp_price: { type: Number },
+        bulk_tier_applied: { type: String },
+        quantity: { type: Number, required: true },
+        total_price: { type: Number, required: true },
+        gst_percent: { type: Number, default: 18 },
+        hsn_code: { type: String, default: '8542' },
+        is_spare_part: { type: Boolean, default: false },
+        image_url: { type: String },
+      },
+    ],
+    subtotal: { type: Number, required: true },
+    discount_total: { type: Number, default: 0 },
+    tax_total: { type: Number, default: 0 },
+    shipping_total: { type: Number, default: 0 },
+    shipping_method: { type: String, enum: ['standard', 'express'], default: 'standard' },
+    total: { type: Number, required: true },
+    shipping_address: { type: Schema.Types.Mixed, required: true },
+    billing_address: { type: Schema.Types.Mixed },
+    coupon_code: { type: String },
+    company_gst: {
+      companyName: { type: String },
+      gstin: { type: String },
+    },
+    expires_at: { type: Date, required: true, index: { expires: 0 } },
+  },
+  { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } }
+);
+
+export const CheckoutSessionModel: Model<ICheckoutSession> =
+  mongoose.models.CheckoutSession ||
+  mongoose.model<ICheckoutSession>('CheckoutSession', CheckoutSessionSchema);
+
+
 
 

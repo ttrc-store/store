@@ -877,3 +877,54 @@ export async function createCouponAction(input: z.infer<typeof CouponSchema>) {
     return { error: 'Failed to create coupon or coupon already exists.' };
   }
 }
+
+export async function deleteOrVoidUnpaidOrderAction(orderId: string) {
+  const auth = await requireAdmin();
+  if ('error' in auth) return { error: auth.error };
+
+  if (!orderId) return { error: 'Order ID is required.' };
+
+  try {
+    await connectToDatabase();
+    const order = await OrderModel.findById(orderId);
+    if (!order) return { error: 'Order not found.' };
+
+    if (order.payment_status === 'paid') {
+      return { error: 'Paid orders cannot be deleted or voided directly. Use the refund workflow instead.' };
+    }
+
+    // Restock any items if stock was decremented
+    if (Array.isArray(order.items) && order.items.length > 0 && order.status !== 'cancelled') {
+      for (const item of order.items) {
+        if (item.product_id && item.quantity > 0) {
+          await ProductModel.findByIdAndUpdate(item.product_id, {
+            $inc: { stock_quantity: item.quantity },
+          });
+        }
+      }
+    }
+
+    // Delete the unpaid draft/order from database so it doesn't clutter admin orders or waste numbers
+    await OrderModel.findByIdAndDelete(orderId);
+
+    await AuditLogModel.create({
+      actor_id: auth.user.id,
+      action: 'order.unpaid.deleted',
+      entity: 'order',
+      entity_id: orderId,
+      metadata: {
+        orderNumber: order.order_number,
+        paymentStatus: order.payment_status,
+        totalPaise: order.total,
+        deletedAt: new Date().toISOString(),
+      },
+    });
+
+    revalidatePath('/admin/orders');
+    revalidatePath('/admin');
+    return { success: true, message: `Unpaid order ${order.order_number} has been deleted and reserved stock restored.` };
+  } catch (err: any) {
+    return { error: err.message || 'Failed to remove unpaid order.' };
+  }
+}
+

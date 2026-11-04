@@ -21,9 +21,10 @@ import {
   Phone,
   Mail,
   Receipt,
+  Trash2,
 } from 'lucide-react';
 import { formatRupees } from '@/lib/utils';
-import { updateOrderStatusAction } from '@/actions/admin';
+import { updateOrderStatusAction, deleteOrVoidUnpaidOrderAction } from '@/actions/admin';
 import { ORDER_STATUS_LABELS } from '@ttrc/shared';
 
 const STATUS_OPTIONS = [
@@ -44,8 +45,29 @@ export default function AdminOrderDetailClient({ order }: { order: any }) {
   const [trackingNumber, setTrackingNumber] = React.useState(order.tracking_number || '');
   const [adminNote, setAdminNote] = React.useState('');
   const [saving, setSaving] = React.useState(false);
+  const [deleting, setDeleting] = React.useState(false);
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
   const [successMsg, setSuccessMsg] = React.useState<string | null>(null);
+
+  const handleDeleteUnpaid = async () => {
+    if (!window.confirm(`Are you sure you want to permanently delete unpaid order ${order.order_number}? This will restore all items to product inventory.`)) {
+      return;
+    }
+    setDeleting(true);
+    setErrorMsg(null);
+    try {
+      const res = await deleteOrVoidUnpaidOrderAction(order.id);
+      if (res.error) {
+        setErrorMsg(res.error);
+        setDeleting(false);
+      } else {
+        router.push('/admin/orders');
+      }
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Failed to delete order.');
+      setDeleting(false);
+    }
+  };
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -405,6 +427,25 @@ export default function AdminOrderDetailClient({ order }: { order: any }) {
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 whitespace-pre-line font-mono text-[11px]">
                 {order.notes}
               </div>
+            </div>
+          )}
+
+          {/* Delete Unpaid Order Action (For test / abandoned checkouts) */}
+          {!isPaid && isOnline && (
+            <div className="pt-4 border-t border-red-100 space-y-2">
+              <p className="text-[10px] font-bold text-red-600 uppercase tracking-wider">Unpaid Checkout Management</p>
+              <p className="text-[11px] text-slate-500">
+                Payment was not received for this order. You can discard this incomplete order to restore reserved inventory and clean up your orders list.
+              </p>
+              <button
+                type="button"
+                onClick={handleDeleteUnpaid}
+                disabled={deleting}
+                className="w-full py-2 bg-white border border-red-200 hover:bg-red-50 text-red-600 font-bold rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer transition-colors disabled:opacity-50"
+              >
+                {deleting ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
+                {deleting ? 'Discarding Order...' : 'Delete Unpaid Order & Restock'}
+              </button>
             </div>
           )}
         </div>

@@ -61,11 +61,15 @@ vi.mock('@/lib/mongodb/models', async (importOriginal) => {
         lean: vi.fn().mockResolvedValue([]),
       }),
     },
+    CheckoutSessionModel: {
+      create: vi.fn().mockImplementation((doc) => Promise.resolve({ ...doc, _id: 'mock_session_id' })),
+      findOne: vi.fn(),
+    },
   };
 });
 
 import { getAuthenticatedUser } from '@/lib/auth-helpers';
-import { ProductModel, OrderModel } from '@/lib/mongodb/models';
+import { ProductModel, OrderModel, CheckoutSessionModel } from '@/lib/mongodb/models';
 
 describe('TTRC Store — Razorpay-Only Checkout & COD Rejection Audit', () => {
   beforeEach(() => {
@@ -119,7 +123,7 @@ describe('TTRC Store — Razorpay-Only Checkout & COD Rejection Audit', () => {
   });
 
   describe('2. Authoritative Online Order Creation (Razorpay Only)', () => {
-    it('accepts valid online order with paymentMethod: "razorpay" and marks payment_status as pending', async () => {
+    it('accepts valid online order with paymentMethod: "razorpay" and stages checkout session without premature order/bill creation', async () => {
       (ProductModel.find as any).mockReturnValue({
         lean: vi.fn().mockResolvedValue([
           {
@@ -132,21 +136,6 @@ describe('TTRC Store — Razorpay-Only Checkout & COD Rejection Audit', () => {
             hsn_code: '85423100',
           },
         ]),
-      });
-
-      (ProductModel.findOneAndUpdate as any).mockResolvedValue({
-        _id: '64f8a1b2c3d4e5f6a7b8c9d0',
-        name: 'ESP32 Dual Core Controller',
-        stock_quantity: 19,
-      });
-
-      (OrderModel.create as any).mockResolvedValue({
-        _id: 'order_mongo_456',
-        order_number: 'TTRC/25-26/100042',
-        payment_method: 'razorpay',
-        payment_status: 'pending',
-        status: 'pending',
-        total: 60800,
       });
 
       const payload: any = {
@@ -165,18 +154,20 @@ describe('TTRC Store — Razorpay-Only Checkout & COD Rejection Audit', () => {
       const result = await createOrderAction(payload);
       expect(result.error).toBeUndefined();
       expect(result.paymentMethod).toBe('razorpay');
-      expect(result.orderNumber).toBe('TTRC/25-26/100042');
-      expect(OrderModel.create).toHaveBeenCalled();
+      expect(result.sessionId).toBeDefined();
+      expect(result.razorpayOrderId).toBeDefined();
+      // Crucial requirement: Do NOT create order in OrderModel or decrement inventory until payment is captured!
+      expect(OrderModel.create).not.toHaveBeenCalled();
+      expect(CheckoutSessionModel.create).toHaveBeenCalled();
 
-      // Check persisted order fields
-      const createdArg = (OrderModel.create as any).mock.calls[0][0];
-      expect(createdArg.payment_method).toBe('razorpay');
-      expect(createdArg.payment_status).toBe('pending');
-      expect(createdArg.status).toBe('pending');
-      expect(createdArg.shipping_method).toBe('standard');
+      // Check persisted staged checkout session fields
+      const stagedArg = (CheckoutSessionModel.create as any).mock.calls[0][0];
+      expect(stagedArg.status).toBe('pending');
+      expect(stagedArg.shipping_method).toBe('standard');
+      expect(stagedArg.items).toHaveLength(1);
     });
 
-    it('correctly calculates Express Priority Air shipping fee of ₹199 (19900 paise)', async () => {
+    it('correctly calculates Express Priority Air shipping fee of ₹199 (19900 paise) in staged session', async () => {
       (ProductModel.find as any).mockReturnValue({
         lean: vi.fn().mockResolvedValue([
           {
@@ -189,22 +180,6 @@ describe('TTRC Store — Razorpay-Only Checkout & COD Rejection Audit', () => {
             hsn_code: '85423100',
           },
         ]),
-      });
-
-      (ProductModel.findOneAndUpdate as any).mockResolvedValue({
-        _id: '64f8a1b2c3d4e5f6a7b8c9d0',
-        name: 'ESP32 Dual Core Controller',
-        stock_quantity: 19,
-      });
-
-      (OrderModel.create as any).mockResolvedValue({
-        _id: 'order_mongo_457',
-        order_number: 'TTRC/25-26/100043',
-        payment_method: 'razorpay',
-        payment_status: 'pending',
-        status: 'pending',
-        shipping_method: 'express',
-        shipping_total: 19900,
       });
 
       const payload: any = {
@@ -223,9 +198,12 @@ describe('TTRC Store — Razorpay-Only Checkout & COD Rejection Audit', () => {
 
       const result = await createOrderAction(payload);
       expect(result.error).toBeUndefined();
-      const createdArg = (OrderModel.create as any).mock.calls[(OrderModel.create as any).mock.calls.length - 1][0];
-      expect(createdArg.shipping_method).toBe('express');
-      expect(createdArg.shipping_total).toBe(19900);
+      expect(OrderModel.create).not.toHaveBeenCalled();
+      expect(CheckoutSessionModel.create).toHaveBeenCalled();
+      const lastCallIdx = (CheckoutSessionModel.create as any).mock.calls.length - 1;
+      const stagedArg = (CheckoutSessionModel.create as any).mock.calls[lastCallIdx][0];
+      expect(stagedArg.shipping_method).toBe('express');
+      expect(stagedArg.shipping_total).toBe(19900);
     });
   });
 

@@ -100,6 +100,10 @@ export const CLUSTER_CANONICAL_MAP: Record<string, { canonicalUrl: string; prima
     canonicalUrl: '/category/batteries',
     primaryKeyword: 'voltage regulators and BMS modules',
   },
+  'Diwali and festive offers': {
+    canonicalUrl: '/offers',
+    primaryKeyword: 'diwali robotics offers India',
+  },
 };
 
 let cachedKeywords: KeywordRecord[] | null = null;

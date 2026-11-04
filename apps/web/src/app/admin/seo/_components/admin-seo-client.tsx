@@ -19,8 +19,9 @@ import {
   ArrowUpRight,
   Info,
   Database,
-  Tag,
   Filter,
+  Download,
+  ShoppingBag,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -83,6 +84,37 @@ const REPRESENTATIVE_QUERIES = [
     intent: 'Informational / AEO Candidate',
     status: 'Page 2 Candidate',
     aiTip: 'Add verified AEO Q&A answering "TB6612FNG vs L298N efficiency in competition line follower robots" with schema markup.',
+  },
+  {
+    query: 'diwali robotics offers india',
+    impressions: 3420,
+    clicks: 412,
+    ctr: '12.0%',
+    avgPosition: 2.4,
+    targetPage: '/offers',
+    intent: 'Commercial / Festive Intent',
+    status: 'Top Performer',
+    aiTip: 'Keep festive countdown and active coupon code (FESTIVE10) visible above the fold to maximize festive conversion rate.',
+  },
+  {
+    query: 'line follower robot diwali offer',
+    impressions: 1890,
+    clicks: 278,
+    ctr: '14.7%',
+    avgPosition: 1.8,
+    targetPage: '/offers',
+    intent: 'Transactional',
+    status: 'High Performer',
+  },
+  {
+    query: 'ttrc store diwali coupon code',
+    impressions: 1120,
+    clicks: 295,
+    ctr: '26.3%',
+    avgPosition: 1.2,
+    targetPage: '/offers',
+    intent: 'Navigational / Brand Intent',
+    status: 'Brand Champion',
   },
 ];
 
@@ -223,7 +255,7 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
           }`}
         >
           <Database size={13} />
-          Keyword Intelligence &amp; Mapping (1,473)
+          Keyword Intelligence &amp; Mapping ({keywordResult?.stats?.totalRows || '1,525+'})
         </button>
         <button
           type="button"
@@ -385,6 +417,104 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
                 <span className="text-[11px] text-slate-500">
                   Redirects HTTP &amp; non-www traffic automatically
                 </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Google Merchant Center Product Feed & Setup Guide */}
+          <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+              <div>
+                <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                  <ShoppingBag size={16} className="text-[#E3132A]" /> Google Merchant Center &amp; Shopping Feeds
+                </h2>
+                <p className="text-xs text-slate-500 mt-1">
+                  Official Google-compliant product data feeds (XML &amp; TSV) for Google Merchant Center, Google Shopping Ads, and Free Product Listings.
+                </p>
+              </div>
+              <Badge variant="outline" className="bg-red-50 text-[#E3132A] border-red-200 text-xs font-semibold">
+                Google Shopping Ready
+              </Badge>
+            </div>
+
+            {/* Troubleshooting Notice regarding HTML error */}
+            <div className="p-4 rounded-xl bg-amber-50/80 border border-amber-200 text-xs text-amber-900 space-y-1.5">
+              <div className="flex items-center gap-2 font-bold text-amber-950">
+                <AlertTriangle size={15} className="text-amber-600 shrink-0" />
+                <span>Fixing &ldquo;Feed file is in a format that we don&apos;t support: HTML&rdquo; in Google Merchant Center</span>
+              </div>
+              <p className="text-[12px] leading-relaxed text-amber-900">
+                Google Merchant Center displays this error if a regular website URL (like <code className="bg-amber-100 px-1 py-0.5 rounded font-mono text-[11px]">https://www.ttrc.store</code>) was submitted instead of the raw data feed. Google expects a tab-delimited file (<code className="bg-amber-100 px-1 py-0.5 rounded font-mono text-[11px]">.tsv</code> / <code className="bg-amber-100 px-1 py-0.5 rounded font-mono text-[11px]">.txt</code>) or an XML feed (<code className="bg-amber-100 px-1 py-0.5 rounded font-mono text-[11px]">.xml</code>).
+              </p>
+            </div>
+
+            {/* Quick Actions & Feed Links */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Option A: Direct TSV File Download */}
+              <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/60 space-y-3 flex flex-col justify-between">
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-xs text-slate-800">Method 1: Direct File Upload (Easiest)</span>
+                    <Badge className="bg-emerald-600 text-white text-[10px]">Instant</Badge>
+                  </div>
+                  <p className="text-[11px] text-slate-600 leading-relaxed">
+                    Download the pre-formatted Google Merchant tab-delimited (<code className="font-mono text-[10px]">.tsv</code>) file containing all your active products and upload it in Google Merchant Center under <strong>Add products from a file</strong>.
+                  </p>
+                </div>
+                <div className="pt-2">
+                  <a
+                    href="/feeds/google-merchant.tsv?download=1"
+                    download="ttrc-google-merchant-products.tsv"
+                    className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-xl bg-[#E3132A] hover:bg-[#B80F21] text-white text-xs font-bold transition-colors shadow-xs"
+                  >
+                    <Download size={14} /> Download Product Feed (.tsv)
+                  </a>
+                </div>
+              </div>
+
+              {/* Option B: Scheduled Fetch Live XML/TSV URL */}
+              <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/60 space-y-3 flex flex-col justify-between">
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-xs text-slate-800">Method 2: Scheduled Fetch (Auto-Syncing)</span>
+                    <Badge variant="outline" className="border-slate-300 text-slate-700 text-[10px]">Daily Auto-Sync</Badge>
+                  </div>
+                  <p className="text-[11px] text-slate-600 leading-relaxed">
+                    In Merchant Center, choose <strong>Add products from a link</strong> and paste either feed URL below. Google will automatically crawl and sync price and inventory changes every 24 hours.
+                  </p>
+                </div>
+                <div className="space-y-2 pt-2">
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      readOnly
+                      value="https://www.ttrc.store/feeds/google-merchant.tsv"
+                      className="w-full text-[11px] font-mono bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 select-all"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => navigator.clipboard.writeText('https://www.ttrc.store/feeds/google-merchant.tsv')}
+                      className="px-2.5 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-[11px] font-bold rounded-lg shrink-0 transition-colors"
+                      title="Copy TSV URL"
+                    >
+                      Copy TSV
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      readOnly
+                      value="https://www.ttrc.store/feeds/google-merchant.xml"
+                      className="w-full text-[11px] font-mono bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 select-all"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => navigator.clipboard.writeText('https://www.ttrc.store/feeds/google-merchant.xml')}
+                      className="px-2.5 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-[11px] font-bold rounded-lg shrink-0 transition-colors"
+                      title="Copy XML URL"
+                    >
+                      Copy XML
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

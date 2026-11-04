@@ -485,52 +485,58 @@ export default function CheckoutPage() {
     // Online Razorpay Flow
     if (res.paymentMethod === 'razorpay' && isRazorpayEnabled) {
       try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 12000);
+        let razorpayOrderId = (res as any).razorpayOrderId;
+        let payableAmount = (res as any).amountPaise || finalPayablePaise;
 
-        let orderRes: Response;
-        try {
-          orderRes = await fetch('/api/create-order', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            signal: controller.signal,
-            body: JSON.stringify({
-              orderNumber: orderNum,
-              orderId: res.orderId,
-              guestEmail: !isAuthenticated ? email.toLowerCase().trim() : undefined,
-            }),
-          });
-        } catch (fetchErr: any) {
-          if (fetchErr.name === 'AbortError') {
-            throw new Error('Payment gateway took too long to respond. Please verify your Razorpay API keys or network connection.');
+        // Fallback to /api/create-order if razorpayOrderId wasn't returned directly
+        if (!razorpayOrderId) {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+          try {
+            const orderRes = await fetch('/api/create-order', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              signal: controller.signal,
+              body: JSON.stringify({
+                orderNumber: orderNum,
+                orderId: res.orderId,
+                guestEmail: !isAuthenticated ? email.toLowerCase().trim() : undefined,
+              }),
+            });
+            const orderData = await orderRes.json();
+            if (!orderRes.ok || !orderData.order_id) {
+              throw new Error(orderData.error || 'Failed to initialize payment gateway.');
+            }
+            razorpayOrderId = orderData.order_id;
+            payableAmount = orderData.amount;
+          } catch (fetchErr: any) {
+            if (fetchErr.name === 'AbortError') {
+              throw new Error('Payment gateway took too long to respond. Please verify your connection.');
+            }
+            throw fetchErr;
+          } finally {
+            clearTimeout(timeoutId);
           }
-          throw fetchErr;
-        } finally {
-          clearTimeout(timeoutId);
-        }
-
-        const orderData = await orderRes.json();
-        if (!orderRes.ok || !orderData.order_id) {
-          throw new Error(orderData.error || 'Failed to initialize payment gateway.');
         }
 
         await launchRazorpayModal({
           key: razorpayKey || undefined,
-          order_id: orderData.order_id,
-          amount: orderData.amount,
-          currency: orderData.currency,
+          order_id: razorpayOrderId,
+          amount: payableAmount,
+          currency: 'INR',
           name: 'TTRC Store',
-          description: `Order ${orderNum}`,
+          description: `TTRC Store Order Checkout`,
           prefill: {
             name: fullNameCombined,
             email: email,
             contact: phone,
           },
           theme: {
-            color: '#844AFB',
+            color: '#E3132A',
           },
           notes: {
-            orderNumber: orderNum,
+            sessionId: (res as any).sessionId || res.orderId,
           },
           onSuccess: async (payResponse) => {
             try {
@@ -558,7 +564,8 @@ export default function CheckoutPage() {
               try {
                 if (typeof window !== 'undefined') sessionStorage.removeItem('ttrc_pending_order_id');
               } catch {}
-              router.push(`/checkout/success?orderNumber=${encodeURIComponent(orderNum)}`);
+              const finalOrderNumber = verifyData.orderNumber || orderNum;
+              router.push(`/checkout/success?orderNumber=${encodeURIComponent(finalOrderNumber)}`);
             } catch (err: any) {
               setError(err.message || 'Error communicating with payment verification service.');
               setLoading(false);
@@ -566,11 +573,11 @@ export default function CheckoutPage() {
           },
           onDismiss: () => {
             setLoading(false);
-            setError('Payment window was closed. Your items remain safely reserved. You can retry paying now or cancel.');
+            setError('Payment was not completed. No order was generated and your card was not charged.');
           },
           onFailure: (failedRes) => {
             setLoading(false);
-            setError(failedRes.error.description || 'Payment was declined by payment gateway. You can retry paying or cancel.');
+            setError(failedRes.error.description || 'Payment was declined. No order was generated.');
           },
         });
       } catch (payInitErr: any) {

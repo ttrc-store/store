@@ -117,14 +117,20 @@ export default async function OrderTrackingPage({ params, searchParams }: OrderT
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <a
-              href={`/api/invoice/${encodeURIComponent(order.order_number)}`}
-              target="_blank"
-              rel="noreferrer"
-              className="px-4 py-2 rounded-xl bg-purple-50 hover:bg-purple-100 border border-purple-200 text-xs font-bold text-[#844AFB] flex items-center gap-2 transition-colors"
-            >
-              <Download size={14} /> Tax Invoice
-            </a>
+            {order.payment_status === 'paid' || (order.payment_method === 'cod' && order.status !== 'cancelled') ? (
+              <a
+                href={`/api/invoice/${encodeURIComponent(order.order_number)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="px-4 py-2 rounded-xl bg-purple-50 hover:bg-purple-100 border border-purple-200 text-xs font-bold text-[#844AFB] flex items-center gap-2 transition-colors"
+              >
+                <Download size={14} /> Tax Invoice
+              </a>
+            ) : (
+              <span className="text-xs text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl font-medium">
+                Invoice generated once payment is complete
+              </span>
+            )}
           </div>
         </div>
 

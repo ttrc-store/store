@@ -13,12 +13,33 @@ function escapeXml(str: string): string {
     .replace(/'/g, '&apos;');
 }
 
+function cleanPlainText(str: string): string {
+  if (!str) return '';
+  return str
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/[\t\r\n]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * Generates Google Merchant Center Product Feed in XML (RSS 2.0 with g: namespace).
+ * Compatible with Google Shopping & Merchant Center automated feed crawls.
+ */
 export async function generateGoogleMerchantXml(): Promise<string> {
   await connectToDatabase();
 
   const products = await ProductModel.find({
-    status: 'published',
     is_active: { $ne: false },
+    status: { $ne: 'archived' },
   })
     .sort({ created_at: -1 })
     .lean();
@@ -26,15 +47,15 @@ export async function generateGoogleMerchantXml(): Promise<string> {
   const itemsXml = products
     .map((p: any) => {
       const id = p.sku || p._id.toString();
-      const title = escapeXml(p.name);
-      const description = escapeXml(p.description || p.short_description || p.name);
+      const title = escapeXml(cleanPlainText(p.name));
+      const description = escapeXml(cleanPlainText(p.description || p.short_description || p.name));
       const link = `${CANONICAL_ORIGIN}/product/${p.slug}`;
       const rawImage = Array.isArray(p.images) && p.images.length > 0 ? p.images[0] : '/brand/ttrc-logo.png';
       const imageLink = rawImage.startsWith('http') ? rawImage : `${CANONICAL_ORIGIN}${rawImage}`;
       const availability = (p.stock_quantity ?? 0) > 0 ? 'in_stock' : 'out_of_stock';
       const price = `${((p.price ?? 0) / 100).toFixed(2)} INR`;
-      const brand = escapeXml(p.brand || 'Tamizh Tech');
-      const mpn = escapeXml(p.sku || p._id.toString());
+      const brand = escapeXml(cleanPlainText(p.brand || 'Tamizh Tech'));
+      const mpn = escapeXml(cleanPlainText(p.sku || p._id.toString()));
       const gstPercent = p.gst_percent ?? 18;
 
       return `    <item>
@@ -47,6 +68,8 @@ export async function generateGoogleMerchantXml(): Promise<string> {
       <g:price>${price}</g:price>
       <g:brand>${brand}</g:brand>
       <g:condition>new</g:condition>
+      <g:adult>no</g:adult>
+      <g:google_product_category>Toys &amp; Games &gt; Toys &gt; Educational Toys &gt; STEM Toys</g:google_product_category>
       <g:identifier_exists>no</g:identifier_exists>
       <g:mpn>${mpn}</g:mpn>
       <g:shipping>
@@ -74,12 +97,78 @@ ${itemsXml}
 </rss>`;
 }
 
+/**
+ * Generates Google Merchant Center Product Feed in Tab-Separated Values (.tsv / .txt).
+ * Directly matches Google's official product file attribute spreadsheet specification.
+ */
+export async function generateGoogleMerchantTsv(): Promise<string> {
+  await connectToDatabase();
+
+  const products = await ProductModel.find({
+    is_active: { $ne: false },
+    status: { $ne: 'archived' },
+  })
+    .sort({ created_at: -1 })
+    .lean();
+
+  const headers = [
+    'id',
+    'title',
+    'description',
+    'price',
+    'condition',
+    'link',
+    'availability',
+    'image_link',
+    'brand',
+    'mpn',
+    'identifier_exists',
+    'adult',
+    'google_product_category',
+  ];
+
+  const rows = products.map((p: any) => {
+    const id = cleanPlainText(p.sku || p._id.toString());
+    const title = cleanPlainText(p.name);
+    const description = cleanPlainText(p.description || p.short_description || p.name);
+    const price = `${((p.price ?? 0) / 100).toFixed(2)} INR`;
+    const condition = 'new';
+    const link = `${CANONICAL_ORIGIN}/product/${p.slug}`;
+    const availability = (p.stock_quantity ?? 0) > 0 ? 'in_stock' : 'out_of_stock';
+    const rawImage = Array.isArray(p.images) && p.images.length > 0 ? p.images[0] : '/brand/ttrc-logo.png';
+    const imageLink = rawImage.startsWith('http') ? rawImage : `${CANONICAL_ORIGIN}${rawImage}`;
+    const brand = cleanPlainText(p.brand || 'Tamizh Tech');
+    const mpn = cleanPlainText(p.sku || p._id.toString());
+    const identifierExists = 'no';
+    const adult = 'no';
+    const googleProductCategory = 'Toys & Games > Toys > Educational Toys > STEM Toys';
+
+    return [
+      id,
+      title,
+      description,
+      price,
+      condition,
+      link,
+      availability,
+      imageLink,
+      brand,
+      mpn,
+      identifierExists,
+      adult,
+      googleProductCategory,
+    ].join('\t');
+  });
+
+  return [headers.join('\t'), ...rows].join('\n');
+}
+
 export async function generateChatGptProductJson(): Promise<any> {
   await connectToDatabase();
 
   const products = await ProductModel.find({
-    status: 'published',
     is_active: { $ne: false },
+    status: { $ne: 'archived' },
   })
     .sort({ created_at: -1 })
     .lean();
@@ -113,8 +202,8 @@ export async function generateChatGptProductJson(): Promise<any> {
         name: p.name,
         slug: p.slug,
         title: p.name,
-        summary: p.short_description || p.name,
-        content_text: p.description || p.short_description || p.name,
+        summary: cleanPlainText(p.short_description || p.name),
+        content_text: cleanPlainText(p.description || p.short_description || p.name),
         url: `${CANONICAL_ORIGIN}/product/${p.slug}`,
         image: imageLink,
         price_paise: p.price ?? 0,
