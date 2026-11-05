@@ -12,13 +12,24 @@ export function Breadcrumb({ children, className }: { children: React.ReactNode;
 }
 
 export function BreadcrumbList({ children, className }: { children: React.ReactNode; className?: string }) {
+  let itemIndex = 0;
+  const processedChildren = React.Children.map(children, (child) => {
+    if (React.isValidElement(child) && (child.type === BreadcrumbItem || (child.type as any)?.displayName === 'BreadcrumbItem' || (child.type as any)?.name === 'BreadcrumbItem' || 'position' in (child.props as any))) {
+      itemIndex++;
+      return React.cloneElement(child as React.ReactElement<any>, {
+        position: (child.props as any).position ?? itemIndex,
+      });
+    }
+    return child;
+  });
+
   return (
     <ol
       className={cn('flex flex-wrap items-center gap-1 text-sm text-muted-foreground', className)}
       itemScope
       itemType="https://schema.org/BreadcrumbList"
     >
-      {children}
+      {processedChildren}
     </ol>
   );
 }
@@ -40,10 +51,11 @@ export function BreadcrumbItem({
       itemType="https://schema.org/ListItem"
     >
       {children}
-      {position !== undefined && <meta itemProp="position" content={String(position)} />}
+      <meta itemProp="position" content={String(position ?? 1)} />
     </li>
   );
 }
+BreadcrumbItem.displayName = 'BreadcrumbItem';
 
 export function BreadcrumbLink({
   href,

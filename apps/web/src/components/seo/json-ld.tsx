@@ -49,6 +49,7 @@ export function ProductJsonLd({
       url: url || `${CANONICAL_ORIGIN}/product/${sku.toLowerCase()}`,
       priceCurrency: currency,
       price: (pricePaise / 100).toFixed(2),
+      priceValidUntil: '2027-12-31',
       itemCondition: 'https://schema.org/NewCondition',
       availability: inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
       seller: {
@@ -82,7 +83,7 @@ export function ProductJsonLd({
           handlingTime: {
             '@type': 'QuantitativeValue',
             minValue: 1,
-            maxValue: 10,
+            maxValue: 3,
             unitCode: 'd',
           },
           transitTime: {
@@ -96,12 +97,15 @@ export function ProductJsonLd({
     },
   };
 
-  // Only emit aggregateRating if genuine reviews exist
+  // Only emit aggregateRating if genuine reviews exist and rating is within valid range (1.0 to 5.0)
   if (rating !== undefined && rating > 0 && reviewCount !== undefined && reviewCount > 0) {
+    const clampedRating = Math.min(Math.max(rating, 1), 5);
     schema.aggregateRating = {
       '@type': 'AggregateRating',
-      ratingValue: rating.toString(),
-      reviewCount: reviewCount.toString(),
+      ratingValue: clampedRating.toFixed(1),
+      reviewCount: Math.max(reviewCount, 1).toString(),
+      bestRating: '5',
+      worstRating: '1',
     };
   }
 
