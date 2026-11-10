@@ -1,10 +1,4 @@
 import type { NextConfig } from 'next';
-import { setupDevPlatform } from '@cloudflare/next-on-pages/next-dev';
-
-// Setup Cloudflare dev platform bindings in development
-if (process.env.NODE_ENV === 'development') {
-  await setupDevPlatform();
-}
 
 const nextConfig: NextConfig = {
   transpilePackages: ['@ttrc/shared', '@ttrc/ui-tokens'],
@@ -12,8 +6,6 @@ const nextConfig: NextConfig = {
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 2592000,
     remotePatterns: [],
-    // Cloudflare Pages uses its own image optimization; use unoptimized for CF Pages
-    // or leave as-is if using Cloudflare Images add-on
   },
   experimental: {
     optimizePackageImports: ['lucide-react', 'framer-motion'],
