@@ -128,12 +128,15 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
   const [keywordCluster, setKeywordCluster] = React.useState('all');
   const [keywordPriority, setKeywordPriority] = React.useState('all');
   const [keywordIntent, setKeywordIntent] = React.useState('all');
+  const [keywordChannel, setKeywordChannel] = React.useState<'all' | 'amazon' | 'indiamart' | 'local' | 'content' | 'comparison'>('all');
+  const [copiedTerms, setCopiedTerms] = React.useState(false);
 
   const loadKeywordData = React.useCallback(async (params?: {
     query?: string;
     cluster?: string;
     priority?: string;
     intent?: string;
+    channel?: 'all' | 'amazon' | 'indiamart' | 'local' | 'content' | 'comparison';
   }) => {
     setKeywordLoading(true);
     try {
@@ -142,6 +145,7 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
         cluster: params?.cluster ?? keywordCluster,
         priority: params?.priority ?? keywordPriority,
         intent: params?.intent ?? keywordIntent,
+        channel: params?.channel ?? keywordChannel,
         limit: 100,
       });
       if (res.data) {
@@ -152,7 +156,7 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
     } finally {
       setKeywordLoading(false);
     }
-  }, [keywordQuery, keywordCluster, keywordPriority, keywordIntent]);
+  }, [keywordQuery, keywordCluster, keywordPriority, keywordIntent, keywordChannel]);
 
   const checklistItems = [
     {
@@ -746,60 +750,165 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
       {/* TAB 5: KEYWORD INTELLIGENCE & MAPPING */}
       {activeTab === 'keywords' && (
         <div className="space-y-6 animate-in fade-in duration-150">
+          {/* Top Header with Excel Download */}
+          <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="p-2 rounded-xl bg-red-50 text-[#E3132A]">
+                  <Database size={20} />
+                </span>
+                <h2 className="font-heading text-lg font-bold text-slate-900">
+                  Master India Keyword Intelligence &amp; Marketplace Engine
+                </h2>
+              </div>
+              <p className="text-xs text-slate-500 mt-1">
+                Authoritative Pan-India robotics search queries mapped across TTRC Store, Amazon, Flipkart, IndiaMART, Local SEO, and Engineering Guides.
+              </p>
+            </div>
+
+            <a
+              href="/TTRC_India_SEO_Keywords.xlsx"
+              download="TTRC_India_SEO_Keywords.xlsx"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#E3132A] hover:bg-[#B80F21] text-white text-xs font-bold shadow-xs transition-colors shrink-0"
+              title="Download master Excel spreadsheet with 16 sheets and 11,855 keywords"
+            >
+              <Download size={15} />
+              <span>Download TTRC_India_SEO_Keywords.xlsx</span>
+            </a>
+          </div>
+
           {/* Key Metrics Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-1">
               <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                Total Keyword Ideas
+                Total Unique Keywords
               </span>
               <div className="flex items-baseline gap-2">
                 <span className="text-2xl font-extrabold text-slate-900">
-                  {keywordResult?.stats.totalRows ?? 1473}
+                  {keywordResult?.stats.totalRows ?? 11855}
                 </span>
                 <span className="text-xs text-emerald-600 font-bold">100% Unique</span>
               </div>
-              <p className="text-[11px] text-slate-500">Source: India Keyword Research DB</p>
+              <p className="text-[11px] text-slate-500">Source: TTRC_India_SEO_Keywords.xlsx</p>
             </div>
 
             <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-1">
               <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                Mapped Topic Clusters
+                Product &amp; Market Categories
               </span>
               <div className="flex items-baseline gap-2">
                 <span className="text-2xl font-extrabold text-slate-900">
-                  {keywordResult?.clusters.length ?? 24}
+                  {keywordResult?.clusters.length ?? 14}
                 </span>
-                <span className="text-xs text-slate-400">Clusters</span>
+                <span className="text-xs text-slate-400">14 Category Sheets</span>
               </div>
-              <p className="text-[11px] text-slate-500">All mapped to canonical destinations</p>
+              <p className="text-[11px] text-slate-500">Mapped to canonical store categories</p>
             </div>
 
             <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-1">
               <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                High Commercial Priority
+                Transactional &amp; Head Terms
               </span>
               <div className="flex items-baseline gap-2">
                 <span className="text-2xl font-extrabold text-[#E3132A]">
-                  {keywordResult?.stats.priorityCounts['High'] ?? 154}
+                  {(keywordResult?.stats.intentCounts['Transactional'] ?? 2582) +
+                    (keywordResult?.stats.intentCounts['Head term'] ?? 375)}
                 </span>
-                <span className="text-xs text-slate-400">Keywords</span>
+                <span className="text-xs text-slate-400">High Purchase Intent</span>
               </div>
-              <p className="text-[11px] text-slate-500">Product &amp; Category landing pages</p>
+              <p className="text-[11px] text-slate-500">Store titles, slugs &amp; meta descriptions</p>
             </div>
 
             <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-1">
               <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                Content &amp; AEO Ideas
+                Local &amp; Regional Keywords
               </span>
               <div className="flex items-baseline gap-2">
                 <span className="text-2xl font-extrabold text-slate-900">
-                  {keywordResult?.stats.priorityCounts['Content'] ?? 242}
+                  {keywordResult?.stats.intentCounts['Local'] ?? 3752}
                 </span>
-                <span className="text-xs text-emerald-600 font-bold">4 Guides Active</span>
+                <span className="text-xs text-emerald-600 font-bold">Google Business Profile</span>
               </div>
-              <p className="text-[11px] text-slate-500">Informational queries &amp; FAQs</p>
+              <p className="text-[11px] text-slate-500">Tamil Nadu, Bangalore, Chennai, etc.</p>
             </div>
           </div>
+
+          {/* Distribution Channels Bar */}
+          <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-3">
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              Marketplace &amp; Distribution Channel Views
+            </span>
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+              {[
+                { id: 'all', label: `All Master Keywords (${keywordResult?.stats.totalRows ?? 11855})` },
+                { id: 'amazon', label: 'Amazon & Flipkart Backend (250-byte)' },
+                { id: 'indiamart', label: `IndiaMART Wholesale & B2B (${keywordResult?.channelTools.totalWholesale ?? 391})` },
+                { id: 'local', label: `Local SEO (Google Business Profile) (${keywordResult?.channelTools.totalLocal ?? 3752})` },
+                { id: 'content', label: `Blog & YouTube Ideas (${keywordResult?.channelTools.totalContentIdeas ?? 1322})` },
+                { id: 'comparison', label: `Platform Comparisons (${keywordResult?.channelTools.totalPlatformComparisons ?? 270})` },
+              ].map((ch) => (
+                <button
+                  key={ch.id}
+                  type="button"
+                  onClick={() => {
+                    setKeywordChannel(ch.id as any);
+                    loadKeywordData({ channel: ch.id as any });
+                  }}
+                  className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-colors ${
+                    keywordChannel === ch.id
+                      ? 'bg-[#E3132A] text-white shadow-xs'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  }`}
+                >
+                  {ch.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Amazon / Flipkart 250-Byte Backend Search Terms Box */}
+          {keywordResult?.channelTools.amazonBackendTerms && (
+            <div className="p-5 rounded-2xl bg-slate-900 text-white space-y-3 border border-slate-800 shadow-md">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <ShoppingBag size={18} className="text-[#E3132A]" />
+                  <h3 className="font-heading text-sm font-bold tracking-tight">
+                    Amazon &amp; Flipkart Backend Search Terms Generator (250-Byte Compliance)
+                  </h3>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge
+                    variant="outline"
+                    className={`${
+                      keywordResult.channelTools.amazonBackendTerms.byteLength <= 250
+                        ? 'bg-emerald-950 text-emerald-400 border-emerald-800'
+                        : 'bg-red-950 text-red-400 border-red-800'
+                    } text-xs font-mono font-bold`}
+                  >
+                    {keywordResult.channelTools.amazonBackendTerms.byteLength} / 250 Bytes
+                  </Badge>
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => {
+                      navigator.clipboard.writeText(keywordResult.channelTools.amazonBackendTerms.terms);
+                      setCopiedTerms(true);
+                      setTimeout(() => setCopiedTerms(false), 2000);
+                    }}
+                    className="bg-[#E3132A] hover:bg-[#B80F21] text-white text-xs font-bold px-3 py-1 rounded-lg h-7"
+                  >
+                    {copiedTerms ? 'Copied to Clipboard!' : 'Copy for Seller Central'}
+                  </Button>
+                </div>
+              </div>
+              <p className="text-[11px] text-slate-400">
+                Space-separated, deduplicated, zero-punctuation keyword string engineered strictly within Amazon Seller Central&apos;s 250-byte backend search term limit.
+              </p>
+              <div className="p-3 bg-slate-950 rounded-xl font-mono text-xs text-slate-200 select-all border border-slate-800 break-words leading-relaxed">
+                {keywordResult.channelTools.amazonBackendTerms.terms || 'No terms generated for current filter.'}
+              </div>
+            </div>
+          )}
 
           {/* Search & Filter Bar */}
           <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
@@ -808,7 +917,7 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
                 <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
-                  placeholder="Search 1,473 keywords, clusters, or target URLs..."
+                  placeholder="Search keywords, categories, or canonical routes..."
                   value={keywordQuery}
                   onChange={(e) => setKeywordQuery(e.target.value)}
                   onKeyDown={(e) => {
@@ -828,7 +937,7 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
                 }}
                 className="px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 text-slate-700 font-medium"
               >
-                <option value="all">All Clusters (24)</option>
+                <option value="all">All Categories ({keywordResult?.clusters.length ?? 14})</option>
                 {keywordResult?.clusters.map((c) => (
                   <option key={c.cluster} value={c.cluster}>
                     {c.cluster} ({c.totalKeywords})
@@ -837,17 +946,21 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
               </select>
 
               <select
-                value={keywordPriority}
+                value={keywordIntent}
                 onChange={(e) => {
-                  setKeywordPriority(e.target.value);
-                  loadKeywordData({ priority: e.target.value });
+                  setKeywordIntent(e.target.value);
+                  loadKeywordData({ intent: e.target.value });
                 }}
                 className="px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 text-slate-700 font-medium"
               >
-                <option value="all">All Priorities</option>
-                <option value="High">High Priority</option>
-                <option value="Content">Content / AEO</option>
-                <option value="Research">Research</option>
+                <option value="all">All Intents</option>
+                <option value="Head term">Head term</option>
+                <option value="Transactional">Transactional</option>
+                <option value="Commercial">Commercial</option>
+                <option value="Informational">Informational</option>
+                <option value="Local">Local</option>
+                <option value="Brand">Brand</option>
+                <option value="Comparison">Comparison</option>
               </select>
 
               <Button
@@ -864,10 +977,10 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
               </Button>
             </div>
 
-            {/* Cluster Quick Pills */}
+            {/* Category Quick Pills */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[11px]">
               <span className="text-slate-400 font-bold uppercase tracking-wider shrink-0 text-[10px] mr-1">
-                Top Clusters:
+                Categories:
               </span>
               {keywordResult?.clusters.slice(0, 8).map((c) => (
                 <button
@@ -898,7 +1011,7 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
                   Search Keyword Mapping Table
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Showing {keywordResult?.keywords.length ?? 0} of {keywordResult?.totalFiltered ?? 1473} keywords matching active criteria.
+                  Showing {keywordResult?.keywords.length ?? 0} of {keywordResult?.totalFiltered ?? 11855} keywords matching active criteria.
                 </p>
               </div>
               <Badge variant="outline" className="text-xs font-semibold bg-slate-50">

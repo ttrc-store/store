@@ -1,18 +1,24 @@
 export type SearchIntent =
+  | 'Head term'
+  | 'Transactional'
+  | 'Commercial'
+  | 'Informational'
+  | 'Local'
+  | 'Brand'
+  | 'Comparison'
   | 'Commercial / transactional'
   | 'Commercial / informational'
   | 'Informational / AEO'
-  | 'Commercial'
-  | 'Transactional'
   | 'Informational / commercial'
   | 'B2B / transactional';
 
-export type KeywordPriority = 'High' | 'Content' | 'Research';
+export type KeywordPriority = 'High' | 'Content' | 'Research' | 'Marketplace' | 'Local';
 
 export interface KeywordRecord {
   no: number;
   keyword: string;
   cluster: string;
+  category?: string;
   intent: SearchIntent;
   suggestedPage: string;
   priority: KeywordPriority;
@@ -30,6 +36,13 @@ export interface ClusterMapping {
   highPriorityCount: number;
   contentCount: number;
   researchCount: number;
+  headTermCount?: number;
+  transactionalCount?: number;
+  commercialCount?: number;
+  informationalCount?: number;
+  localCount?: number;
+  brandCount?: number;
+  comparisonCount?: number;
 }
 
 export interface KeywordStats {
@@ -40,3 +53,4 @@ export interface KeywordStats {
   intentCounts: Record<string, number>;
   priorityCounts: Record<string, number>;
 }
+

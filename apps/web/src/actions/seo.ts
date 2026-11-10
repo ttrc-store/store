@@ -118,6 +118,15 @@ export interface KeywordResearchResult {
   clusters: import('@/lib/seo/types').ClusterMapping[];
   totalFiltered: number;
   keywords: import('@/lib/seo/types').KeywordRecord[];
+  dataset: 'master' | 'baseline';
+  channelTools: {
+    amazonBackendTerms: { terms: string; byteLength: number; wordCount: number };
+    totalWholesale: number;
+    totalLocal: number;
+    totalContentIdeas: number;
+    totalPlatformComparisons: number;
+  };
+  xlsxDownloadUrl: string;
 }
 
 export async function getAdminKeywordResearchAction(params?: {
@@ -125,6 +134,7 @@ export async function getAdminKeywordResearchAction(params?: {
   cluster?: string;
   priority?: string;
   intent?: string;
+  channel?: 'all' | 'amazon' | 'indiamart' | 'local' | 'content' | 'comparison';
   limit?: number;
   offset?: number;
 }): Promise<{ data?: KeywordResearchResult; error?: string }> {
@@ -132,18 +142,41 @@ export async function getAdminKeywordResearchAction(params?: {
   if ('error' in auth) return { error: auth.error };
 
   try {
-    const { getKeywordStats, getClusterMappings, loadAndParseKeywords } = await import(
-      '@/lib/seo/keyword-engine'
-    );
+    const {
+      loadMasterKeywords,
+      getMasterKeywordStats,
+      getMasterClusterMappings,
+      getAmazonFlipkartBackendTerms,
+      getIndiaMartWholesaleKeywords,
+      getLocalGbpKeywords,
+      getBlogAndYouTubeContentIdeas,
+      getPlatformComparisonKeywords,
+    } = await import('@/lib/seo/keyword-engine');
 
-    const stats = getKeywordStats();
-    const clusters = getClusterMappings();
-    let records = loadAndParseKeywords();
+    const stats = getMasterKeywordStats();
+    const clusters = getMasterClusterMappings();
+    let records = loadMasterKeywords();
 
     const query = params?.query?.trim().toLowerCase();
     const cluster = params?.cluster;
     const priority = params?.priority;
     const intent = params?.intent;
+    const channel = params?.channel || 'all';
+
+    // Channel filtering
+    if (channel === 'indiamart') {
+      records = getIndiaMartWholesaleKeywords(cluster);
+    } else if (channel === 'local') {
+      records = getLocalGbpKeywords();
+    } else if (channel === 'content') {
+      records = getBlogAndYouTubeContentIdeas(cluster);
+    } else if (channel === 'comparison') {
+      records = getPlatformComparisonKeywords();
+    } else if (channel === 'amazon') {
+      records = records.filter(
+        (r) => r.intent === 'Head term' || r.intent === 'Transactional' || r.intent === 'Commercial'
+      );
+    }
 
     if (query) {
       records = records.filter(
@@ -155,7 +188,9 @@ export async function getAdminKeywordResearchAction(params?: {
     }
 
     if (cluster && cluster !== 'all') {
-      records = records.filter((r) => r.cluster.toLowerCase() === cluster.toLowerCase());
+      records = records.filter(
+        (r) => r.cluster.toLowerCase() === cluster.toLowerCase() || r.category?.toLowerCase() === cluster.toLowerCase()
+      );
     }
 
     if (priority && priority !== 'all') {
@@ -167,9 +202,15 @@ export async function getAdminKeywordResearchAction(params?: {
     }
 
     const totalFiltered = records.length;
-    const limit = params?.limit ?? 50;
+    const limit = params?.limit ?? 100;
     const offset = params?.offset ?? 0;
     const paginatedKeywords = records.slice(offset, offset + limit);
+
+    const amazonBackendTerms = getAmazonFlipkartBackendTerms(cluster);
+    const totalWholesale = getIndiaMartWholesaleKeywords().length;
+    const totalLocal = getLocalGbpKeywords().length;
+    const totalContentIdeas = getBlogAndYouTubeContentIdeas().length;
+    const totalPlatformComparisons = getPlatformComparisonKeywords().length;
 
     return {
       data: {
@@ -177,6 +218,15 @@ export async function getAdminKeywordResearchAction(params?: {
         clusters,
         totalFiltered,
         keywords: paginatedKeywords,
+        dataset: 'master',
+        channelTools: {
+          amazonBackendTerms,
+          totalWholesale,
+          totalLocal,
+          totalContentIdeas,
+          totalPlatformComparisons,
+        },
+        xlsxDownloadUrl: '/TTRC_India_SEO_Keywords.xlsx',
       },
     };
   } catch (err: any) {

@@ -167,6 +167,81 @@ describe('Keyword Engine & SEO Architecture Tests', () => {
     expect(bulkOrders.metadata?.alternates?.canonical).toBe('https://www.ttrc.store/bulk-orders');
     expect(contact.metadata?.alternates?.canonical).toBe('https://www.ttrc.store/contact');
   });
+
+  it('validates master keyword intelligence and multi-channel SEO tools', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const {
+      loadMasterKeywords,
+      getMasterKeywordStats,
+      getMasterClusterMappings,
+      getAmazonFlipkartBackendTerms,
+      getIndiaMartWholesaleKeywords,
+      getLocalGbpKeywords,
+      getBlogAndYouTubeContentIdeas,
+      getPlatformComparisonKeywords,
+    } = await import('@/lib/seo/keyword-engine');
+
+    // 1. Verify master keywords count (> 11,000 records)
+    const masterKeywords = loadMasterKeywords();
+    expect(masterKeywords.length).toBeGreaterThanOrEqual(11000);
+
+    // 2. Verify master stats
+    const stats = getMasterKeywordStats();
+    expect(stats.totalRows).toBeGreaterThanOrEqual(11000);
+    expect(stats.uniqueKeywords).toBeGreaterThanOrEqual(11000);
+    expect(stats.duplicates).toBe(0);
+
+    // Verify 14 core categories are present
+    expect(Object.keys(stats.clusterCounts).length).toBeGreaterThanOrEqual(14);
+    expect(stats.clusterCounts['Competition Robots']).toBeGreaterThanOrEqual(1500);
+    expect(stats.clusterCounts['Motors & Drivers']).toBeGreaterThanOrEqual(1000);
+    expect(stats.clusterCounts['Batteries & Power']).toBeGreaterThanOrEqual(1000);
+    expect(stats.clusterCounts['Sensors']).toBeGreaterThanOrEqual(800);
+    expect(stats.clusterCounts['Platform Search']).toBeGreaterThanOrEqual(250);
+
+    // Verify 7 search intents
+    expect(stats.intentCounts['Head term']).toBeGreaterThan(0);
+    expect(stats.intentCounts['Transactional']).toBeGreaterThan(0);
+    expect(stats.intentCounts['Commercial']).toBeGreaterThan(0);
+    expect(stats.intentCounts['Informational']).toBeGreaterThan(0);
+    expect(stats.intentCounts['Local']).toBeGreaterThan(0);
+    expect(stats.intentCounts['Brand']).toBeGreaterThan(0);
+    expect(stats.intentCounts['Comparison']).toBeGreaterThan(0);
+
+    // 3. Verify Amazon / Flipkart backend terms generator adheres to 250-byte hard limit
+    const amazonTerms = getAmazonFlipkartBackendTerms('Competition Robots', 250);
+    expect(amazonTerms.byteLength).toBeLessThanOrEqual(250);
+    expect(amazonTerms.wordCount).toBeGreaterThan(10);
+    expect(amazonTerms.terms.split(' ').length).toBe(amazonTerms.wordCount);
+
+    // 4. Verify IndiaMART B2B wholesale terms
+    const wholesaleTerms = getIndiaMartWholesaleKeywords();
+    expect(wholesaleTerms.length).toBeGreaterThanOrEqual(200);
+
+    // 5. Verify Local SEO keywords
+    const localTerms = getLocalGbpKeywords('Bangalore');
+    expect(localTerms.length).toBeGreaterThan(0);
+    for (const r of localTerms) {
+      expect(r.normalizedKeyword).toContain('bangalore');
+    }
+
+    // 6. Verify Blog & YouTube content ideas
+    const contentIdeas = getBlogAndYouTubeContentIdeas();
+    expect(contentIdeas.length).toBeGreaterThanOrEqual(300);
+
+    // 7. Verify Platform comparisons
+    const comparisons = getPlatformComparisonKeywords('amazon');
+    expect(comparisons.length).toBeGreaterThan(0);
+
+    // 8. Verify public/TTRC_India_SEO_Keywords.xlsx exists and has valid size
+    const candidate1 = path.resolve(process.cwd(), 'public/TTRC_India_SEO_Keywords.xlsx');
+    const candidate2 = path.resolve(process.cwd(), 'apps/web/public/TTRC_India_SEO_Keywords.xlsx');
+    const xlsxPath = fs.existsSync(candidate1) ? candidate1 : candidate2;
+    expect(fs.existsSync(xlsxPath)).toBe(true);
+    expect(fs.statSync(xlsxPath).size).toBeGreaterThan(200000);
+  });
 });
+
 
 

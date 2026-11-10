@@ -2,11 +2,16 @@ import fs from 'fs';
 import path from 'path';
 import type { KeywordRecord, KeywordStats, ClusterMapping, SearchIntent, KeywordPriority } from './types';
 
-// Authoritative mapping of research clusters to existing and planned canonical URLs
+// Authoritative mapping of categories and research clusters to canonical URLs
 export const CLUSTER_CANONICAL_MAP: Record<string, { canonicalUrl: string; primaryKeyword: string }> = {
+  // ─── Backward-Compatible Research Clusters ────────────────────────────────
   'Motors and motion': {
     canonicalUrl: '/category/motors',
     primaryKeyword: 'robotics motors and drivers',
+  },
+  'Robotics kits': {
+    canonicalUrl: '/category/gamified-robots',
+    primaryKeyword: 'robotics kits India',
   },
   'Sensors': {
     canonicalUrl: '/category/sensors',
@@ -19,10 +24,6 @@ export const CLUSTER_CANONICAL_MAP: Record<string, { canonicalUrl: string; prima
   'Electronic components': {
     canonicalUrl: '/category/fasteners',
     primaryKeyword: 'electronic components and fasteners',
-  },
-  'Robotics kits': {
-    canonicalUrl: '/category/gamified-robots',
-    primaryKeyword: 'robotics kits India',
   },
   'STEM and education': {
     canonicalUrl: '/category/stem-kits',
@@ -104,10 +105,66 @@ export const CLUSTER_CANONICAL_MAP: Record<string, { canonicalUrl: string; prima
     canonicalUrl: '/offers',
     primaryKeyword: 'diwali robotics offers India',
   },
+
+  // ─── Master 14 Categories from TTRC_India_SEO_Keywords.xlsx ──────────────
+  'Competition Robots': {
+    canonicalUrl: '/category/gamified-robots',
+    primaryKeyword: 'competition line follower robot kit India',
+  },
+  'Motors & Drivers': {
+    canonicalUrl: '/category/motors',
+    primaryKeyword: 'robotics motors and motor drivers India',
+  },
+  'Batteries & Power': {
+    canonicalUrl: '/category/batteries',
+    primaryKeyword: 'LiPo batteries 18650 BMS robotics India',
+  },
+  'Fasteners & Hardware': {
+    canonicalUrl: '/category/fasteners',
+    primaryKeyword: 'screws nuts standoffs robotics fasteners India',
+  },
+  'Microcontrollers & Boards': {
+    canonicalUrl: '/category/stem-kits',
+    primaryKeyword: 'ESP32 Arduino development boards robotics India',
+  },
+  'Drones': {
+    canonicalUrl: '/category/drones',
+    primaryKeyword: 'drone kits carbon frames ESC flight controller India',
+  },
+  'Wires & Connectors': {
+    canonicalUrl: '/category/wires-connectors',
+    primaryKeyword: 'XT60 JST jumper wires robotics connectors India',
+  },
+  'Tools': {
+    canonicalUrl: '/category/fasteners',
+    primaryKeyword: 'soldering iron robotics tools hardware India',
+  },
+  'STEM & Education': {
+    canonicalUrl: '/category/stem-kits',
+    primaryKeyword: 'STEM learning ATL lab robotics kits India',
+  },
+  'Platform Search': {
+    canonicalUrl: '/search',
+    primaryKeyword: 'buy robotics components India online alternative',
+  },
+  'Regional & Hinglish': {
+    canonicalUrl: '/',
+    primaryKeyword: 'robotics store Tamil Nadu Coimbatore Chennai Bangalore',
+  },
+  'Brand & Store': {
+    canonicalUrl: '/',
+    primaryKeyword: 'TTRC Store Tamizh Tech robotics electronics India',
+  },
+  'Events & How-To': {
+    canonicalUrl: '/guides',
+    primaryKeyword: 'line follower robot rules PID tuning techfest robotics India',
+  },
 };
 
 let cachedKeywords: KeywordRecord[] | null = null;
 let cachedStats: KeywordStats | null = null;
+let cachedMasterKeywords: KeywordRecord[] | null = null;
+let cachedMasterStats: KeywordStats | null = null;
 
 export function resolveCsvPath(): string {
   // 1. Direct relative path from this file (src/lib/seo/ -> data/)
@@ -121,7 +178,19 @@ export function resolveCsvPath(): string {
   const cwdCandidate2 = path.resolve(process.cwd(), 'data/ttrc_store_india_keyword_research_500_plus.csv');
   if (fs.existsSync(cwdCandidate2)) return cwdCandidate2;
 
-  // 3. Fallback relative to workspace root
+  return relativeFromSource;
+}
+
+export function resolveMasterJsonPath(): string {
+  const relativeFromSource = path.resolve(__dirname, '../../data/ttrc_india_seo_keywords_master.json');
+  if (fs.existsSync(relativeFromSource)) return relativeFromSource;
+
+  const cwdCandidate1 = path.resolve(process.cwd(), 'apps/web/data/ttrc_india_seo_keywords_master.json');
+  if (fs.existsSync(cwdCandidate1)) return cwdCandidate1;
+
+  const cwdCandidate2 = path.resolve(process.cwd(), 'data/ttrc_india_seo_keywords_master.json');
+  if (fs.existsSync(cwdCandidate2)) return cwdCandidate2;
+
   return relativeFromSource;
 }
 
@@ -149,6 +218,9 @@ function parseCsvTokens(line: string): string[] {
   return cells;
 }
 
+/**
+ * Loads baseline keywords from CSV (backward-compatible with unit tests and original 25 clusters).
+ */
 export function loadAndParseKeywords(): KeywordRecord[] {
   if (cachedKeywords) return cachedKeywords;
 
@@ -177,10 +249,8 @@ export function loadAndParseKeywords(): KeywordRecord[] {
     const volume = cols[6] || 'Not yet verified';
     const normalizedKeyword = keyword.trim().toLowerCase();
 
-    // Determine target URL from cluster mapping or guide mapping
     let targetUrl = CLUSTER_CANONICAL_MAP[cluster]?.canonicalUrl || '/search';
-    
-    // Map specific high-value informational questions to guides
+
     if (intent === 'Informational / AEO' || priority === 'Content') {
       if (normalizedKeyword.includes('line follower') || normalizedKeyword.includes('lfr')) {
         targetUrl = '/guides/line-follower-robot-components';
@@ -197,6 +267,7 @@ export function loadAndParseKeywords(): KeywordRecord[] {
       no,
       keyword,
       cluster,
+      category: cluster,
       intent,
       suggestedPage,
       priority,
@@ -209,6 +280,88 @@ export function loadAndParseKeywords(): KeywordRecord[] {
 
   cachedKeywords = records;
   return records;
+}
+
+/**
+ * Loads the complete master keyword intelligence dataset from TTRC_India_SEO_Keywords.xlsx
+ * containing 11,855 unique terms mapped across 14 categories and 7 search intents.
+ */
+export function loadMasterKeywords(): KeywordRecord[] {
+  if (cachedMasterKeywords) return cachedMasterKeywords;
+
+  const jsonPath = resolveMasterJsonPath();
+  if (fs.existsSync(jsonPath)) {
+    try {
+      const raw = fs.readFileSync(jsonPath, 'utf8');
+      const items: Array<{
+        keyword: string;
+        category: string;
+        intent: SearchIntent;
+        normalizedKeyword: string;
+      }> = JSON.parse(raw);
+
+      const records: KeywordRecord[] = items.map((item, index) => {
+        const no = index + 1;
+        const cluster = item.category;
+        const normalized = item.normalizedKeyword || item.keyword.toLowerCase().trim();
+
+        // Map priority
+        let priority: KeywordPriority = 'Research';
+        if (item.intent === 'Head term' || item.intent === 'Transactional' || item.intent === 'Brand') {
+          priority = 'High';
+        } else if (item.intent === 'Informational') {
+          priority = 'Content';
+        } else if (item.intent === 'Comparison') {
+          priority = 'Marketplace';
+        } else if (item.intent === 'Local') {
+          priority = 'Local';
+        } else if (item.intent === 'Commercial') {
+          priority = 'High';
+        }
+
+        // Map canonical target URL
+        let targetUrl = CLUSTER_CANONICAL_MAP[cluster]?.canonicalUrl || '/search';
+        if (item.intent === 'Informational' || cluster === 'Events & How-To') {
+          if (normalized.includes('line follower') || normalized.includes('lfr') || normalized.includes('pid')) {
+            targetUrl = '/guides/line-follower-robot-components';
+          } else if (normalized.includes('motor driver') || normalized.includes('tb6612') || normalized.includes('l298n')) {
+            targetUrl = '/guides/motor-driver-selection-guide';
+          } else if (normalized.includes('starter kit') || normalized.includes('which robot kit') || normalized.includes('how to choose')) {
+            targetUrl = '/guides/how-to-choose-robotics-kit';
+          } else if (normalized.includes('sensor')) {
+            targetUrl = '/guides/robotics-sensors-guide';
+          } else {
+            targetUrl = '/guides';
+          }
+        } else if (normalized.includes('wholesale') || normalized.includes('bulk') || normalized.includes('school lab') || normalized.includes('atl lab')) {
+          targetUrl = '/bulk-enquiry';
+        } else if (normalized.includes('diwali') || normalized.includes('coupon') || normalized.includes('festive offer')) {
+          targetUrl = '/offers';
+        }
+
+        return {
+          no,
+          keyword: item.keyword,
+          cluster,
+          category: item.category,
+          intent: item.intent,
+          suggestedPage: cluster,
+          priority,
+          volume: 'India Verified',
+          normalizedKeyword: normalized,
+          targetUrl,
+        };
+      });
+
+      cachedMasterKeywords = records;
+      return records;
+    } catch (e) {
+      console.error('[KeywordEngine] Error loading master JSON:', e);
+    }
+  }
+
+  // Fallback to baseline CSV
+  return loadAndParseKeywords();
 }
 
 export function getKeywordStats(): KeywordStats {
@@ -244,8 +397,41 @@ export function getKeywordStats(): KeywordStats {
   return cachedStats;
 }
 
+export function getMasterKeywordStats(): KeywordStats {
+  if (cachedMasterStats) return cachedMasterStats;
+
+  const records = loadMasterKeywords();
+  const clusterCounts: Record<string, number> = {};
+  const intentCounts: Record<string, number> = {};
+  const priorityCounts: Record<string, number> = {};
+  const uniqueKeys = new Set<string>();
+  let duplicates = 0;
+
+  for (const r of records) {
+    if (uniqueKeys.has(r.normalizedKeyword)) {
+      duplicates++;
+    } else {
+      uniqueKeys.add(r.normalizedKeyword);
+    }
+    clusterCounts[r.cluster] = (clusterCounts[r.cluster] || 0) + 1;
+    intentCounts[r.intent] = (intentCounts[r.intent] || 0) + 1;
+    priorityCounts[r.priority] = (priorityCounts[r.priority] || 0) + 1;
+  }
+
+  cachedMasterStats = {
+    totalRows: records.length,
+    uniqueKeywords: uniqueKeys.size,
+    duplicates,
+    clusterCounts,
+    intentCounts,
+    priorityCounts,
+  };
+
+  return cachedMasterStats;
+}
+
 export function getKeywordsForCluster(clusterName: string): KeywordRecord[] {
-  const records = loadAndParseKeywords();
+  const records = loadMasterKeywords();
   return records.filter((r) => r.cluster.toLowerCase() === clusterName.toLowerCase());
 }
 
@@ -269,10 +455,9 @@ export function getKeywordsForRoute(pathname: string): {
   cluster?: string;
   keywords: KeywordRecord[];
 } {
-  const records = loadAndParseKeywords();
+  const records = loadMasterKeywords();
   const cleanPath = pathname.replace(/\/$/, '') || '/';
 
-  // Find matching cluster mapping
   const matchEntry = Object.entries(CLUSTER_CANONICAL_MAP).find(
     ([, val]) => val.canonicalUrl === cleanPath
   );
@@ -287,7 +472,7 @@ export function getKeywordsForRoute(pathname: string): {
 }
 
 export function searchKeywords(query: string, limit = 50): KeywordRecord[] {
-  const records = loadAndParseKeywords();
+  const records = loadMasterKeywords();
   const q = query.trim().toLowerCase();
   if (!q) return records.slice(0, limit);
 
@@ -323,4 +508,173 @@ export function getClusterMappings(): ClusterMapping[] {
       researchCount: clusterKeywords.filter((k) => k.priority === 'Research').length,
     };
   });
+}
+
+export function getMasterClusterMappings(): ClusterMapping[] {
+  const records = loadMasterKeywords();
+  const categories = [
+    'Competition Robots',
+    'Motors & Drivers',
+    'Sensors',
+    'Batteries & Power',
+    'Fasteners & Hardware',
+    'Microcontrollers & Boards',
+    'Drones',
+    'Wires & Connectors',
+    'Tools',
+    'STEM & Education',
+    'Platform Search',
+    'Regional & Hinglish',
+    'Brand & Store',
+    'Events & How-To',
+  ];
+
+  return categories.map((cat) => {
+    const catKeywords = records.filter((r) => r.cluster === cat || r.category === cat);
+    const mapInfo = CLUSTER_CANONICAL_MAP[cat] || {
+      canonicalUrl: '/search',
+      primaryKeyword: cat,
+    };
+
+    const secondaryKeywords = catKeywords
+      .filter((k) => k.intent === 'Head term' || k.intent === 'Transactional')
+      .slice(0, 6)
+      .map((k) => k.keyword);
+
+    return {
+      cluster: cat,
+      canonicalUrl: mapInfo.canonicalUrl,
+      primaryKeyword: mapInfo.primaryKeyword,
+      secondaryKeywords,
+      totalKeywords: catKeywords.length,
+      highPriorityCount: catKeywords.filter((k) => k.priority === 'High').length,
+      contentCount: catKeywords.filter((k) => k.priority === 'Content').length,
+      researchCount: catKeywords.filter((k) => k.priority === 'Research').length,
+      headTermCount: catKeywords.filter((k) => k.intent === 'Head term').length,
+      transactionalCount: catKeywords.filter((k) => k.intent === 'Transactional').length,
+      commercialCount: catKeywords.filter((k) => k.intent === 'Commercial').length,
+      informationalCount: catKeywords.filter((k) => k.intent === 'Informational').length,
+      localCount: catKeywords.filter((k) => k.intent === 'Local').length,
+      brandCount: catKeywords.filter((k) => k.intent === 'Brand').length,
+      comparisonCount: catKeywords.filter((k) => k.intent === 'Comparison').length,
+    };
+  });
+}
+
+// ─── Channel-Specific SEO Generation Tools ──────────────────────────────────
+
+/**
+ * Generates an Amazon/Flipkart backend search term string within the strict 250-byte limit.
+ * Rules: space-separated, deduplicated, no punctuation, max length 250 bytes.
+ */
+export function getAmazonFlipkartBackendTerms(category?: string, maxBytes = 250): {
+  terms: string;
+  byteLength: number;
+  wordCount: number;
+} {
+  const records = loadMasterKeywords();
+  const pool = category && category !== 'all'
+    ? records.filter((r) => r.category === category || r.cluster === category)
+    : records;
+
+  const targetKws = pool.filter((r) => r.intent === 'Head term' || r.intent === 'Transactional');
+
+  const words: string[] = [];
+  const stopWords = new Set(['and', 'or', 'in', 'for', 'with', 'a', 'an', 'the', 'of', 'to', 'at']);
+
+  for (const item of targetKws) {
+    const rawWords = item.keyword.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/);
+    for (const w of rawWords) {
+      if (w.length < 2 || stopWords.has(w) || words.includes(w)) continue;
+      const testString = [...words, w].join(' ');
+      const byteLen = Buffer.byteLength(testString, 'utf8');
+      if (byteLen <= maxBytes) {
+        words.push(w);
+      } else {
+        break;
+      }
+    }
+  }
+
+  const terms = words.join(' ');
+  return {
+    terms,
+    byteLength: Buffer.byteLength(terms, 'utf8'),
+    wordCount: words.length,
+  };
+}
+
+/**
+ * Returns IndiaMART B2B, wholesale, supplier, and bulk procurement search terms.
+ */
+export function getIndiaMartWholesaleKeywords(category?: string): KeywordRecord[] {
+  const records = loadMasterKeywords();
+  const pool = category && category !== 'all'
+    ? records.filter((r) => r.category === category || r.cluster === category)
+    : records;
+
+  return pool.filter((r) => {
+    const k = r.normalizedKeyword;
+    return (
+      k.includes('wholesale') ||
+      k.includes('bulk') ||
+      k.includes('supplier') ||
+      k.includes('dealer') ||
+      k.includes('distributor') ||
+      k.includes('school lab') ||
+      k.includes('atl lab') ||
+      k.includes('institution')
+    );
+  });
+}
+
+/**
+ * Returns Local SEO search terms for Google Business Profile across major Indian tech hubs.
+ */
+export function getLocalGbpKeywords(city?: string): KeywordRecord[] {
+  const records = loadMasterKeywords();
+  const pool = records.filter((r) => r.intent === 'Local' || r.category === 'Regional & Hinglish');
+  if (!city || city === 'all') return pool;
+
+  const targetCity = city.toLowerCase();
+  return pool.filter((r) => r.normalizedKeyword.includes(targetCity));
+}
+
+/**
+ * Returns Blog, YouTube, and Answer Engine Optimization (AEO) content ideas.
+ */
+export function getBlogAndYouTubeContentIdeas(category?: string): KeywordRecord[] {
+  const records = loadMasterKeywords();
+  const pool = category && category !== 'all'
+    ? records.filter((r) => r.category === category || r.cluster === category)
+    : records;
+
+  return pool.filter((r) => {
+    if (r.category === 'Events & How-To') return true;
+    if (r.intent !== 'Informational') return false;
+    const k = r.normalizedKeyword;
+    return (
+      k.includes('how to') ||
+      k.includes('what is') ||
+      k.includes('rules') ||
+      k.includes('pid') ||
+      k.includes('tuning') ||
+      k.includes('guide') ||
+      k.includes('tutorial') ||
+      k.includes('difference between') ||
+      k.includes('why')
+    );
+  });
+}
+
+/**
+ * Returns competitor and marketplace comparison keywords (Amazon, Flipkart, Robu, ThinkRobotics, etc.).
+ */
+export function getPlatformComparisonKeywords(platform?: string): KeywordRecord[] {
+  const records = loadMasterKeywords();
+  const pool = records.filter((r) => r.category === 'Platform Search' || r.intent === 'Comparison');
+  if (!platform || platform === 'all') return pool;
+
+  const targetPlatform = platform.toLowerCase();
+  return pool.filter((r) => r.normalizedKeyword.includes(targetPlatform));
 }
