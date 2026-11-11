@@ -436,7 +436,7 @@ export function generateInvoiceHtml(data: InvoicePayload): string {
         </td>
         <td class="doc-type">
           <div class="doc-title">${isGst ? 'TAX INVOICE' : 'BILL OF SUPPLY / SALE RECEIPT'}</div>
-          <div class="doc-subtitle">${isGst ? 'Original For Recipient' : 'Composition / Unregistered under GST Law — Section 31(3)(c)'}</div>
+          ${isGst ? '<div class="doc-subtitle">Original For Recipient</div>' : ''}
         </td>
       </tr>
     </table>
