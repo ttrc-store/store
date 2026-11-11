@@ -134,13 +134,13 @@ export default function Header({ user: initialUser, categories }: HeaderProps) {
         </div>
         <div className="flex items-center gap-5 font-medium">
           <Link
-            href="/offers"
-            className="flex items-center gap-1.5 text-amber-300 hover:text-white font-bold transition-colors"
+            href="/events/shaastra-roborun-2027"
+            className="flex items-center gap-1.5 text-red-300 hover:text-white font-bold transition-colors"
           >
-            <Sparkles size={12} className="text-amber-400 animate-pulse" />
-            <span>Diwali Offers</span>
+            <Sparkles size={12} className="text-[#E3132A] animate-pulse" />
+            <span>RoboRun 2027</span>
           </Link>
-          <span className="text-purple-900" aria-hidden="true"> · </span>
+          <span className="text-slate-700" aria-hidden="true"> · </span>
           <Link href={user ? '/account/orders' : '/login?redirect=/account/orders'} className="hover:text-white transition-colors">
             Track Order
           </Link>

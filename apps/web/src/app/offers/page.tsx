@@ -11,28 +11,29 @@ export const revalidate = 1800; // 30 minutes ISR
 const CANONICAL_URL = 'https://www.ttrc.store/offers';
 
 export const metadata: Metadata = {
-  title: 'Diwali Robotics Offers & Discounts | TTRC Store India',
+  title: 'RoboRun 2027 & Robotics Offers | TTRC Store India',
   description:
-    'Explore exclusive Diwali robotics offers and festive discounts at TTRC Store India. Flat savings on Line Follower Robot kits, Arduino & ESP32 STEM kits, LiPo batteries, and robotics sensors with fast pan-India delivery.',
+    'Explore exclusive competition robotics offers and special discounts at TTRC Store India. Flat savings on Line Follower Robot kits for Shaastra 2027 RoboRun, Arduino & ESP32 STEM kits, LiPo batteries, and sensors with fast pan-India delivery.',
   keywords: [
-    'diwali robotics offers',
-    'diwali robot kit discount',
-    'robotics diwali sale india',
-    'line follower robot diwali offer',
-    'ttrc store diwali offers',
+    'competition robotics offers',
+    'shaastra 2027 roborun discounts',
+    'line follower robot kit offer',
+    'robotics offers india',
+    'line follower robot deals',
+    'ttrc store offers',
     'festive robotics deals',
-    'stem kit diwali coupon',
-    'arduino kit diwali sale',
-    'esp32 robot kit diwali discount',
+    'stem kit coupon',
+    'arduino kit sale',
+    'esp32 robot kit discount',
     'competition line follower robot discount',
   ],
   alternates: {
     canonical: CANONICAL_URL,
   },
   openGraph: {
-    title: 'Diwali Robotics Offers & Festive Sale — TTRC Store India',
+    title: 'RoboRun 2027 & Robotics Offers — TTRC Store India',
     description:
-      'Celebrate Diwali with special robotics deals. Flat discounts on competition Line Follower Robots, STEM kits, motors, sensors, and LiPo batteries.',
+      'Build for Shaastra 2027 RoboRun with special robotics deals. Flat discounts on competition Line Follower Robots, STEM kits, motors, sensors, and LiPo batteries.',
     url: CANONICAL_URL,
     siteName: 'TTRC Store',
     locale: 'en_IN',
@@ -42,44 +43,44 @@ export const metadata: Metadata = {
         url: 'https://www.ttrc.store/brand/ttrc-logo.png',
         width: 1200,
         height: 630,
-        alt: 'TTRC Store Diwali Robotics Offers & Festive Sale',
+        alt: 'TTRC Store Robotics Offers & Deals',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Diwali Robotics Offers & Festive Sale | TTRC Store',
+    title: 'RoboRun 2027 & Robotics Offers | TTRC Store',
     description:
-      'Save big this festive season on genuine Indian robotics kits, high-speed line followers, sensors, and controllers.',
+      'Save on genuine Indian robotics kits, high-speed line followers, sensors, and controllers.',
     images: ['https://www.ttrc.store/brand/ttrc-logo.png'],
   },
 };
 
-const DIWALI_FAQS = [
+const COMPETITION_FAQS = [
   {
-    question: 'What are the top Diwali robotics offers available on TTRC Store?',
+    question: 'What are the top competition robotics offers available on TTRC Store?',
     answer:
-      'TTRC Store offers festive discounts across all competition robotics kits including the TTRC LF 6.0 Line Follower Robot (Diwali offer at ₹2,999), TTRC LF-6.0 PRO at ₹4,999, and the championship-grade LINE X PRO at ₹8,999. In addition, customers receive festive bundle discounts on LiPo batteries, QTR sensor arrays, and N20 motor packages.',
+      'TTRC Store offers special deals across all competition robotics kits including the TTRC LF 6.0 Line Follower Robot (at ₹2,999), TTRC LF-6.0 PRO at ₹4,999, and the championship-grade LINE X PRO at ₹8,999. In addition, customers receive bundle discounts on LiPo batteries, 7-array sensor bars, and N20 motor packages.',
   },
   {
-    question: 'Are Line Follower Robot kits eligible for festive coupon codes?',
+    question: 'Are Line Follower Robot kits eligible for coupon codes?',
     answer:
-      'Yes! All line follower kits, STEM educational kits, and robotic chassis are eligible for active festive coupon codes. Enter coupon code FESTIVE10 at checkout for an instant 10% discount on orders above ₹1,999.',
+      'Yes! All line follower kits, STEM educational kits, and robotic chassis are eligible for active coupon codes. Enter coupon code FESTIVE10 at checkout for an instant 10% discount on orders above ₹1,999.',
   },
   {
-    question: 'How fast is delivery for Diwali robotics orders in India?',
+    question: 'How fast is delivery for robotics competition orders in India?',
     answer:
       'TTRC Store provides same-day dispatch for orders placed before 2:00 PM IST from our Tamil Nadu tech hub. Standard delivery across South India takes 1–3 business days, and Express Priority Air delivery reaches major Indian metro cities (Bengaluru, Chennai, Hyderabad, Mumbai, Delhi, Pune) in 24–48 hours.',
   },
   {
-    question: 'Can schools, colleges, and Atal Tinkering Labs (ATL) get bulk Diwali discounts?',
+    question: 'Can schools, colleges, and Atal Tinkering Labs (ATL) get bulk discounts?',
     answer:
-      'Yes, we provide institutional festive pricing and customized GST bills of supply for schools, STEM clubs, Atal Tinkering Labs, and engineering colleges. Contact our institutional sales team via the Bulk Enquiry page for immediate formal quotations.',
+      'Yes, we provide institutional pricing and customized GST bills of supply for schools, STEM clubs, Atal Tinkering Labs, and engineering colleges. Contact our institutional sales team via the Bulk Enquiry page for immediate formal quotations.',
   },
   {
-    question: 'Are TTRC robotics products covered under warranty during the Diwali sale?',
+    question: 'Are TTRC robotics products covered under warranty during promotional sales?',
     answer:
-      'All products purchased during the Diwali festive sale include our standard 100% pre-dispatch quality verification, technical support, and component replacement guarantee for transit defects under the TTRC Warranty & Return Policy.',
+      'All products include our standard 100% pre-dispatch quality verification, technical support, and component replacement guarantee for transit defects under the TTRC Warranty & Return Policy.',
   },
 ];
 
@@ -94,9 +95,9 @@ export default async function OffersPage() {
         '@type': 'CollectionPage',
         '@id': `${CANONICAL_URL}#webpage`,
         url: CANONICAL_URL,
-        name: 'Diwali Robotics Offers & Discounts | TTRC Store India',
+        name: 'RoboRun 2027 & Competition Robotics Offers | TTRC Store India',
         description:
-          'Explore exclusive Diwali robotics offers and festive discounts at TTRC Store India. Flat savings on Line Follower Robot kits, Arduino & ESP32 STEM kits, and LiPo batteries.',
+          'Explore exclusive competition robotics offers and special discounts at TTRC Store India. Flat savings on Line Follower Robot kits, Arduino & ESP32 STEM kits, and LiPo batteries.',
         breadcrumb: {
           '@id': `${CANONICAL_URL}#breadcrumb`,
         },
@@ -104,12 +105,12 @@ export default async function OffersPage() {
       {
         '@type': 'SaleEvent',
         '@id': `${CANONICAL_URL}#saleEvent`,
-        name: 'TTRC Store Diwali Robotics Festive Mega Sale',
+        name: 'TTRC Store Competition Robotics Special Sale',
         description:
-          'Annual Diwali mega sale featuring robotics competition kits, line followers, STEM education sets, and electronics components.',
+          'Special competition sale featuring robotics kits, line followers, STEM education sets, and electronics components.',
         url: CANONICAL_URL,
         startDate: '2026-10-01',
-        endDate: '2026-11-30',
+        endDate: '2027-01-31',
         eventStatus: 'https://schema.org/EventScheduled',
         eventAttendanceMode: 'https://schema.org/OnlineEventAttendanceMode',
         location: {
@@ -135,7 +136,7 @@ export default async function OffersPage() {
           {
             '@type': 'ListItem',
             position: 2,
-            name: 'Offers & Diwali Deals',
+            name: 'Offers & Competition Deals',
             item: CANONICAL_URL,
           },
         ],
@@ -143,7 +144,7 @@ export default async function OffersPage() {
       {
         '@type': 'FAQPage',
         '@id': `${CANONICAL_URL}#faq`,
-        mainEntity: DIWALI_FAQS.map((faq) => ({
+        mainEntity: COMPETITION_FAQS.map((faq) => ({
           '@type': 'Question',
           name: faq.question,
           acceptedAnswer: {
@@ -169,26 +170,26 @@ export default async function OffersPage() {
             <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-slate-500 font-medium">
               <Link href="/" className="hover:text-slate-900 transition-colors">Home</Link>
               <ChevronRight size={12} className="text-slate-400" />
-              <span className="text-[#E3132A] font-bold">Diwali &amp; Festive Offers</span>
+              <span className="text-[#E3132A] font-bold">RoboRun 2027 &amp; Offers</span>
             </nav>
           </div>
         </div>
 
-        {/* Festive Mega Hero Banner */}
+        {/* Competition Mega Hero Banner */}
         <section className="relative overflow-hidden bg-gradient-to-br from-white via-[#FDECEE]/40 to-[#F7F7F8] border-b border-slate-200 py-12 sm:py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-3xl mx-auto space-y-4">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FDECEE] border border-red-200 text-[#E3132A] text-xs font-bold uppercase tracking-wider shadow-xs">
                 <Sparkles size={14} className="text-[#E3132A]" />
-                Diwali Festive Mega Sale &bull; Up to 40% Off
+                Competition Season &bull; Shaastra 2027 Ready
               </div>
 
               <h1 className="text-3xl sm:text-5xl font-black text-[#14141A] tracking-tight font-heading">
-                TTRC Diwali Robotics Offers &amp; Festive Deals
+                TTRC Competition Robotics Offers &amp; Special Deals
               </h1>
 
               <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
-                Elevate your robotics game this festival season. Get exclusive festive discounts on competition-proven
+                Elevate your robotics game for Shaastra 2027 RoboRun and college competitions. Get exclusive discounts on competition-proven
                 Line Follower Robots, high-speed controllers, LiPo battery packs, and STEM kits with fast pan-India delivery.
               </p>
 
@@ -219,9 +220,9 @@ export default async function OffersPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
               <div>
-                <span className="text-xs font-bold text-[#E3132A] uppercase tracking-wider">Festival Highlights</span>
+                <span className="text-xs font-bold text-[#E3132A] uppercase tracking-wider">Competition Highlights</span>
                 <h2 className="text-2xl sm:text-3xl font-extrabold text-[#14141A] mt-1 font-heading">
-                  Diwali Special Edition Robotics Platforms
+                  RoboRun &amp; Competition Edition Robotics Platforms
                 </h2>
               </div>
               <Link
@@ -256,7 +257,7 @@ export default async function OffersPage() {
                     href="/product/ttrc-lfr-6-0"
                     className="block w-full py-2.5 text-center text-xs font-bold text-white bg-[#E3132A] hover:bg-[#B80F21] rounded-xl transition-colors shadow-xs"
                   >
-                    View Diwali Deal
+                    View Competition Deal
                   </Link>
                 </div>
               </div>
@@ -287,7 +288,7 @@ export default async function OffersPage() {
                     href="/product/ttrc-lf-6-0-pro-line-follower-robot"
                     className="block w-full py-2.5 text-center text-xs font-bold text-white bg-[#E3132A] hover:bg-[#B80F21] rounded-xl transition-colors shadow-xs"
                   >
-                    View Diwali Deal
+                    View Competition Deal
                   </Link>
                 </div>
               </div>
@@ -315,7 +316,7 @@ export default async function OffersPage() {
                     href="/product/ttrc-line-x-pro-line-follower-robot"
                     className="block w-full py-2.5 text-center text-xs font-bold text-white bg-[#E3132A] hover:bg-[#B80F21] rounded-xl transition-colors shadow-xs"
                   >
-                    View Diwali Deal
+                    View Competition Deal
                   </Link>
                 </div>
               </div>
@@ -329,10 +330,10 @@ export default async function OffersPage() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h2 className="text-xl sm:text-2xl font-bold text-[#14141A] font-heading">
-                  All Diwali Robotics Deals &amp; Components
+                  All Competition Deals &amp; Robotics Components
                 </h2>
                 <p className="text-xs text-slate-500 mt-1">
-                  Genuine robotics motors, sensors, microcontrollers, and hardware eligible for festive discounts.
+                  Genuine robotics motors, sensors, microcontrollers, and hardware eligible for competition discounts.
                 </p>
               </div>
               <span className="text-xs text-slate-500 font-medium">
@@ -344,7 +345,7 @@ export default async function OffersPage() {
               <div className="text-center py-16 bg-white rounded-2xl border border-slate-200">
                 <Tag size={32} className="mx-auto text-slate-300 mb-3" />
                 <p className="text-sm font-bold text-slate-700">No products available at this moment.</p>
-                <p className="text-xs text-slate-500 mt-1">Check back shortly as festive stock is updated.</p>
+                <p className="text-xs text-slate-500 mt-1">Check back shortly as competition stock is updated.</p>
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
@@ -373,7 +374,7 @@ export default async function OffersPage() {
               <div className="space-y-2 p-4 rounded-xl bg-slate-50 border border-slate-100">
                 <Truck size={22} className="mx-auto text-[#E3132A]" />
                 <h4 className="text-xs font-bold text-[#14141A]">Pan-India Delivery</h4>
-                <p className="text-[11px] text-slate-500">Same-day dispatch for all festival orders</p>
+                <p className="text-[11px] text-slate-500">Same-day dispatch for all competition orders</p>
               </div>
               <div className="space-y-2 p-4 rounded-xl bg-slate-50 border border-slate-100">
                 <ShieldCheck size={22} className="mx-auto text-[#E3132A]" />
@@ -383,7 +384,7 @@ export default async function OffersPage() {
               <div className="space-y-2 p-4 rounded-xl bg-slate-50 border border-slate-100">
                 <Zap size={22} className="mx-auto text-[#E3132A]" />
                 <h4 className="text-xs font-bold text-[#14141A]">Competition Ready</h4>
-                <p className="text-[11px] text-slate-500">Built for Technoxian, Robofest, &amp; Techfests</p>
+                <p className="text-[11px] text-slate-500">Built for Shaastra, Technoxian, Robofest, &amp; Techfests</p>
               </div>
               <div className="space-y-2 p-4 rounded-xl bg-slate-50 border border-slate-100">
                 <Tag size={22} className="mx-auto text-[#E3132A]" />
@@ -402,15 +403,15 @@ export default async function OffersPage() {
                 <HelpCircle size={14} /> Frequently Asked Questions
               </div>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-[#14141A] font-heading">
-                Diwali Robotics Offers &amp; Ordering FAQs
+                Competition Robotics Offers &amp; Ordering FAQs
               </h2>
               <p className="text-xs text-slate-600 max-w-xl mx-auto">
-                Everything you need to know about festive discounts, shipping schedules, and technical support.
+                Everything you need to know about competition discounts, shipping schedules, and technical support.
               </p>
             </div>
 
             <div className="space-y-4">
-              {DIWALI_FAQS.map((faq, idx) => (
+              {COMPETITION_FAQS.map((faq, idx) => (
                 <div
                   key={idx}
                   className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-2"
@@ -428,7 +429,7 @@ export default async function OffersPage() {
 
             <div className="text-center pt-4">
               <p className="text-xs text-slate-500">
-                Need customized festival robotics packages for your institution or club?{' '}
+                Need customized competition robotics packages for your institution or club?{' '}
                 <Link href="/bulk-enquiry" className="text-[#E3132A] font-bold hover:underline">
                   Submit a Bulk RFQ Enquiry
                 </Link>

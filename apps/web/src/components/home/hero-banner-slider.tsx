@@ -13,39 +13,51 @@ interface HeroBannerSliderProps {
 
 const FALLBACK_BANNERS: HeroBannerDTO[] = [
   {
-    id: 'diwali-lf-6-0',
+    id: 'shaastra-roborun-2027',
+    mediaUrl: '/banners/shaastra-roborun-2027.webp',
+    title: 'IIT Madras Shaastra 2027 RoboRun — Build Your Line Follower with TTRC',
+    linkUrl: '/events/shaastra-roborun-2027',
+    offerPrice: '₹60K Prize Pool',
+    regularPrice: 'IIT Madras',
+    type: 'image',
+    rotationSeconds: 5,
+    sortOrder: 1,
+    isActive: true,
+  },
+  {
+    id: 'lfr-6-0',
     mediaUrl: '/banners/special-offer-1.png',
     title: 'TTRC LF 6.0 Line Follower Robot (Without Battery)',
     linkUrl: '/product/ttrc-lfr-6-0',
     offerPrice: '₹2,999',
     regularPrice: '₹3,799',
     type: 'image',
-    rotationSeconds: 3,
-    sortOrder: 1,
+    rotationSeconds: 4,
+    sortOrder: 2,
     isActive: true,
   },
   {
-    id: 'diwali-lf-6-0-pro',
+    id: 'lfr-6-0-pro',
     mediaUrl: '/banners/special-offer-2.png',
     title: 'TTRC LF-6.0 PRO Line Follower Robot',
     linkUrl: '/product/ttrc-lf-6-0-pro-line-follower-robot',
     offerPrice: '₹4,999',
     regularPrice: '₹5,999',
     type: 'image',
-    rotationSeconds: 3,
-    sortOrder: 2,
+    rotationSeconds: 4,
+    sortOrder: 3,
     isActive: true,
   },
   {
-    id: 'diwali-line-x-pro',
+    id: 'line-x-pro',
     mediaUrl: '/banners/special-offer-3.png',
     title: 'TTRC LINE X PRO Line Follower Robot',
     linkUrl: '/product/ttrc-line-x-pro-line-follower-robot',
     offerPrice: '₹8,999',
     regularPrice: '₹10,999',
     type: 'image',
-    rotationSeconds: 3,
-    sortOrder: 3,
+    rotationSeconds: 4,
+    sortOrder: 4,
     isActive: true,
   },
 ];
@@ -158,18 +170,18 @@ export function HeroBannerSlider({ banners: propBanners }: HeroBannerSliderProps
           width={2000}
           height={2000}
           priority={safeIndex === 0}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.02]"
+          className="w-full h-full object-contain bg-[#14141A] transition-transform duration-700 group-hover:scale-[1.02]"
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 420px, 500px"
         />
       )}
 
       {/* Hover Information Overlay Bar */}
       {(currentBanner.offerPrice || currentBanner.title) && (
-        <div className="absolute inset-x-0 bottom-0 p-3 sm:p-4 bg-gradient-to-t from-black/75 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-between text-white">
+        <div className="absolute inset-x-0 bottom-0 p-3 sm:p-4 bg-gradient-to-t from-black/85 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-between text-white">
           <div className="flex items-center gap-1.5 text-xs font-bold drop-shadow">
             {currentBanner.offerPrice && (
               <>
-                <Tag size={13} className="text-amber-300 shrink-0" />
+                <Tag size={13} className="text-[#E3132A] shrink-0" />
                 <span>{currentBanner.offerPrice}</span>
               </>
             )}
@@ -179,7 +191,7 @@ export function HeroBannerSlider({ banners: propBanners }: HeroBannerSliderProps
               </span>
             )}
           </div>
-          <span className="text-[11px] font-bold bg-[#844AFB] text-white px-2.5 py-1 rounded-full shadow-md shrink-0">
+          <span className="text-[11px] font-bold bg-[#E3132A] text-white px-2.5 py-1 rounded-full shadow-md shrink-0 hover:bg-[#B80F21] transition-colors">
             View Details →
           </span>
         </div>
@@ -197,12 +209,12 @@ export function HeroBannerSlider({ banners: propBanners }: HeroBannerSliderProps
     >
       {/* Ambient background glow */}
       <div
-        className="absolute inset-0 rounded-3xl bg-[#844AFB]/20 blur-3xl scale-95 pointer-events-none transition-all duration-700"
+        className="absolute inset-0 rounded-3xl bg-[#E3132A]/10 blur-3xl scale-95 pointer-events-none transition-all duration-700"
         aria-hidden="true"
       />
 
       {/* Main Responsive Poster Frame */}
-      <div className="relative rounded-3xl overflow-hidden border border-purple-200/80 shadow-2xl bg-white aspect-square group">
+      <div className="relative rounded-3xl overflow-hidden border border-slate-200 shadow-2xl bg-[#14141A] aspect-square group">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentBanner.id}
@@ -215,7 +227,7 @@ export function HeroBannerSlider({ banners: propBanners }: HeroBannerSliderProps
             {currentBanner.linkUrl ? (
               <Link
                 href={currentBanner.linkUrl}
-                className="block relative w-full h-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#844AFB] focus:ring-offset-2 rounded-3xl"
+                className="block relative w-full h-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#E3132A] focus:ring-offset-2 rounded-3xl"
                 aria-label={`View ${currentBanner.title}`}
               >
                 {MediaContent}
@@ -232,7 +244,7 @@ export function HeroBannerSlider({ banners: propBanners }: HeroBannerSliderProps
             type="button"
             onClick={handlePrev}
             aria-label="Previous promotional banner"
-            className="absolute left-2.5 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/90 hover:bg-white text-slate-800 hover:text-[#844AFB] shadow-lg border border-slate-200/80 flex items-center justify-center transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-[#844AFB] cursor-pointer hover:scale-105 active:scale-95 z-10"
+            className="absolute left-2.5 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/90 hover:bg-white text-slate-800 hover:text-[#E3132A] shadow-lg border border-slate-200/80 flex items-center justify-center transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-[#E3132A] cursor-pointer hover:scale-105 active:scale-95 z-10"
           >
             <ChevronLeft size={18} />
           </button>
@@ -244,15 +256,15 @@ export function HeroBannerSlider({ banners: propBanners }: HeroBannerSliderProps
             type="button"
             onClick={handleNext}
             aria-label="Next promotional banner"
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/90 hover:bg-white text-slate-800 hover:text-[#844AFB] shadow-lg border border-slate-200/80 flex items-center justify-center transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-[#844AFB] cursor-pointer hover:scale-105 active:scale-95 z-10"
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/90 hover:bg-white text-slate-800 hover:text-[#E3132A] shadow-lg border border-slate-200/80 flex items-center justify-center transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-[#E3132A] cursor-pointer hover:scale-105 active:scale-95 z-10"
           >
             <ChevronRight size={18} />
           </button>
         )}
 
-        {/* 3-Second Active Progress & Dot Indicators at Bottom */}
+        {/* Active Progress & Dot Indicators at Bottom */}
         {banners.length > 1 && (
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-2.5 py-1.5 rounded-full border border-white/20 shadow-md">
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5 bg-black/50 backdrop-blur-md px-2.5 py-1.5 rounded-full border border-white/20 shadow-md">
             {banners.map((banner, index) => {
               const isActive = index === safeIndex;
               return (
@@ -268,7 +280,7 @@ export function HeroBannerSlider({ banners: propBanners }: HeroBannerSliderProps
                   {isActive && (
                     <motion.div
                       key={`progress-${safeIndex}-${isPaused ? 'paused' : 'playing'}`}
-                      className="absolute inset-y-0 left-0 bg-[#844AFB] rounded-full"
+                      className="absolute inset-y-0 left-0 bg-[#E3132A] rounded-full"
                       initial={{ width: '0%' }}
                       animate={{ width: isPaused ? '0%' : '100%' }}
                       transition={{
