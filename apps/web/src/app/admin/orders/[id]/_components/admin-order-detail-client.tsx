@@ -38,6 +38,35 @@ const STATUS_OPTIONS = [
   { value: 'refunded', label: 'Refunded' },
 ];
 
+function OrderItemThumbnail({ src, alt }: { src?: string; alt: string }) {
+  const [imgSrc, setImgSrc] = React.useState<string>(src || '/brand/ttrc-logo.png');
+  const [hasError, setHasError] = React.useState<boolean>(false);
+
+  return (
+    <div className="relative w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center">
+      {!hasError ? (
+        <Image
+          src={imgSrc}
+          alt={alt}
+          fill
+          unoptimized
+          sizes="40px"
+          className="object-contain p-1"
+          onError={() => {
+            if (imgSrc !== '/brand/ttrc-logo.png') {
+              setImgSrc('/brand/ttrc-logo.png');
+            } else {
+              setHasError(true);
+            }
+          }}
+        />
+      ) : (
+        <Package size={18} className="text-slate-400" />
+      )}
+    </div>
+  );
+}
+
 export default function AdminOrderDetailClient({ order }: { order: any }) {
   const router = useRouter();
 
@@ -178,14 +207,7 @@ export default function AdminOrderDetailClient({ order }: { order: any }) {
                   <tr key={idx} className="hover:bg-slate-50/60 transition-colors">
                     <td className="py-3 pr-2">
                       <div className="flex items-center gap-3">
-                        <div className="relative w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden shrink-0">
-                          <Image
-                            src={item.image_url || '/brand/ttrc-logo.png'}
-                            alt={item.product_name}
-                            fill
-                            className="object-contain p-1"
-                          />
-                        </div>
+                        <OrderItemThumbnail src={item.image_url} alt={item.product_name} />
                         <div>
                           <p className="font-bold text-slate-900 line-clamp-1">{item.product_name}</p>
                           {item.bulk_tier_applied && (

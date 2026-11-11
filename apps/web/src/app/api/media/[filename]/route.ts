@@ -24,11 +24,17 @@ export async function GET(
 
     const contentType = media.mime_type || (filename.endsWith('.webp') ? 'image/webp' : 'image/jpeg');
 
-    return new NextResponse(media.data as unknown as BodyInit, {
+    const rawBuffer = Buffer.isBuffer(media.data)
+      ? media.data
+      : (media.data as any)?.buffer
+      ? Buffer.from((media.data as any).buffer)
+      : Buffer.from(media.data as any);
+
+    return new NextResponse(new Uint8Array(rawBuffer), {
       status: 200,
       headers: {
         'Content-Type': contentType,
-        'Content-Length': media.size ? media.size.toString() : media.data.length.toString(),
+        'Content-Length': rawBuffer.length.toString(),
         'Cache-Control': 'public, max-age=31536000, immutable',
       },
     });

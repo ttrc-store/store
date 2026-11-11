@@ -166,6 +166,8 @@ export default function AdminProductsClient({
                           src={p.imageUrls[0] || '/brand/ttrc-logo.png'}
                           alt={p.name}
                           fill
+                          unoptimized
+                          sizes="40px"
                           className="object-contain p-1"
                         />
                       </div>
