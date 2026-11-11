@@ -43,9 +43,16 @@ export default async function AccountOverviewPage() {
       {/* Profile Greeting Header */}
       <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h2 className="font-heading text-xl font-bold text-slate-900">
-            Welcome, {profile.fullName}!
-          </h2>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <h2 className="font-heading text-xl font-bold text-slate-900">
+              Welcome, {profile.fullName}!
+            </h2>
+            {profile.customerId && (
+              <span className="font-mono text-xs px-2.5 py-0.5 rounded-md bg-purple-50 text-purple-700 font-bold border border-purple-200">
+                {profile.customerId}
+              </span>
+            )}
+          </div>
           <p className="text-xs text-slate-500 mt-1">
             Customer Account • <span className="font-mono">{profile.email}</span>
           </p>
