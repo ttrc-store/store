@@ -56,8 +56,7 @@ export const metadata: Metadata = {
 export default async function ShaastraRoboRunPage() {
   // Fetch line follower kits and spare parts for the competition
   const { products } = await getStoreProducts({
-    limit: 8,
-    is_active: true,
+    limit: 12,
   });
 
   const lfrProducts = products.filter(
