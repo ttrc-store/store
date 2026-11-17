@@ -100,7 +100,7 @@ export default async function AdminOrderDetailPage({
               target="_blank"
               className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50 transition-colors"
             >
-              <Receipt size={15} className="text-[#E3132A]" />
+              <Receipt size={15} className="text-[#844AFB]" />
               View Tax Invoice / Bill
             </Link>
           ) : (

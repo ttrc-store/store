@@ -78,7 +78,7 @@ export default function RoboticsSensorsGuidePage() {
         {/* Header Block */}
         <header className="space-y-4 border-b border-[#E5E7EB] pb-8 mb-10">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#FDECEE] text-[#E3132A] border border-[#E3132A]/20">
+            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#EEE8FA] text-[#844AFB] border border-[#844AFB]/20">
               Perception &amp; Signal Processing
             </span>
             <span className="text-xs text-[#6B7280]">9 min read • Verified by Tamizh Tech Engineers</span>
@@ -96,7 +96,7 @@ export default function RoboticsSensorsGuidePage() {
         {/* Sensor Family 1 */}
         <section className="space-y-6 mb-12">
           <h2 className="font-heading text-2xl sm:text-3xl font-bold text-[#14141A] flex items-center gap-2">
-            <Eye className="text-[#E3132A]" size={26} />
+            <Eye className="text-[#844AFB]" size={26} />
             1. Infrared (IR) Reflectance Arrays
           </h2>
           <p className="text-sm sm:text-base text-[#14141A] leading-relaxed">
@@ -114,7 +114,7 @@ export default function RoboticsSensorsGuidePage() {
         {/* Sensor Family 2 */}
         <section className="space-y-6 mb-12">
           <h2 className="font-heading text-2xl sm:text-3xl font-bold text-[#14141A] flex items-center gap-2">
-            <Sun className="text-[#E3132A]" size={26} />
+            <Sun className="text-[#844AFB]" size={26} />
             2. Ultrasonic Distance Sensors (HC-SR04)
           </h2>
           <p className="text-sm sm:text-base text-[#14141A] leading-relaxed">
@@ -131,7 +131,7 @@ export default function RoboticsSensorsGuidePage() {
         {/* Sensor Family 3 */}
         <section className="space-y-6 mb-12">
           <h2 className="font-heading text-2xl sm:text-3xl font-bold text-[#14141A] flex items-center gap-2">
-            <Compass className="text-[#E3132A]" size={26} />
+            <Compass className="text-[#844AFB]" size={26} />
             3. Inertial Measurement Units (MPU6050 6-DOF IMU)
           </h2>
           <p className="text-sm sm:text-base text-[#14141A] leading-relaxed">
@@ -149,8 +149,8 @@ export default function RoboticsSensorsGuidePage() {
         </section>
 
         {/* Callout */}
-        <div className="p-8 rounded-2xl bg-[#FDECEE] border border-[#E3132A]/20 space-y-4 mb-12">
-          <div className="flex items-center gap-2 text-[#E3132A] font-bold text-xs uppercase tracking-wider">
+        <div className="p-8 rounded-2xl bg-[#EEE8FA] border border-[#844AFB]/20 space-y-4 mb-12">
+          <div className="flex items-center gap-2 text-[#844AFB] font-bold text-xs uppercase tracking-wider">
             <ShieldCheck size={16} />
             Tested Robotics Sensors
           </div>
@@ -163,7 +163,7 @@ export default function RoboticsSensorsGuidePage() {
           <div className="flex flex-wrap gap-3 pt-2">
             <Link
               href="/category/sensors"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#E3132A] text-white text-xs font-bold hover:bg-[#B80F21] transition-colors"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#844AFB] text-white text-xs font-bold hover:bg-[#6721F2] transition-colors"
             >
               Browse Sensors &amp; Modules
               <ArrowRight size={14} />
@@ -174,7 +174,7 @@ export default function RoboticsSensorsGuidePage() {
         {/* FAQs */}
         <section className="space-y-6 mb-12">
           <h2 className="font-heading text-2xl sm:text-3xl font-bold text-[#14141A] flex items-center gap-2">
-            <HelpCircle className="text-[#E3132A]" size={26} />
+            <HelpCircle className="text-[#844AFB]" size={26} />
             Frequently Asked Sensor Questions
           </h2>
           <div className="space-y-4">
@@ -201,7 +201,7 @@ export default function RoboticsSensorsGuidePage() {
           </Link>
           <Link
             href="/guides"
-            className="inline-flex items-center gap-1 text-xs font-bold text-[#E3132A] hover:text-[#B80F21]"
+            className="inline-flex items-center gap-1 text-xs font-bold text-[#844AFB] hover:text-[#6721F2]"
           >
             Back to All Guides
             <ChevronRight size={14} />

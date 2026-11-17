@@ -146,7 +146,7 @@ export default function AdminOrderDetailClient({ order }: { order: any }) {
                       : order.status === 'shipped'
                       ? 'bg-blue-50 text-blue-700 border-blue-200'
                       : order.status === 'cancelled'
-                      ? 'bg-red-50 text-red-600 border-red-200'
+                      ? 'bg-purple-50 text-[#844AFB] border-purple-200'
                       : 'bg-amber-50 text-amber-700 border-amber-200'
                   }`}
                 >
@@ -163,7 +163,7 @@ export default function AdminOrderDetailClient({ order }: { order: any }) {
                     isPaid
                       ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                       : order.payment_status === 'failed'
-                      ? 'bg-red-50 text-red-700 border-red-200'
+                      ? 'bg-purple-50 text-red-700 border-purple-200'
                       : 'bg-yellow-50 text-yellow-700 border-yellow-200'
                   }`}
                 >
@@ -185,7 +185,7 @@ export default function AdminOrderDetailClient({ order }: { order: any }) {
         <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <h2 className="font-heading font-bold text-sm text-slate-900 flex items-center gap-2">
-              <Package size={16} className="text-[#E3132A]" /> Ordered Items ({order.items.length})
+              <Package size={16} className="text-[#844AFB]" /> Ordered Items ({order.items.length})
             </h2>
             <span className="text-[11px] text-slate-400 font-mono">Immutable Order Snapshot</span>
           </div>
@@ -211,7 +211,7 @@ export default function AdminOrderDetailClient({ order }: { order: any }) {
                         <div>
                           <p className="font-bold text-slate-900 line-clamp-1">{item.product_name}</p>
                           {item.bulk_tier_applied && (
-                            <span className="text-[10px] text-[#E3132A] font-semibold">
+                            <span className="text-[10px] text-[#844AFB] font-semibold">
                               Tier: {item.bulk_tier_applied}
                             </span>
                           )}
@@ -268,7 +268,7 @@ export default function AdminOrderDetailClient({ order }: { order: any }) {
               </div>
               <div className="flex justify-between pt-2 border-t border-slate-200 text-sm font-black text-slate-900">
                 <span>Grand Total</span>
-                <span className="font-mono text-base text-[#E3132A]">{formatRupees(order.total_paise)}</span>
+                <span className="font-mono text-base text-[#844AFB]">{formatRupees(order.total_paise)}</span>
               </div>
             </div>
           </div>
@@ -277,7 +277,7 @@ export default function AdminOrderDetailClient({ order }: { order: any }) {
         {/* Payment Gateway Reconciliation Card */}
         <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-3">
           <h2 className="font-heading font-bold text-sm text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
-            <CreditCard size={16} className="text-[#E3132A]" /> Payment Gateway &amp; Audit Reference
+            <CreditCard size={16} className="text-[#844AFB]" /> Payment Gateway &amp; Audit Reference
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-mono">
@@ -310,7 +310,7 @@ export default function AdminOrderDetailClient({ order }: { order: any }) {
           {/* Shipping Address */}
           <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-2">
             <h3 className="font-heading font-bold text-xs text-slate-900 flex items-center gap-1.5 uppercase tracking-wider text-slate-500">
-              <MapPin size={14} className="text-[#E3132A]" /> Delivery Destination
+              <MapPin size={14} className="text-[#844AFB]" /> Delivery Destination
             </h3>
             <p className="font-bold text-slate-900">{order.shipping_address?.fullName || 'Customer'}</p>
             <p className="text-slate-600">
@@ -327,7 +327,7 @@ export default function AdminOrderDetailClient({ order }: { order: any }) {
           {/* Billing Address / Customer Card */}
           <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-2">
             <h3 className="font-heading font-bold text-xs text-slate-900 flex items-center gap-1.5 uppercase tracking-wider text-slate-500">
-              <User size={14} className="text-[#E3132A]" /> Customer Profile
+              <User size={14} className="text-[#844AFB]" /> Customer Profile
             </h3>
             {order.customer ? (
               <>
@@ -337,7 +337,7 @@ export default function AdminOrderDetailClient({ order }: { order: any }) {
                 {order.customer.id && (
                   <Link
                     href={`/admin/customers`}
-                    className="inline-flex items-center gap-1 text-[11px] font-bold text-[#E3132A] hover:underline pt-1"
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-[#844AFB] hover:underline pt-1"
                   >
                     View Customer Account <ExternalLink size={12} />
                   </Link>
@@ -358,11 +358,11 @@ export default function AdminOrderDetailClient({ order }: { order: any }) {
         {/* Status Progression Control Card */}
         <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-4">
           <h2 className="font-heading font-bold text-sm text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
-            <Truck size={16} className="text-[#E3132A]" /> Fulfillment Progression
+            <Truck size={16} className="text-[#844AFB]" /> Fulfillment Progression
           </h2>
 
           {errorMsg && (
-            <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-start gap-2">
+            <div className="p-3 rounded-xl bg-purple-50 border border-purple-200 text-xs text-red-700 flex items-start gap-2">
               <AlertCircle size={15} className="shrink-0 mt-0.5" />
               <span>{errorMsg}</span>
             </div>
@@ -381,7 +381,7 @@ export default function AdminOrderDetailClient({ order }: { order: any }) {
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-bold focus:outline-none focus:border-[#E3132A]"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-bold focus:outline-none focus:border-[#844AFB]"
               >
                 {STATUS_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -405,14 +405,14 @@ export default function AdminOrderDetailClient({ order }: { order: any }) {
                 placeholder="e.g. SR-9842014-IN"
                 value={trackingNumber}
                 onChange={(e) => setTrackingNumber(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-mono focus:outline-none focus:border-[#E3132A]"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-mono focus:outline-none focus:border-[#844AFB]"
               />
               {order.tracking_url && (
                 <a
                   href={order.tracking_url}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-[11px] text-[#E3132A] hover:underline inline-flex items-center gap-1 mt-1 font-bold"
+                  className="text-[11px] text-[#844AFB] hover:underline inline-flex items-center gap-1 mt-1 font-bold"
                 >
                   Track on Carrier Portal <ExternalLink size={11} />
                 </a>
@@ -428,14 +428,14 @@ export default function AdminOrderDetailClient({ order }: { order: any }) {
                 placeholder="Record fulfillment steps, courier handover, or customer support notes..."
                 value={adminNote}
                 onChange={(e) => setAdminNote(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#E3132A]"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#844AFB]"
               />
             </div>
 
             <button
               type="submit"
               disabled={saving}
-              className="w-full py-2.5 bg-[#E3132A] hover:bg-[#B80F21] text-white font-bold rounded-xl shadow-sm transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              className="w-full py-2.5 bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold rounded-xl shadow-sm transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
               {saving ? 'Saving Status...' : 'Apply Status Transition'}
@@ -455,7 +455,7 @@ export default function AdminOrderDetailClient({ order }: { order: any }) {
           {/* Delete Unpaid Order Action (For test / abandoned checkouts) */}
           {!isPaid && isOnline && (
             <div className="pt-4 border-t border-red-100 space-y-2">
-              <p className="text-[10px] font-bold text-red-600 uppercase tracking-wider">Unpaid Checkout Management</p>
+              <p className="text-[10px] font-bold text-[#844AFB] uppercase tracking-wider">Unpaid Checkout Management</p>
               <p className="text-[11px] text-slate-500">
                 Payment was not received for this order. You can discard this incomplete order to restore reserved inventory and clean up your orders list.
               </p>
@@ -463,7 +463,7 @@ export default function AdminOrderDetailClient({ order }: { order: any }) {
                 type="button"
                 onClick={handleDeleteUnpaid}
                 disabled={deleting}
-                className="w-full py-2 bg-white border border-red-200 hover:bg-red-50 text-red-600 font-bold rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer transition-colors disabled:opacity-50"
+                className="w-full py-2 bg-white border border-purple-200 hover:bg-purple-50 text-[#844AFB] font-bold rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer transition-colors disabled:opacity-50"
               >
                 {deleting ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
                 {deleting ? 'Discarding Order...' : 'Delete Unpaid Order & Restock'}
@@ -475,7 +475,7 @@ export default function AdminOrderDetailClient({ order }: { order: any }) {
         {/* Audit Timeline */}
         <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-3">
           <h2 className="font-heading font-bold text-sm text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
-            <Clock size={16} className="text-[#E3132A]" /> Audit Trail &amp; Events ({order.auditLogs.length})
+            <Clock size={16} className="text-[#844AFB]" /> Audit Trail &amp; Events ({order.auditLogs.length})
           </h2>
 
           {order.auditLogs.length === 0 ? (
@@ -483,7 +483,7 @@ export default function AdminOrderDetailClient({ order }: { order: any }) {
           ) : (
             <div className="space-y-3">
               {order.auditLogs.map((log: any) => (
-                <div key={log.id} className="relative pl-4 border-l-2 border-red-200 space-y-0.5 text-xs">
+                <div key={log.id} className="relative pl-4 border-l-2 border-purple-200 space-y-0.5 text-xs">
                   <p className="font-bold text-slate-800">{log.action}</p>
                   <p className="text-[10px] text-slate-400 font-mono">
                     {new Date(log.created_at).toLocaleString('en-IN')} • Actor: {log.actor_id}
@@ -491,7 +491,7 @@ export default function AdminOrderDetailClient({ order }: { order: any }) {
                   {log.metadata?.newStatus && (
                     <p className="text-[11px] text-slate-600">
                       Transition: <span className="font-semibold">{log.metadata.oldStatus}</span> →{' '}
-                      <span className="font-bold text-[#E3132A]">{log.metadata.newStatus}</span>
+                      <span className="font-bold text-[#844AFB]">{log.metadata.newStatus}</span>
                     </p>
                   )}
                 </div>

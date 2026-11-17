@@ -533,7 +533,7 @@ export default function CheckoutPage() {
             contact: phone,
           },
           theme: {
-            color: '#E3132A',
+            color: '#844AFB',
           },
           notes: {
             sessionId: (res as any).sessionId || res.orderId,

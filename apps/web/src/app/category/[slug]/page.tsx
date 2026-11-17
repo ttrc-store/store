@@ -157,7 +157,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
         <div className="relative rounded-2xl p-6 sm:p-10 mb-8 bg-[#14141A] border border-slate-800 text-white shadow-md">
           <div className="relative z-10 max-w-3xl space-y-3">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#FDECEE] text-[#E3132A]">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#EEE8FA] text-[#844AFB]">
                 Official TTRC Catalogue
               </span>
               {cluster && (
@@ -179,7 +179,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
               <div className="pt-2">
                 <Link
                   href={relatedGuide.href}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-[#E3132A] hover:underline bg-white/10 px-3 py-1.5 rounded-lg border border-white/10"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-[#844AFB] hover:underline bg-white/10 px-3 py-1.5 rounded-lg border border-white/10"
                 >
                   Read Engineering Guide: {relatedGuide.title} →
                 </Link>
@@ -195,7 +195,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
               href={`/category/${slug}`}
               className={`px-6 py-3 font-heading font-bold text-sm border-b-2 transition-colors whitespace-nowrap ${
                 typeFilter === 'all'
-                  ? 'border-[#E3132A] text-[#E3132A]'
+                  ? 'border-[#844AFB] text-[#844AFB]'
                   : 'border-transparent text-slate-500 hover:text-[#14141A]'
               }`}
             >
@@ -205,7 +205,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
               href={`/category/${slug}?type=kit`}
               className={`px-6 py-3 font-heading font-bold text-sm border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${
                 typeFilter === 'kit'
-                  ? 'border-[#E3132A] text-[#E3132A]'
+                  ? 'border-[#844AFB] text-[#844AFB]'
                   : 'border-transparent text-slate-500 hover:text-[#14141A]'
               }`}
             >
@@ -216,7 +216,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
               href={`/category/${slug}?type=spare_part`}
               className={`px-6 py-3 font-heading font-bold text-sm border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${
                 typeFilter === 'spare_part'
-                  ? 'border-[#E3132A] text-[#E3132A]'
+                  ? 'border-[#844AFB] text-[#844AFB]'
                   : 'border-transparent text-slate-500 hover:text-[#14141A]'
               }`}
             >
@@ -261,7 +261,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                 </p>
                 <Link
                   href={`/category/${slug}`}
-                  className="inline-block px-5 py-2 rounded-xl bg-[#E3132A] text-white font-bold text-xs hover:bg-[#B80F21] transition-colors shadow-xs"
+                  className="inline-block px-5 py-2 rounded-xl bg-[#844AFB] text-white font-bold text-xs hover:bg-[#6721F2] transition-colors shadow-xs"
                 >
                   Clear Filters
                 </Link>

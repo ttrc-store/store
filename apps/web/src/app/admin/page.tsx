@@ -221,7 +221,7 @@ export default async function AdminDashboardOverview() {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {metrics.recentOrders.map((order) => (
-                    <tr key={order.id} className="hover:bg-[#FDECEE]/30 transition-colors">
+                    <tr key={order.id} className="hover:bg-[#EEE8FA]/40 transition-colors">
                       <td className="py-3">
                         <p className="font-mono font-bold text-slate-900 text-[11px]">
                           {order.order_number ?? order.id.slice(0, 8)}

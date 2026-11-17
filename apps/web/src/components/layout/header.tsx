@@ -135,9 +135,9 @@ export default function Header({ user: initialUser, categories }: HeaderProps) {
         <div className="flex items-center gap-5 font-medium">
           <Link
             href="/events/shaastra-roborun-2027"
-            className="flex items-center gap-1.5 text-red-300 hover:text-white font-bold transition-colors"
+            className="flex items-center gap-1.5 text-purple-200 hover:text-white font-bold transition-colors"
           >
-            <Sparkles size={12} className="text-[#E3132A] animate-pulse" />
+            <Sparkles size={12} className="text-[#AF87F8] animate-pulse" />
             <span>RoboRun 2027</span>
           </Link>
           <span className="text-slate-700" aria-hidden="true"> · </span>

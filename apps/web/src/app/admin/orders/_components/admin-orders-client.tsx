@@ -30,7 +30,7 @@ const STATUS_COLORS: Record<string, string> = {
   packed: 'bg-purple-50 text-purple-600 border-purple-200',
   shipped: 'bg-slate-100 text-slate-700 border-slate-300',
   delivered: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  cancelled: 'bg-red-50 text-red-600 border-red-200',
+  cancelled: 'bg-purple-50 text-[#844AFB] border-purple-200',
   pending_payment: 'bg-yellow-50 text-yellow-700 border-yellow-200',
   payment_failed: 'bg-red-100 text-red-700 border-red-300',
   return_requested: 'bg-orange-50 text-orange-700 border-orange-200',
@@ -166,7 +166,7 @@ export default function AdminOrdersClient({
                   <td className="py-3">
                     <Link
                       href={`/admin/orders/${order.id}`}
-                      className="font-mono font-bold text-slate-900 hover:text-[#E3132A] transition-colors"
+                      className="font-mono font-bold text-slate-900 hover:text-[#844AFB] transition-colors"
                     >
                       {order.order_number ?? order.id.slice(0, 8)}
                     </Link>
@@ -195,13 +195,13 @@ export default function AdminOrdersClient({
                     <div className="flex items-center justify-end gap-2">
                       <button
                         onClick={() => openEditModal(order)}
-                        className="px-2.5 py-1 rounded-lg bg-[#FDECEE] text-[#E3132A] hover:bg-[#E3132A] hover:text-white text-[11px] font-bold transition-colors border border-red-200 cursor-pointer"
+                        className="px-2.5 py-1 rounded-lg bg-[#EEE8FA] text-[#844AFB] hover:bg-[#844AFB] hover:text-white text-[11px] font-bold transition-colors border border-purple-200 cursor-pointer"
                       >
                         Update Status
                       </button>
                       <Link
                         href={`/admin/orders/${order.id}`}
-                        className="p-1.5 rounded-lg bg-slate-100 text-slate-600 hover:text-[#E3132A] hover:bg-[#FDECEE] transition-colors"
+                        className="p-1.5 rounded-lg bg-slate-100 text-slate-600 hover:text-[#844AFB] hover:bg-[#EEE8FA] transition-colors"
                         title="Inspect Order Details"
                       >
                         <Eye size={14} />
@@ -214,7 +214,7 @@ export default function AdminOrdersClient({
           </table>
         ) : (
           <div className="py-12 text-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-red-50 border border-red-200 flex items-center justify-center mx-auto text-[#E3132A]">
+            <div className="w-16 h-16 rounded-full bg-purple-50 border border-purple-200 flex items-center justify-center mx-auto text-[#844AFB]">
               <Package size={28} />
             </div>
             <div className="space-y-1">
@@ -235,7 +235,7 @@ export default function AdminOrdersClient({
             <p className="text-[11px] text-slate-500 font-mono break-all">{editingOrderId}</p>
 
             {modalError && (
-              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium">
+              <div className="p-3 rounded-xl bg-purple-50 border border-purple-200 text-red-700 text-xs font-medium">
                 {modalError}
               </div>
             )}
@@ -246,7 +246,7 @@ export default function AdminOrdersClient({
                 <select
                   value={newStatus}
                   onChange={(e) => setNewStatus(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 focus:outline-none focus:border-[#E3132A]"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 focus:outline-none focus:border-[#844AFB]"
                 >
                   {STATUS_OPTIONS.filter((s) => s !== 'all').map((s) => (
                     <option key={s} value={s}>
@@ -265,7 +265,7 @@ export default function AdminOrdersClient({
                   value={newAwb}
                   onChange={(e) => setNewAwb(e.target.value)}
                   placeholder="e.g. SR-84920412-IN"
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 font-mono placeholder-slate-400 focus:outline-none focus:border-[#E3132A]"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 font-mono placeholder-slate-400 focus:outline-none focus:border-[#844AFB]"
                 />
               </div>
 
@@ -276,7 +276,7 @@ export default function AdminOrdersClient({
                   value={adminNote}
                   onChange={(e) => setAdminNote(e.target.value)}
                   placeholder="e.g. Dispatched from Coimbatore warehouse"
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#E3132A]"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#844AFB]"
                 />
               </div>
             </div>
@@ -291,7 +291,7 @@ export default function AdminOrdersClient({
               <button
                 onClick={handleUpdateStatus}
                 disabled={saving}
-                className="px-5 py-2 rounded-xl bg-[#E3132A] hover:bg-[#B80F21] text-white text-xs font-bold disabled:opacity-60 shadow-sm cursor-pointer"
+                className="px-5 py-2 rounded-xl bg-[#844AFB] hover:bg-[#6721F2] text-white text-xs font-bold disabled:opacity-60 shadow-sm cursor-pointer"
               >
                 {saving ? 'Saving...' : 'Save Status'}
               </button>

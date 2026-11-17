@@ -186,7 +186,7 @@ export default function AdminProductsClient({
                     <PriceTag pricePaise={p.price_paise} mrpPaise={p.mrp_paise ?? undefined} size="sm" />
                   </td>
                   <td className="py-3">
-                    <span className={`font-mono font-bold ${p.stock_qty === 0 ? 'text-red-600' : p.stock_qty < 5 ? 'text-amber-600' : 'text-emerald-600'}`}>
+                    <span className={`font-mono font-bold ${p.stock_qty === 0 ? 'text-[#844AFB]' : p.stock_qty < 5 ? 'text-amber-600' : 'text-emerald-600'}`}>
                       {p.stock_qty} units
                     </span>
                   </td>
@@ -216,7 +216,7 @@ export default function AdminProductsClient({
                           setDeleteError(null);
                           setCanArchiveFallback(false);
                         }}
-                        className="p-1.5 rounded-lg bg-slate-100 text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                        className="p-1.5 rounded-lg bg-slate-100 text-slate-400 hover:text-[#844AFB] hover:bg-purple-50 transition-colors"
                         title="Remove / Delete Product"
                       >
                         <Trash2 size={14} />
@@ -256,7 +256,7 @@ export default function AdminProductsClient({
         <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-2xl max-w-md w-full max-h-[calc(100dvh-2rem)] overflow-y-auto p-6 shadow-2xl border border-slate-200 space-y-5 animate-in fade-in-50 zoom-in-95">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center text-[#E3132A] flex-shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-purple-50 border border-red-100 flex items-center justify-center text-[#844AFB] flex-shrink-0">
                 <AlertTriangle size={20} />
               </div>
               <div>
@@ -271,7 +271,7 @@ export default function AdminProductsClient({
             </div>
 
             {deleteError ? (
-              <div className="p-3 bg-red-50 rounded-xl border border-red-200 text-xs text-red-700">
+              <div className="p-3 bg-purple-50 rounded-xl border border-purple-200 text-xs text-red-700">
                 {deleteError}
               </div>
             ) : (
@@ -309,7 +309,7 @@ export default function AdminProductsClient({
                   type="button"
                   disabled={deleting}
                   onClick={handleDeleteConfirm}
-                  className="bg-[#E3132A] hover:bg-[#B80F21] text-white text-xs font-bold rounded-xl h-9 gap-1.5 shadow-sm shadow-red-900/10"
+                  className="bg-[#844AFB] hover:bg-[#6721F2] text-white text-xs font-bold rounded-xl h-9 gap-1.5 shadow-sm shadow-red-900/10"
                 >
                   {deleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
                   {deleting ? 'Deleting...' : 'Confirm Remove'}

@@ -83,10 +83,10 @@ async function HeroSection() {
           <div className="lg:col-span-6 space-y-4 lg:space-y-4 text-left">
 
             {/* Brand Ecosystem Tagline Badge */}
-            <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white border border-[#E5E7EB] shadow-2xs hover:border-[#E3132A]/30 transition-colors">
+            <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white border border-[#E5E7EB] shadow-2xs hover:border-[#844AFB]/30 transition-colors">
               <span className="flex h-2 w-2 relative shrink-0">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#E3132A] opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#E3132A]" />
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#844AFB] opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#844AFB]" />
               </span>
               <span className="text-xs text-[#14141A] font-medium tracking-tight">
                 <span className="font-bold text-[#14141A]">Build, repair, upgrade, innovate:</span>{' '}
@@ -97,7 +97,7 @@ async function HeroSection() {
             {/* H1 */}
             <h1 className="font-heading text-3xl sm:text-4xl lg:text-[2.65rem] font-extrabold tracking-tight text-[#14141A] leading-[1.12]">
               Engineering Robotics &amp;<br />
-              <span className="text-[#E3132A]">Electronics &amp; Components</span>
+              <span className="text-[#844AFB]">Electronics &amp; Components</span>
             </h1>
 
             <p className="text-[#6B7280] text-sm sm:text-base max-w-xl leading-relaxed">
@@ -109,7 +109,7 @@ async function HeroSection() {
               <Link href="/search">
                 <Button
                   size="default"
-                  className="gap-2 bg-[#E3132A] hover:bg-[#B80F21] text-white font-extrabold text-xs sm:text-sm px-6 h-10 sm:h-11 shadow-md shadow-red-900/10 rounded-xl transition-all hover:shadow-red-900/20 hover:-translate-y-px"
+                  className="gap-2 bg-[#844AFB] hover:bg-[#6721F2] text-white font-extrabold text-xs sm:text-sm px-6 h-10 sm:h-11 shadow-md shadow-purple-900/20 rounded-xl transition-all hover:shadow-purple-900/35 hover:-translate-y-px"
                   id="hero-shop-products"
                 >
                   <span>Shop Category</span>
@@ -120,9 +120,9 @@ async function HeroSection() {
                 <Button
                   variant="outline"
                   size="default"
-                  className="gap-2 border-[#E5E7EB] hover:border-[#E3132A] text-[#14141A] hover:text-[#E3132A] bg-white font-extrabold text-xs sm:text-sm px-5 h-10 sm:h-11 rounded-xl transition-all"
+                  className="gap-2 border-[#E5E7EB] hover:border-[#844AFB] text-[#14141A] hover:text-[#844AFB] bg-white font-extrabold text-xs sm:text-sm px-5 h-10 sm:h-11 rounded-xl transition-all"
                 >
-                  <span className="w-2 h-2 rounded-full bg-[#E3132A]" />
+                  <span className="w-2 h-2 rounded-full bg-[#844AFB]" />
                   <span>Shaastra 2027 RoboRun</span>
                 </Button>
               </Link>
@@ -131,19 +131,19 @@ async function HeroSection() {
             {/* Trust micro-strip */}
             <div className="pt-3 flex flex-wrap items-center gap-4 sm:gap-5 text-xs font-bold text-[#14141A] border-t border-[#E5E7EB]">
               <div className="flex items-center gap-1.5">
-                <ShieldCheck size={14} className="text-[#E3132A]" />
+                <ShieldCheck size={14} className="text-[#844AFB]" />
                 <span>GST Invoices</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <Zap size={14} className="text-[#E3132A]" />
+                <Zap size={14} className="text-[#844AFB]" />
                 <span>Dispatch within 10 days</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <Truck size={14} className="text-[#E3132A]" />
+                <Truck size={14} className="text-[#844AFB]" />
                 <span>Pan-India Delivery</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <Building size={14} className="text-[#E3132A]" />
+                <Building size={14} className="text-[#844AFB]" />
                 <span>Bulk Orders Welcome</span>
               </div>
             </div>
@@ -195,7 +195,7 @@ function TrustStrip() {
               key={i}
               className="flex items-center gap-3"
             >
-              <div className="w-10 h-10 rounded-xl bg-[#FDECEE] text-[#E3132A] flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-[#EEE8FA] text-[#844AFB] flex items-center justify-center shrink-0">
                 {item.icon}
               </div>
               <div>
@@ -227,7 +227,7 @@ function ShaastraRoboRunSpotlight() {
               priority
             />
             <div className="absolute top-3 left-3 flex items-center gap-2">
-              <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-[#E3132A] text-white shadow-md">
+              <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-[#844AFB] text-white shadow-md">
                 Live Event
               </span>
               <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#14141A]/80 backdrop-blur-md text-white border border-white/20">
@@ -240,7 +240,7 @@ function ShaastraRoboRunSpotlight() {
           <div className="lg:col-span-5 p-6 sm:p-8 space-y-4 text-left">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-[#E3132A]">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#844AFB]">
                   Autonomous Line Follower Challenge
                 </span>
               </div>
@@ -259,10 +259,10 @@ function ShaastraRoboRunSpotlight() {
             <div className="grid grid-cols-2 gap-2.5 py-1">
               <div className="p-2.5 rounded-xl bg-[#F7F7F8] border border-[#E5E7EB]">
                 <p className="text-[10px] text-[#6B7280] uppercase font-bold tracking-wider flex items-center gap-1">
-                  <Trophy size={11} className="text-[#E3132A]" />
+                  <Trophy size={11} className="text-[#844AFB]" />
                   <span>Prize Pool</span>
                 </p>
-                <p className="text-sm font-extrabold text-[#E3132A]">₹60,000</p>
+                <p className="text-sm font-extrabold text-[#844AFB]">₹60,000</p>
               </div>
               <div className="p-2.5 rounded-xl bg-[#F7F7F8] border border-[#E5E7EB]">
                 <p className="text-[10px] text-[#6B7280] uppercase font-bold tracking-wider flex items-center gap-1">
@@ -289,7 +289,7 @@ function ShaastraRoboRunSpotlight() {
 
             <div className="flex flex-wrap items-center gap-3 pt-1">
               <Link href="/events/shaastra-roborun-2027" className="flex-1 min-w-[140px]">
-                <Button className="w-full bg-[#E3132A] hover:bg-[#B80F21] text-white font-bold text-xs h-10 rounded-xl shadow-xs transition-all">
+                <Button className="w-full bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold text-xs h-10 rounded-xl shadow-md shadow-purple-900/20 transition-all">
                   <span>Build with TTRC</span>
                   <ArrowRight size={14} className="ml-1.5" />
                 </Button>
@@ -302,7 +302,7 @@ function ShaastraRoboRunSpotlight() {
               >
                 <Button
                   variant="outline"
-                  className="w-full border-[#E5E7EB] hover:border-[#14141A] text-[#14141A] font-bold text-xs h-10 rounded-xl bg-white"
+                  className="w-full border-[#E5E7EB] hover:border-[#844AFB] hover:text-[#844AFB] text-[#14141A] font-bold text-xs h-10 rounded-xl bg-white transition-colors"
                 >
                   Register on Unstop
                 </Button>
@@ -326,7 +326,7 @@ async function CategoriesSection() {
       {/* Section header */}
       <div className="flex items-end justify-between">
         <div>
-          <p className="text-xs font-bold text-[#E3132A] uppercase tracking-widest mb-1">Catalog</p>
+          <p className="text-xs font-bold text-[#844AFB] uppercase tracking-widest mb-1">Catalog</p>
           <h2 className="font-heading text-2xl sm:text-3xl font-extrabold text-[#14141A] tracking-tight">
             Shop Electronics &amp; Components
           </h2>
@@ -337,7 +337,7 @@ async function CategoriesSection() {
         {visibleCategories.length > 0 && (
           <Link
             href="/category/gamified-robots"
-            className="text-xs font-bold text-[#E3132A] hover:text-[#B80F21] inline-flex items-center gap-1 group"
+            className="text-xs font-bold text-[#844AFB] hover:text-[#6721F2] inline-flex items-center gap-1 group"
             aria-label="View all categories"
           >
             <span>All Categories</span>
@@ -361,7 +361,7 @@ async function CategoriesSection() {
         </div>
       ) : (
         <div className="p-10 text-center rounded-2xl bg-[#F7F7F8] border border-[#E5E7EB] space-y-2">
-          <Package size={32} className="mx-auto text-[#E3132A]" />
+          <Package size={32} className="mx-auto text-[#844AFB]" />
           <p className="text-sm font-bold text-[#14141A]">
             Categories will appear here once configured.
           </p>
@@ -451,7 +451,7 @@ function EngineeringCollections() {
     >
       <div className="flex items-end justify-between">
         <div>
-          <p className="text-xs font-bold text-[#E3132A] uppercase tracking-widest mb-1">Curated Catalog</p>
+          <p className="text-xs font-bold text-[#844AFB] uppercase tracking-widest mb-1">Curated Catalog</p>
           <h2 className="font-heading text-2xl sm:text-3xl font-extrabold text-[#14141A] tracking-tight">
             Engineering Collections
           </h2>
@@ -461,7 +461,7 @@ function EngineeringCollections() {
         </div>
         <Link
           href="/category/gamified-robots"
-          className="text-xs font-bold text-[#E3132A] hover:text-[#B80F21] inline-flex items-center gap-1 group"
+          className="text-xs font-bold text-[#844AFB] hover:text-[#6721F2] inline-flex items-center gap-1 group"
         >
           <span>View All</span>
           <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
@@ -473,7 +473,7 @@ function EngineeringCollections() {
           <Link
             key={col.id}
             href={col.href}
-            className="group relative overflow-hidden rounded-2xl bg-white text-[#14141A] border border-[#E5E7EB] hover:border-[#E3132A] transition-all duration-300 hover:shadow-md hover:-translate-y-0.5"
+            className="group relative overflow-hidden rounded-2xl bg-white text-[#14141A] border border-[#E5E7EB] hover:border-[#844AFB] transition-all duration-300 hover:shadow-md hover:-translate-y-0.5"
             aria-label={col.title}
           >
             <div className="p-5 space-y-3 min-h-[120px] flex flex-col justify-between">
@@ -481,7 +481,7 @@ function EngineeringCollections() {
                 <p className="font-heading text-sm font-bold leading-snug">{col.title}</p>
                 <p className="text-[11px] text-[#6B7280] mt-1 leading-relaxed">{col.sub}</p>
               </div>
-              <div className="flex items-center gap-1 text-[11px] font-bold text-[#E3132A] group-hover:text-[#B80F21] transition-colors">
+              <div className="flex items-center gap-1 text-[11px] font-bold text-[#844AFB] group-hover:text-[#6721F2] transition-colors">
                 <span>Explore {col.title}</span>
                 <ChevronRight
                   size={12}
@@ -505,7 +505,7 @@ function EngineeringSpotlight() {
         {/* Fasteners promo */}
         <div className="relative overflow-hidden rounded-2xl bg-[#14141A] text-white p-7 border border-[#E5E7EB]">
           <div className="relative z-10 space-y-3">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-[#E3132A] bg-[#E3132A]/10 px-2.5 py-1 rounded border border-[#E3132A]/20">
+            <span className="text-[10px] font-mono uppercase tracking-widest text-[#844AFB] bg-[#844AFB]/10 px-2.5 py-1 rounded border border-[#844AFB]/20">
               Precision Fasteners
             </span>
             <h3 className="font-heading text-xl font-bold">M2 / M3 / M4 Screws,<br />Standoffs &amp; Spacers</h3>
@@ -513,7 +513,7 @@ function EngineeringSpotlight() {
               Engineering-grade fasteners for robot chassis, PCB standoffs, and frames. Build securely without stripped screws.
             </p>
             <Link href="/category/fasteners">
-              <Button className="bg-[#E3132A] hover:bg-[#B80F21] text-white font-bold text-xs rounded-xl h-9 px-5 mt-2">
+              <Button className="bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold text-xs rounded-xl h-9 px-5 mt-2 shadow-md shadow-purple-900/20">
                 Explore Fasteners
               </Button>
             </Link>
@@ -523,7 +523,7 @@ function EngineeringSpotlight() {
         {/* Batteries promo */}
         <div className="relative overflow-hidden rounded-2xl bg-[#14141A] text-white p-7 border border-[#E5E7EB]">
           <div className="relative z-10 space-y-3">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-[#E3132A] bg-[#E3132A]/10 px-2.5 py-1 rounded border border-[#E3132A]/20">
+            <span className="text-[10px] font-mono uppercase tracking-widest text-[#844AFB] bg-[#844AFB]/10 px-2.5 py-1 rounded border border-[#844AFB]/20">
               Power Systems
             </span>
             <h3 className="font-heading text-xl font-bold">LiPo Batteries<br />&amp; Charging Systems</h3>
@@ -533,7 +533,7 @@ function EngineeringSpotlight() {
             <Link href="/category/batteries">
               <Button
                 variant="outline"
-                className="border-white/20 text-white hover:bg-white/10 rounded-xl font-bold text-xs h-9 px-5 mt-2"
+                className="border-white/20 text-white hover:bg-white/10 hover:border-[#844AFB] hover:text-[#844AFB] rounded-xl font-bold text-xs h-9 px-5 mt-2 transition-colors"
               >
                 Explore Batteries
               </Button>
@@ -555,8 +555,8 @@ function VisionMissionSection() {
           <div className="space-y-2 text-left">
             <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white border border-[#E5E7EB] shadow-2xs">
               <span className="flex h-2 w-2 relative shrink-0">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#E3132A] opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#E3132A]" />
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#844AFB] opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#844AFB]" />
               </span>
               <span className="text-xs text-[#14141A] font-medium tracking-tight">
                 <span className="font-bold text-[#14141A]">Build, repair, upgrade, innovate:</span>{' '}
@@ -572,7 +572,7 @@ function VisionMissionSection() {
           </div>
           <Link
             href="/about"
-            className="text-xs sm:text-sm font-bold text-[#E3132A] hover:text-[#B80F21] inline-flex items-center gap-1.5 group self-start md:self-auto shrink-0"
+            className="text-xs sm:text-sm font-bold text-[#844AFB] hover:text-[#6721F2] inline-flex items-center gap-1.5 group self-start md:self-auto shrink-0"
           >
             <span>Read Complete Mission &amp; Pillars</span>
             <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
@@ -581,13 +581,13 @@ function VisionMissionSection() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
           {/* Vision Card */}
-          <div className="rounded-2xl bg-white border border-[#E5E7EB] p-6 sm:p-7 space-y-4 shadow-2xs hover:border-[#E3132A]/40 hover:shadow-md transition-all">
+          <div className="rounded-2xl bg-white border border-[#E5E7EB] p-6 sm:p-7 space-y-4 shadow-2xs hover:border-[#844AFB]/40 hover:shadow-md transition-all">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#E3132A] text-white flex items-center justify-center shadow-xs">
+              <div className="w-10 h-10 rounded-xl bg-[#844AFB] text-white flex items-center justify-center shadow-xs">
                 <Target size={20} />
               </div>
               <div>
-                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#E3132A]">The Goal</span>
+                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#844AFB]">The Goal</span>
                 <h3 className="font-heading text-lg sm:text-xl font-extrabold text-[#14141A]">OUR VISION</h3>
               </div>
             </div>
@@ -600,9 +600,9 @@ function VisionMissionSection() {
           </div>
 
           {/* Mission Card */}
-          <div className="rounded-2xl bg-white border border-[#E5E7EB] p-6 sm:p-7 space-y-4 shadow-2xs hover:border-[#E3132A]/40 hover:shadow-md transition-all">
+          <div className="rounded-2xl bg-white border border-[#E5E7EB] p-6 sm:p-7 space-y-4 shadow-2xs hover:border-[#844AFB]/40 hover:shadow-md transition-all">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#14141A] text-[#E3132A] flex items-center justify-center shadow-xs">
+              <div className="w-10 h-10 rounded-xl bg-[#14141A] text-[#844AFB] flex items-center justify-center shadow-xs">
                 <Rocket size={20} />
               </div>
               <div>
@@ -631,7 +631,7 @@ function B2BSection() {
       <div className="relative overflow-hidden rounded-2xl border border-[#E5E7EB] bg-[#F7F7F8] p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="space-y-2 text-left max-w-xl relative z-10">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs font-bold text-[#E3132A] bg-white px-2.5 py-1 rounded-lg border border-[#E5E7EB] shadow-2xs">
+            <span className="text-xs font-bold text-[#844AFB] bg-white px-2.5 py-1 rounded-lg border border-[#E5E7EB] shadow-2xs">
               Institutional &amp; Club Orders
             </span>
             <span className="text-xs text-[#6B7280] font-semibold">· GST Invoicing Guaranteed</span>
@@ -646,7 +646,7 @@ function B2BSection() {
         <div className="shrink-0 flex flex-col sm:flex-row gap-3 w-full md:w-auto relative z-10">
           <Link href="/bulk-enquiry">
             <Button
-              className="w-full sm:w-auto bg-[#E3132A] hover:bg-[#B80F21] text-white font-bold text-xs h-11 px-6 rounded-xl shadow-xs"
+              className="w-full sm:w-auto bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold text-xs h-11 px-6 rounded-xl shadow-md shadow-purple-900/20"
               id="b2b-request-quote"
             >
               Request Bulk Quote
@@ -659,7 +659,7 @@ function B2BSection() {
           >
             <Button
               variant="outline"
-              className="w-full sm:w-auto border-[#E5E7EB] text-[#14141A] hover:bg-white font-bold text-xs h-11 px-5 rounded-xl bg-white"
+              className="w-full sm:w-auto border-[#E5E7EB] hover:border-[#844AFB] text-[#14141A] hover:text-[#844AFB] font-bold text-xs h-11 px-5 rounded-xl bg-white transition-colors"
               id="b2b-whatsapp"
             >
               Chat on WhatsApp
@@ -677,7 +677,7 @@ function ReviewsNote() {
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" aria-label="Customer reviews policy">
       <div className="p-8 text-center rounded-2xl bg-[#F7F7F8] border border-[#E5E7EB] space-y-3">
-        <Award size={32} className="mx-auto text-[#E3132A]" />
+        <Award size={32} className="mx-auto text-[#844AFB]" />
         <h2 className="font-heading text-base font-bold text-[#14141A]">
           Verified Buyer Reviews — Displayed After Purchase Verification
         </h2>
@@ -698,7 +698,7 @@ function NewsletterSection() {
         <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="text-left space-y-2 max-w-md">
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-mono uppercase tracking-widest text-[#E3132A] font-bold">
+              <span className="text-[11px] font-mono uppercase tracking-widest text-[#844AFB] font-bold">
                 Stay Connected
               </span>
             </div>

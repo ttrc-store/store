@@ -170,17 +170,17 @@ export default async function OffersPage() {
             <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-slate-500 font-medium">
               <Link href="/" className="hover:text-slate-900 transition-colors">Home</Link>
               <ChevronRight size={12} className="text-slate-400" />
-              <span className="text-[#E3132A] font-bold">RoboRun 2027 &amp; Offers</span>
+              <span className="text-[#844AFB] font-bold">RoboRun 2027 &amp; Offers</span>
             </nav>
           </div>
         </div>
 
         {/* Competition Mega Hero Banner */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-white via-[#FDECEE]/40 to-[#F7F7F8] border-b border-slate-200 py-12 sm:py-16">
+        <section className="relative overflow-hidden bg-gradient-to-br from-white via-[#EEE8FA]/40 to-[#F7F7F8] border-b border-slate-200 py-12 sm:py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-3xl mx-auto space-y-4">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FDECEE] border border-red-200 text-[#E3132A] text-xs font-bold uppercase tracking-wider shadow-xs">
-                <Sparkles size={14} className="text-[#E3132A]" />
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#EEE8FA] border border-purple-200 text-[#844AFB] text-xs font-bold uppercase tracking-wider shadow-xs">
+                <Sparkles size={14} className="text-[#844AFB]" />
                 Competition Season &bull; Shaastra 2027 Ready
               </div>
 
@@ -195,11 +195,11 @@ export default async function OffersPage() {
 
               {/* Active Coupons Strip */}
               <div className="pt-4 flex flex-wrap items-center justify-center gap-3">
-                <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-white border-2 border-dashed border-[#E3132A] shadow-xs">
-                  <Percent size={16} className="text-[#E3132A]" />
+                <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-white border-2 border-dashed border-[#844AFB] shadow-xs">
+                  <Percent size={16} className="text-[#844AFB]" />
                   <div className="text-left">
                     <span className="block text-[10px] text-slate-500 font-bold uppercase">Storewide 10% Off</span>
-                    <span className="text-xs font-black text-[#E3132A] font-mono">FESTIVE10</span>
+                    <span className="text-xs font-black text-[#844AFB] font-mono">FESTIVE10</span>
                   </div>
                 </div>
 
@@ -220,14 +220,14 @@ export default async function OffersPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
               <div>
-                <span className="text-xs font-bold text-[#E3132A] uppercase tracking-wider">Competition Highlights</span>
+                <span className="text-xs font-bold text-[#844AFB] uppercase tracking-wider">Competition Highlights</span>
                 <h2 className="text-2xl sm:text-3xl font-extrabold text-[#14141A] mt-1 font-heading">
                   RoboRun &amp; Competition Edition Robotics Platforms
                 </h2>
               </div>
               <Link
                 href="/category/gamified-robots"
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#E3132A] hover:text-[#B80F21] transition-colors"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#844AFB] hover:text-[#6721F2] transition-colors"
               >
                 View all competition kits <ChevronRight size={14} />
               </Link>
@@ -238,7 +238,7 @@ export default async function OffersPage() {
               <div className="p-6 rounded-2xl bg-[#F7F7F8] border border-slate-200 flex flex-col justify-between hover:border-red-300 transition-all hover:shadow-md">
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="px-2.5 py-1 rounded-md bg-[#FDECEE] text-[#E3132A] text-[11px] font-bold">
+                    <span className="px-2.5 py-1 rounded-md bg-[#EEE8FA] text-[#844AFB] text-[11px] font-bold">
                       Save ₹800
                     </span>
                     <span className="text-xs text-slate-500 font-medium">Bestseller</span>
@@ -248,14 +248,14 @@ export default async function OffersPage() {
                     High precision PID line follower robot with optical reflectance array. Perfect for beginners and school competitions.
                   </p>
                   <div className="pt-2 flex items-baseline gap-2">
-                    <span className="text-2xl font-black text-[#E3132A]">₹2,999</span>
+                    <span className="text-2xl font-black text-[#844AFB]">₹2,999</span>
                     <span className="text-sm text-slate-400 line-through">₹3,799</span>
                   </div>
                 </div>
                 <div className="pt-6">
                   <Link
                     href="/product/ttrc-lfr-6-0"
-                    className="block w-full py-2.5 text-center text-xs font-bold text-white bg-[#E3132A] hover:bg-[#B80F21] rounded-xl transition-colors shadow-xs"
+                    className="block w-full py-2.5 text-center text-xs font-bold text-white bg-[#844AFB] hover:bg-[#6721F2] rounded-xl transition-colors shadow-xs"
                   >
                     View Competition Deal
                   </Link>
@@ -263,13 +263,13 @@ export default async function OffersPage() {
               </div>
 
               {/* Card 2 */}
-              <div className="p-6 rounded-2xl bg-[#F7F7F8] border-2 border-[#E3132A]/30 relative flex flex-col justify-between hover:border-[#E3132A] transition-all hover:shadow-lg">
-                <div className="absolute -top-3 right-4 px-3 py-0.5 rounded-full bg-[#E3132A] text-white text-[10px] font-bold uppercase tracking-wider">
+              <div className="p-6 rounded-2xl bg-[#F7F7F8] border-2 border-[#844AFB]/30 relative flex flex-col justify-between hover:border-[#844AFB] transition-all hover:shadow-lg">
+                <div className="absolute -top-3 right-4 px-3 py-0.5 rounded-full bg-[#844AFB] text-white text-[10px] font-bold uppercase tracking-wider">
                   Most Popular
                 </div>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="px-2.5 py-1 rounded-md bg-[#FDECEE] text-[#E3132A] text-[11px] font-bold">
+                    <span className="px-2.5 py-1 rounded-md bg-[#EEE8FA] text-[#844AFB] text-[11px] font-bold">
                       Save ₹1,000
                     </span>
                     <span className="text-xs text-slate-500 font-medium">Pro Platform</span>
@@ -279,14 +279,14 @@ export default async function OffersPage() {
                     Upgraded coreless high-RPM motors, reinforced CNC chassis, and ultra-fast dynamic PID algorithm response.
                   </p>
                   <div className="pt-2 flex items-baseline gap-2">
-                    <span className="text-2xl font-black text-[#E3132A]">₹4,999</span>
+                    <span className="text-2xl font-black text-[#844AFB]">₹4,999</span>
                     <span className="text-sm text-slate-400 line-through">₹5,999</span>
                   </div>
                 </div>
                 <div className="pt-6">
                   <Link
                     href="/product/ttrc-lf-6-0-pro-line-follower-robot"
-                    className="block w-full py-2.5 text-center text-xs font-bold text-white bg-[#E3132A] hover:bg-[#B80F21] rounded-xl transition-colors shadow-xs"
+                    className="block w-full py-2.5 text-center text-xs font-bold text-white bg-[#844AFB] hover:bg-[#6721F2] rounded-xl transition-colors shadow-xs"
                   >
                     View Competition Deal
                   </Link>
@@ -297,7 +297,7 @@ export default async function OffersPage() {
               <div className="p-6 rounded-2xl bg-[#F7F7F8] border border-slate-200 flex flex-col justify-between hover:border-red-300 transition-all hover:shadow-md">
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="px-2.5 py-1 rounded-md bg-[#FDECEE] text-[#E3132A] text-[11px] font-bold">
+                    <span className="px-2.5 py-1 rounded-md bg-[#EEE8FA] text-[#844AFB] text-[11px] font-bold">
                       Save ₹2,000
                     </span>
                     <span className="text-xs text-slate-500 font-medium">Championship</span>
@@ -307,14 +307,14 @@ export default async function OffersPage() {
                     National championship grade line follower with ultra-light carbon chassis, custom MOSFET motor drivers, and telemetry support.
                   </p>
                   <div className="pt-2 flex items-baseline gap-2">
-                    <span className="text-2xl font-black text-[#E3132A]">₹8,999</span>
+                    <span className="text-2xl font-black text-[#844AFB]">₹8,999</span>
                     <span className="text-sm text-slate-400 line-through">₹10,999</span>
                   </div>
                 </div>
                 <div className="pt-6">
                   <Link
                     href="/product/ttrc-line-x-pro-line-follower-robot"
-                    className="block w-full py-2.5 text-center text-xs font-bold text-white bg-[#E3132A] hover:bg-[#B80F21] rounded-xl transition-colors shadow-xs"
+                    className="block w-full py-2.5 text-center text-xs font-bold text-white bg-[#844AFB] hover:bg-[#6721F2] rounded-xl transition-colors shadow-xs"
                   >
                     View Competition Deal
                   </Link>
@@ -372,22 +372,22 @@ export default async function OffersPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
               <div className="space-y-2 p-4 rounded-xl bg-slate-50 border border-slate-100">
-                <Truck size={22} className="mx-auto text-[#E3132A]" />
+                <Truck size={22} className="mx-auto text-[#844AFB]" />
                 <h4 className="text-xs font-bold text-[#14141A]">Pan-India Delivery</h4>
                 <p className="text-[11px] text-slate-500">Same-day dispatch for all competition orders</p>
               </div>
               <div className="space-y-2 p-4 rounded-xl bg-slate-50 border border-slate-100">
-                <ShieldCheck size={22} className="mx-auto text-[#E3132A]" />
+                <ShieldCheck size={22} className="mx-auto text-[#844AFB]" />
                 <h4 className="text-xs font-bold text-[#14141A]">100% Tested Components</h4>
                 <p className="text-[11px] text-slate-500">Bench-tested before safe packaging</p>
               </div>
               <div className="space-y-2 p-4 rounded-xl bg-slate-50 border border-slate-100">
-                <Zap size={22} className="mx-auto text-[#E3132A]" />
+                <Zap size={22} className="mx-auto text-[#844AFB]" />
                 <h4 className="text-xs font-bold text-[#14141A]">Competition Ready</h4>
                 <p className="text-[11px] text-slate-500">Built for Shaastra, Technoxian, Robofest, &amp; Techfests</p>
               </div>
               <div className="space-y-2 p-4 rounded-xl bg-slate-50 border border-slate-100">
-                <Tag size={22} className="mx-auto text-[#E3132A]" />
+                <Tag size={22} className="mx-auto text-[#844AFB]" />
                 <h4 className="text-xs font-bold text-[#14141A]">Official GST Invoices</h4>
                 <p className="text-[11px] text-slate-500">Full tax breakdown for schools &amp; makers</p>
               </div>
@@ -399,7 +399,7 @@ export default async function OffersPage() {
         <section className="py-12 sm:py-16 bg-[#F7F7F8]">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
             <div className="text-center space-y-2">
-              <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#E3132A] uppercase tracking-wider">
+              <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#844AFB] uppercase tracking-wider">
                 <HelpCircle size={14} /> Frequently Asked Questions
               </div>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-[#14141A] font-heading">
@@ -417,7 +417,7 @@ export default async function OffersPage() {
                   className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-2"
                 >
                   <h3 className="text-sm font-bold text-[#14141A] flex items-start gap-2">
-                    <span className="text-[#E3132A] font-mono text-xs mt-0.5">Q{idx + 1}.</span>
+                    <span className="text-[#844AFB] font-mono text-xs mt-0.5">Q{idx + 1}.</span>
                     <span>{faq.question}</span>
                   </h3>
                   <p className="text-xs text-slate-600 leading-relaxed pl-6">
@@ -430,7 +430,7 @@ export default async function OffersPage() {
             <div className="text-center pt-4">
               <p className="text-xs text-slate-500">
                 Need customized competition robotics packages for your institution or club?{' '}
-                <Link href="/bulk-enquiry" className="text-[#E3132A] font-bold hover:underline">
+                <Link href="/bulk-enquiry" className="text-[#844AFB] font-bold hover:underline">
                   Submit a Bulk RFQ Enquiry
                 </Link>
               </p>

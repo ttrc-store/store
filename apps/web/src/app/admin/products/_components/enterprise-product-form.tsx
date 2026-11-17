@@ -1196,7 +1196,7 @@ export function EnterpriseProductForm({
                 setDeleteProductError(null);
                 setCanArchiveInForm(false);
               }}
-              className="border-red-200 text-[#E3132A] hover:bg-red-50 hover:border-red-300 font-bold text-xs h-10 px-3.5 gap-1.5 rounded-xl"
+              className="border-purple-200 text-[#844AFB] hover:bg-purple-50 hover:border-red-300 font-bold text-xs h-10 px-3.5 gap-1.5 rounded-xl"
             >
               <Trash2 size={15} /> Delete Product
             </Button>
@@ -1252,7 +1252,7 @@ export function EnterpriseProductForm({
       )}
 
       {errorMsg && (
-        <div className="p-4 rounded-xl bg-red-50 border border-red-200 flex items-center gap-3 text-xs text-red-600 font-semibold">
+        <div className="p-4 rounded-xl bg-purple-50 border border-purple-200 flex items-center gap-3 text-xs text-[#844AFB] font-semibold">
           <AlertCircle size={18} className="flex-shrink-0" />
           <span>{errorMsg}</span>
         </div>
@@ -1478,7 +1478,7 @@ export function EnterpriseProductForm({
                   <button
                     type="button"
                     onClick={() => setAdditionalCategoryIds([])}
-                    className="text-[11px] text-red-600 hover:underline font-semibold"
+                    className="text-[11px] text-[#844AFB] hover:underline font-semibold"
                   >
                     Clear All ({additionalCategoryIds.length})
                   </button>
@@ -1718,7 +1718,7 @@ export function EnterpriseProductForm({
                     <button
                       type="button"
                       onClick={() => handleRemoveBulkTier(idx)}
-                      className="text-slate-400 hover:text-red-600 p-1 transition-colors"
+                      className="text-slate-400 hover:text-[#844AFB] p-1 transition-colors"
                       title="Delete tier"
                     >
                       <Trash2 size={16} />
@@ -2255,7 +2255,7 @@ export function EnterpriseProductForm({
               <button
                 type="button"
                 onClick={() => handleRemoveSpecRow(idx)}
-                className="text-slate-400 hover:text-red-600 p-1"
+                className="text-slate-400 hover:text-[#844AFB] p-1"
               >
                 <Trash2 size={16} />
               </button>
@@ -2321,7 +2321,7 @@ export function EnterpriseProductForm({
                   className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-800 text-xs font-medium"
                 >
                   <span>{app}</span>
-                  <button type="button" onClick={() => handleRemoveApplication(idx)} className="hover:text-red-600">
+                  <button type="button" onClick={() => handleRemoveApplication(idx)} className="hover:text-[#844AFB]">
                     ×
                   </button>
                 </span>
@@ -2400,7 +2400,7 @@ export function EnterpriseProductForm({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
           <div>
             <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-              <Tag size={16} className="text-[#E3132A]" /> 10. AI-Assisted SEO, AEO &amp; Discoverability
+              <Tag size={16} className="text-[#844AFB]" /> 10. AI-Assisted SEO, AEO &amp; Discoverability
             </h2>
             <p className="text-xs text-slate-500 mt-1">
               Optimized for Google Search, Indian robotics queries, and Answer Engine Optimization (AEO/GEO).
@@ -2412,7 +2412,7 @@ export function EnterpriseProductForm({
             size="sm"
             onClick={handleGenerateWithAi}
             disabled={aiGenerating || !name.trim()}
-            className="text-xs font-bold text-[#E3132A] border-red-200 bg-red-50/50 hover:bg-[#E3132A] hover:text-white transition-all gap-1.5 self-start sm:self-auto"
+            className="text-xs font-bold text-[#844AFB] border-purple-200 bg-purple-50/50 hover:bg-[#844AFB] hover:text-white transition-all gap-1.5 self-start sm:self-auto"
           >
             <Sparkles size={13} className={aiGenerating ? 'animate-spin' : ''} />
             {aiGenerating ? 'Generating Analysis...' : '✨ Generate SEO with AI'}
@@ -2420,15 +2420,15 @@ export function EnterpriseProductForm({
         </div>
 
         {aiSuccessMsg && (
-          <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-900 font-semibold flex items-center justify-between animate-in fade-in">
+          <div className="p-3 rounded-xl bg-purple-50 border border-purple-200 text-xs text-red-900 font-semibold flex items-center justify-between animate-in fade-in">
             <span className="flex items-center gap-2">
-              <Sparkles size={14} className="text-[#E3132A] shrink-0" />
+              <Sparkles size={14} className="text-[#844AFB] shrink-0" />
               {aiSuccessMsg}
             </span>
             <button
               type="button"
               onClick={() => setAiSuccessMsg(null)}
-              className="text-red-600 hover:text-red-900 font-bold ml-2 text-sm"
+              className="text-[#844AFB] hover:text-red-900 font-bold ml-2 text-sm"
             >
               ×
             </button>
@@ -2436,7 +2436,7 @@ export function EnterpriseProductForm({
         )}
 
         {aiErrorMsg && (
-          <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 font-semibold flex items-center justify-between animate-in fade-in">
+          <div className="p-3 rounded-xl bg-purple-50 border border-purple-200 text-xs text-red-700 font-semibold flex items-center justify-between animate-in fade-in">
             <span className="flex items-center gap-2">
               <AlertCircle size={14} className="text-red-500 shrink-0" />
               {aiErrorMsg}
@@ -2444,7 +2444,7 @@ export function EnterpriseProductForm({
             <button
               type="button"
               onClick={() => setAiErrorMsg(null)}
-              className="text-red-600 hover:text-red-900 font-bold ml-2 text-sm"
+              className="text-[#844AFB] hover:text-red-900 font-bold ml-2 text-sm"
             >
               ×
             </button>
@@ -2539,7 +2539,7 @@ export function EnterpriseProductForm({
                   seoTitle.length >= 30 && seoTitle.length <= 65
                     ? 'text-emerald-600 font-bold'
                     : seoTitle.length > 65
-                    ? 'text-red-600 font-bold'
+                    ? 'text-[#844AFB] font-bold'
                     : 'text-slate-400'
                 }`}
               >
@@ -2563,7 +2563,7 @@ export function EnterpriseProductForm({
                   seoDescription.length >= 100 && seoDescription.length <= 165
                     ? 'text-emerald-600 font-bold'
                     : seoDescription.length > 165
-                    ? 'text-red-600 font-bold'
+                    ? 'text-[#844AFB] font-bold'
                     : 'text-slate-400'
                 }`}
               >
@@ -2575,7 +2575,7 @@ export function EnterpriseProductForm({
               value={seoDescription}
               onChange={(e) => setSeoDescription(e.target.value)}
               placeholder="e.g. High-speed line follower robot kit engineered for robotics competitions in India. Includes 8-channel IR sensor array, dual TB6612FNG drivers, and fast India-wide shipping."
-              className="w-full p-2.5 rounded-md border border-slate-200 text-xs bg-white focus:border-[#E3132A] focus:outline-none"
+              className="w-full p-2.5 rounded-md border border-slate-200 text-xs bg-white focus:border-[#844AFB] focus:outline-none"
             />
           </div>
 
@@ -2610,7 +2610,7 @@ export function EnterpriseProductForm({
                     <button
                       type="button"
                       onClick={() => setSecondaryKeywords((prev) => prev.filter((_, idx) => idx !== i))}
-                      className="text-slate-400 hover:text-red-600 text-xs"
+                      className="text-slate-400 hover:text-[#844AFB] text-xs"
                     >
                       ×
                     </button>
@@ -2660,7 +2660,7 @@ export function EnterpriseProductForm({
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                  <HelpCircle size={14} className="text-[#E3132A]" /> Answer Engine Optimization (AEO / FAQ)
+                  <HelpCircle size={14} className="text-[#844AFB]" /> Answer Engine Optimization (AEO / FAQ)
                 </h3>
                 <p className="text-[11px] text-slate-500 mt-0.5">
                   Factual, specification-derived answers for AI search engines &amp; customers. Approved answers are injected into Product FAQs &amp; Schema.org FAQPage.
@@ -2686,7 +2686,7 @@ export function EnterpriseProductForm({
                             updated[index].isApproved = e.target.checked;
                             setSearchQuestions(updated);
                           }}
-                          className="h-4 w-4 rounded border-slate-300 text-[#E3132A] focus:ring-[#E3132A]"
+                          className="h-4 w-4 rounded border-slate-300 text-[#844AFB] focus:ring-[#844AFB]"
                         />
                         <label
                           htmlFor={`qa-approved-${index}`}
@@ -2698,7 +2698,7 @@ export function EnterpriseProductForm({
                       <button
                         type="button"
                         onClick={() => setSearchQuestions((prev) => prev.filter((_, idx) => idx !== index))}
-                        className="text-slate-400 hover:text-red-600 p-1"
+                        className="text-slate-400 hover:text-[#844AFB] p-1"
                         title="Remove question"
                       >
                         <Trash2 size={13} />
@@ -2725,7 +2725,7 @@ export function EnterpriseProductForm({
                         setSearchQuestions(updated);
                       }}
                       placeholder="Factual answer based on verified specifications..."
-                      className="w-full p-2 rounded-md border border-slate-200 text-xs bg-slate-50/50 focus:bg-white focus:border-[#E3132A] focus:outline-none"
+                      className="w-full p-2 rounded-md border border-slate-200 text-xs bg-slate-50/50 focus:bg-white focus:border-[#844AFB] focus:outline-none"
                     />
                   </div>
                 ))}
@@ -2746,7 +2746,7 @@ export function EnterpriseProductForm({
                 placeholder="Factual answer grounded in verified specifications..."
                 value={newAnswer}
                 onChange={(e) => setNewAnswer(e.target.value)}
-                className="w-full p-2 rounded-md border border-slate-200 text-xs bg-white focus:border-[#E3132A] focus:outline-none"
+                className="w-full p-2 rounded-md border border-slate-200 text-xs bg-white focus:border-[#844AFB] focus:outline-none"
               />
               <div className="flex justify-end">
                 <Button
@@ -2887,7 +2887,7 @@ export function EnterpriseProductForm({
                   <button
                     type="button"
                     onClick={() => handleRemoveDocument(idx)}
-                    className="text-slate-400 hover:text-red-600 p-1 rounded transition-colors shrink-0"
+                    className="text-slate-400 hover:text-[#844AFB] p-1 rounded transition-colors shrink-0"
                     title="Remove document"
                   >
                     <Trash2 size={14} />
@@ -2961,7 +2961,7 @@ export function EnterpriseProductForm({
                   <button
                     type="button"
                     onClick={() => handleRemoveInBoxItem(idx)}
-                    className="text-slate-400 hover:text-red-600 p-1 rounded transition-colors"
+                    className="text-slate-400 hover:text-[#844AFB] p-1 rounded transition-colors"
                   >
                     <Trash2 size={13} />
                   </button>
@@ -3024,7 +3024,7 @@ export function EnterpriseProductForm({
             </div>
 
             {catCreationError && (
-              <div className="p-3 bg-red-50 text-red-700 text-xs rounded-xl border border-red-200">
+              <div className="p-3 bg-purple-50 text-red-700 text-xs rounded-xl border border-purple-200">
                 {catCreationError}
               </div>
             )}
@@ -3102,7 +3102,7 @@ export function EnterpriseProductForm({
         <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-2xl max-w-md w-full max-h-[calc(100dvh-2rem)] overflow-y-auto p-6 shadow-2xl border border-slate-200 space-y-5 animate-in fade-in-50 zoom-in-95">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center text-[#E3132A] flex-shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-purple-50 border border-red-100 flex items-center justify-center text-[#844AFB] flex-shrink-0">
                 <AlertTriangle size={20} />
               </div>
               <div>
@@ -3117,7 +3117,7 @@ export function EnterpriseProductForm({
             </div>
 
             {deleteProductError ? (
-              <div className="p-3 bg-red-50 rounded-xl border border-red-200 text-xs text-red-700">
+              <div className="p-3 bg-purple-50 rounded-xl border border-purple-200 text-xs text-red-700">
                 {deleteProductError}
               </div>
             ) : (
@@ -3155,7 +3155,7 @@ export function EnterpriseProductForm({
                   type="button"
                   disabled={deletingProduct}
                   onClick={handleDeleteProductInForm}
-                  className="bg-[#E3132A] hover:bg-[#B80F21] text-white text-xs font-bold rounded-xl h-9 gap-1.5 shadow-sm shadow-red-900/10"
+                  className="bg-[#844AFB] hover:bg-[#6721F2] text-white text-xs font-bold rounded-xl h-9 gap-1.5 shadow-sm shadow-red-900/10"
                 >
                   {deletingProduct ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
                   {deletingProduct ? 'Deleting...' : 'Confirm Delete'}

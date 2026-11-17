@@ -75,13 +75,13 @@ export default async function ShaastraRoboRunPage() {
       <div className="bg-[#F7F7F8] border-b border-[#E5E7EB]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-[#6B7280]">
-            <Link href="/" className="hover:text-[#E3132A] transition-colors">
+            <Link href="/" className="hover:text-[#844AFB] transition-colors">
               Home
             </Link>
             <ChevronRight size={13} />
             <span className="text-[#6B7280]">Competitions &amp; Events</span>
             <ChevronRight size={13} />
-            <span className="font-semibold text-[#E3132A]">Shaastra 2027 RoboRun</span>
+            <span className="font-semibold text-[#844AFB]">Shaastra 2027 RoboRun</span>
           </nav>
         </div>
       </div>
@@ -104,7 +104,7 @@ export default async function ShaastraRoboRunPage() {
         <div className="mt-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-8 border-b border-[#E5E7EB]">
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="px-3 py-1 rounded-full bg-[#FDECEE] text-[#E3132A] font-extrabold text-xs tracking-wider uppercase border border-[#E3132A]/20">
+              <span className="px-3 py-1 rounded-full bg-[#EEE8FA] text-[#844AFB] font-extrabold text-xs tracking-wider uppercase border border-[#844AFB]/20">
                 IIT Madras Shaastra 2027
               </span>
               <span className="px-3 py-1 rounded-full bg-[#F7F7F8] text-[#14141A] font-bold text-xs border border-[#E5E7EB]">
@@ -116,7 +116,7 @@ export default async function ShaastraRoboRunPage() {
             </h1>
             <p className="text-base sm:text-lg text-[#6B7280] font-medium max-w-2xl">
               Build your autonomous line follower bot with TTRC and compete for the{' '}
-              <strong className="text-[#E3132A] font-bold">₹60,000 Prize Pool</strong> at India&apos;s premier tech fest.
+              <strong className="text-[#844AFB] font-bold">₹60,000 Prize Pool</strong> at India&apos;s premier tech fest.
             </p>
           </div>
 
@@ -125,7 +125,7 @@ export default async function ShaastraRoboRunPage() {
               href="https://unstop.com/competitions/roborun-2027-iit-madras-1775922"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#E3132A] hover:bg-[#B80F21] text-white font-bold text-sm shadow-md transition-all hover:-translate-y-0.5"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold text-sm shadow-md shadow-purple-900/20 transition-all hover:-translate-y-0.5"
             >
               <span>Register on Unstop</span>
               <ExternalLink size={16} />
@@ -141,7 +141,7 @@ export default async function ShaastraRoboRunPage() {
             </a>
             <Link
               href="/category/gamified-robots/line-follower"
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#FDECEE] hover:bg-[#E3132A] text-[#E3132A] hover:text-white font-bold text-sm transition-colors"
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#EEE8FA] hover:bg-[#844AFB] text-[#844AFB] hover:text-white font-bold text-sm transition-colors"
             >
               <span>Shop LF Kits</span>
               <ArrowRight size={15} />
@@ -152,16 +152,16 @@ export default async function ShaastraRoboRunPage() {
         {/* 4 Key Highlight Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 my-8">
           <div className="p-5 rounded-2xl bg-[#F7F7F8] border border-[#E5E7EB] space-y-1">
-            <div className="w-10 h-10 rounded-xl bg-[#FDECEE] text-[#E3132A] flex items-center justify-center mb-2">
+            <div className="w-10 h-10 rounded-xl bg-[#EEE8FA] text-[#844AFB] flex items-center justify-center mb-2">
               <Trophy size={20} />
             </div>
             <p className="text-xs font-bold text-[#6B7280] uppercase tracking-wider">Prize Pool</p>
-            <p className="text-2xl font-black font-mono text-[#E3132A]">₹60,000</p>
+            <p className="text-2xl font-black font-mono text-[#844AFB]">₹60,000</p>
             <p className="text-[11px] text-[#6B7280]">Cash prizes &amp; certificates</p>
           </div>
 
           <div className="p-5 rounded-2xl bg-[#F7F7F8] border border-[#E5E7EB] space-y-1">
-            <div className="w-10 h-10 rounded-xl bg-[#FDECEE] text-[#E3132A] flex items-center justify-center mb-2">
+            <div className="w-10 h-10 rounded-xl bg-[#EEE8FA] text-[#844AFB] flex items-center justify-center mb-2">
               <MapPin size={20} />
             </div>
             <p className="text-xs font-bold text-[#6B7280] uppercase tracking-wider">Venue</p>
@@ -170,7 +170,7 @@ export default async function ShaastraRoboRunPage() {
           </div>
 
           <div className="p-5 rounded-2xl bg-[#F7F7F8] border border-[#E5E7EB] space-y-1">
-            <div className="w-10 h-10 rounded-xl bg-[#FDECEE] text-[#E3132A] flex items-center justify-center mb-2">
+            <div className="w-10 h-10 rounded-xl bg-[#EEE8FA] text-[#844AFB] flex items-center justify-center mb-2">
               <Users size={20} />
             </div>
             <p className="text-xs font-bold text-[#6B7280] uppercase tracking-wider">Team Size</p>
@@ -179,7 +179,7 @@ export default async function ShaastraRoboRunPage() {
           </div>
 
           <div className="p-5 rounded-2xl bg-[#F7F7F8] border border-[#E5E7EB] space-y-1">
-            <div className="w-10 h-10 rounded-xl bg-[#FDECEE] text-[#E3132A] flex items-center justify-center mb-2">
+            <div className="w-10 h-10 rounded-xl bg-[#EEE8FA] text-[#844AFB] flex items-center justify-center mb-2">
               <Zap size={20} />
             </div>
             <p className="text-xs font-bold text-[#6B7280] uppercase tracking-wider">Bot Specs</p>
@@ -194,7 +194,7 @@ export default async function ShaastraRoboRunPage() {
           <div className="lg:col-span-6 space-y-6">
             <div className="p-6 rounded-2xl bg-[#FFFFFF] border border-[#E5E7EB] shadow-xs space-y-4">
               <div className="flex items-center gap-2 border-b border-[#E5E7EB] pb-3">
-                <Calendar size={18} className="text-[#E3132A]" />
+                <Calendar size={18} className="text-[#844AFB]" />
                 <h2 className="font-heading text-xl font-bold text-[#14141A]">
                   Stages &amp; Critical Timelines
                 </h2>
@@ -202,13 +202,13 @@ export default async function ShaastraRoboRunPage() {
 
               <div className="space-y-4">
                 <div className="flex items-start gap-4 p-4 rounded-xl bg-[#F7F7F8] border border-[#E5E7EB]">
-                  <div className="px-3 py-1.5 rounded-lg bg-[#E3132A] text-white font-mono font-bold text-xs text-center shrink-0">
+                  <div className="px-3 py-1.5 rounded-lg bg-[#844AFB] text-white font-mono font-bold text-xs text-center shrink-0">
                     STAGE 1
                   </div>
                   <div className="space-y-1 flex-1">
                     <div className="flex items-center justify-between">
                       <p className="font-bold text-sm text-[#14141A]">Video Submission Round</p>
-                      <span className="text-[11px] font-mono font-bold text-[#E3132A]">15 Dec 2026, 11:59 PM</span>
+                      <span className="text-[11px] font-mono font-bold text-[#844AFB]">15 Dec 2026, 11:59 PM</span>
                     </div>
                     <p className="text-xs text-[#6B7280] leading-relaxed">
                       Online submission round. Prepare a small maze with two curves and demonstrate your autonomous line-following bot navigating it cleanly. Shoot a short video clip and attach the file on Unstop.
@@ -231,14 +231,14 @@ export default async function ShaastraRoboRunPage() {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-4 p-4 rounded-xl bg-[#FDECEE] border border-[#E3132A]/20">
-                  <div className="px-3 py-1.5 rounded-lg bg-[#E3132A] text-white font-mono font-bold text-xs text-center shrink-0">
+                <div className="flex items-start gap-4 p-4 rounded-xl bg-[#EEE8FA] border border-[#844AFB]/20">
+                  <div className="px-3 py-1.5 rounded-lg bg-[#844AFB] text-white font-mono font-bold text-xs text-center shrink-0">
                     FINALS
                   </div>
                   <div className="space-y-1 flex-1">
                     <div className="flex items-center justify-between">
-                      <p className="font-bold text-sm text-[#E3132A]">Grand Final (Maze + Block Displacement)</p>
-                      <span className="text-[11px] font-mono font-bold text-[#E3132A]">06 Jan 2027, 12:01 PM – 06:00 PM</span>
+                      <p className="font-bold text-sm text-[#844AFB]">Grand Final (Maze + Block Displacement)</p>
+                      <span className="text-[11px] font-mono font-bold text-[#844AFB]">06 Jan 2027, 12:01 PM – 06:00 PM</span>
                     </div>
                     <p className="text-xs text-[#14141A] leading-relaxed">
                       The final round track introduces <strong>yellow blocks (10cm × 10cm × 10cm)</strong> directly placed on top of yellow squares. Bots must push and completely displace these blocks from the squares to activate checkpoints!
@@ -251,30 +251,30 @@ export default async function ShaastraRoboRunPage() {
             {/* Official Rules & Bot Constraints */}
             <div className="p-6 rounded-2xl bg-[#FFFFFF] border border-[#E5E7EB] shadow-xs space-y-3">
               <div className="flex items-center gap-2 border-b border-[#E5E7EB] pb-3">
-                <Flag size={18} className="text-[#E3132A]" />
+                <Flag size={18} className="text-[#844AFB]" />
                 <h2 className="font-heading text-lg font-bold text-[#14141A]">
                   Official RoboRun Bot Rules
                 </h2>
               </div>
               <ul className="space-y-2 text-xs text-[#6B7280]">
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 size={15} className="text-[#E3132A] shrink-0 mt-0.5" />
+                  <CheckCircle2 size={15} className="text-[#844AFB] shrink-0 mt-0.5" />
                   <span><strong>Bot Dimensions:</strong> Maximum 20 cm × 20 cm footprint. No height restriction.</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 size={15} className="text-[#E3132A] shrink-0 mt-0.5" />
+                  <CheckCircle2 size={15} className="text-[#844AFB] shrink-0 mt-0.5" />
                   <span><strong>Full Autonomy:</strong> Self-contained bot only. No remote controllers, Bluetooth, or wireless override allowed.</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 size={15} className="text-[#E3132A] shrink-0 mt-0.5" />
+                  <CheckCircle2 size={15} className="text-[#844AFB] shrink-0 mt-0.5" />
                   <span><strong>Track Line:</strong> High-contrast black line on white surface, 3 cm to 4 cm line thickness.</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 size={15} className="text-[#E3132A] shrink-0 mt-0.5" />
+                  <CheckCircle2 size={15} className="text-[#844AFB] shrink-0 mt-0.5" />
                   <span><strong>Safe Power:</strong> Battery-powered only. No combustion or hazardous fuels.</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 size={15} className="text-[#E3132A] shrink-0 mt-0.5" />
+                  <CheckCircle2 size={15} className="text-[#844AFB] shrink-0 mt-0.5" />
                   <span><strong>Track Integrity:</strong> Must not scratch, cut, burn, or mark the arena surface.</span>
                 </li>
               </ul>
@@ -285,7 +285,7 @@ export default async function ShaastraRoboRunPage() {
           <div className="lg:col-span-6 space-y-6">
             <div className="p-6 rounded-2xl bg-[#FFFFFF] border border-[#E5E7EB] shadow-xs space-y-4">
               <div className="flex items-center gap-2 border-b border-[#E5E7EB] pb-3">
-                <Sparkles size={18} className="text-[#E3132A]" />
+                <Sparkles size={18} className="text-[#844AFB]" />
                 <h2 className="font-heading text-xl font-bold text-[#14141A]">
                   Build Your RoboRun Winner with TTRC
                 </h2>
@@ -298,7 +298,7 @@ export default async function ShaastraRoboRunPage() {
                 <div className="p-4 rounded-xl bg-[#F7F7F8] border border-[#E5E7EB] space-y-1">
                   <div className="flex items-center justify-between">
                     <p className="font-bold text-sm text-[#14141A]">1. High-Density 7-Array Sensor</p>
-                    <span className="text-[10px] font-mono font-bold text-[#E3132A] bg-[#FDECEE] px-2 py-0.5 rounded">3–4 cm Optimized</span>
+                    <span className="text-[10px] font-mono font-bold text-[#844AFB] bg-[#EEE8FA] px-2 py-0.5 rounded">3–4 cm Optimized</span>
                   </div>
                   <p className="text-xs text-[#6B7280]">
                     The TTRC LF 6.0 7-Array analog sensor provides ultra-fine PID feedback across 3–4 cm competition lines and 90° hairpin turns without losing tracking.
@@ -318,7 +318,7 @@ export default async function ShaastraRoboRunPage() {
                 <div className="p-4 rounded-xl bg-[#F7F7F8] border border-[#E5E7EB] space-y-1">
                   <div className="flex items-center justify-between">
                     <p className="font-bold text-sm text-[#14141A]">3. Torque &amp; Traction for Block Displacement</p>
-                    <span className="text-[10px] font-mono font-bold text-[#E3132A] bg-[#FDECEE] px-2 py-0.5 rounded">Finals Ready</span>
+                    <span className="text-[10px] font-mono font-bold text-[#844AFB] bg-[#EEE8FA] px-2 py-0.5 rounded">Finals Ready</span>
                   </div>
                   <p className="text-xs text-[#6B7280]">
                     TTRC high-grip silicone LFR wheels paired with high-torque N20 600RPM gear motors provide the exact pushing force required to displace 10cm yellow blocks off checkpoints.
@@ -348,13 +348,13 @@ export default async function ShaastraRoboRunPage() {
               <div className="flex flex-wrap items-center gap-3 pt-1">
                 <Link
                   href="/contact"
-                  className="px-4 py-2 rounded-xl bg-[#FFFFFF] hover:bg-[#FDECEE] text-[#E3132A] font-bold text-xs border border-[#E5E7EB] transition-colors"
+                  className="px-4 py-2 rounded-xl bg-[#FFFFFF] hover:bg-[#EEE8FA] text-[#844AFB] hover:text-[#6721F2] font-bold text-xs border border-[#E5E7EB] transition-colors"
                 >
                   Contact Engineering Team
                 </Link>
                 <Link
                   href="/bulk-orders"
-                  className="px-4 py-2 rounded-xl bg-[#E3132A] hover:bg-[#B80F21] text-white font-bold text-xs transition-colors"
+                  className="px-4 py-2 rounded-xl bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold text-xs shadow-md shadow-purple-900/20 transition-colors"
                 >
                   Request Bulk / Team Quote
                 </Link>
@@ -367,7 +367,7 @@ export default async function ShaastraRoboRunPage() {
         <div className="my-12 space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-[#E5E7EB] pb-4">
             <div>
-              <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#E3132A] uppercase tracking-wider mb-1">
+              <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#844AFB] uppercase tracking-wider mb-1">
                 <ShieldCheck size={14} /> Competition Grade Hardware
               </div>
               <h2 className="font-heading text-2xl font-extrabold text-[#14141A]">
@@ -376,7 +376,7 @@ export default async function ShaastraRoboRunPage() {
             </div>
             <Link
               href="/category/gamified-robots/line-follower"
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#E3132A] hover:underline"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#844AFB] hover:underline"
             >
               <span>View all Line Follower kits &amp; spares</span>
               <ArrowRight size={14} />

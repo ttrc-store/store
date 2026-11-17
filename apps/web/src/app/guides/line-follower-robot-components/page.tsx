@@ -83,7 +83,7 @@ export default function LineFollowerComponentsGuidePage() {
         {/* Header Block */}
         <header className="space-y-4 border-b border-[#E5E7EB] pb-8 mb-10">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#FDECEE] text-[#E3132A] border border-[#E3132A]/20">
+            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#EEE8FA] text-[#844AFB] border border-[#844AFB]/20">
               Robotics Hardware Architecture
             </span>
             <span className="text-xs text-[#6B7280]">8 min read • Verified by Tamizh Tech Engineers</span>
@@ -101,7 +101,7 @@ export default function LineFollowerComponentsGuidePage() {
         {/* Subsystem 1: Sensor Array */}
         <section className="space-y-6 mb-12">
           <h2 className="font-heading text-2xl sm:text-3xl font-bold text-[#14141A] flex items-center gap-2">
-            <Activity className="text-[#E3132A]" size={26} />
+            <Activity className="text-[#844AFB]" size={26} />
             1. Optical Perception: Analog Sensor Arrays
           </h2>
           <p className="text-sm sm:text-base text-[#14141A] leading-relaxed">
@@ -116,7 +116,7 @@ export default function LineFollowerComponentsGuidePage() {
             <div className="pt-2">
               <Link
                 href="/category/sensors"
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#E3132A] hover:underline"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#844AFB] hover:underline"
               >
                 Browse TTRC Analog Line Sensor Arrays &amp; Spares
                 <ChevronRight size={14} />
@@ -128,7 +128,7 @@ export default function LineFollowerComponentsGuidePage() {
         {/* Subsystem 2: Motor Drivers */}
         <section className="space-y-6 mb-12">
           <h2 className="font-heading text-2xl sm:text-3xl font-bold text-[#14141A] flex items-center gap-2">
-            <Zap className="text-[#E3132A]" size={26} />
+            <Zap className="text-[#844AFB]" size={26} />
             2. Motor Driver: TB6612FNG vs Legacy L298N
           </h2>
           <p className="text-sm sm:text-base text-[#14141A] leading-relaxed">
@@ -140,7 +140,7 @@ export default function LineFollowerComponentsGuidePage() {
               <thead className="bg-[#F7F7F8] text-[#14141A] border-b border-[#E5E7EB]">
                 <tr>
                   <th className="p-3 font-bold">Metric</th>
-                  <th className="p-3 font-bold text-[#E3132A]">TB6612FNG (Recommended)</th>
+                  <th className="p-3 font-bold text-[#844AFB]">TB6612FNG (Recommended)</th>
                   <th className="p-3 font-bold text-[#6B7280]">L298N (Legacy)</th>
                 </tr>
               </thead>
@@ -178,7 +178,7 @@ export default function LineFollowerComponentsGuidePage() {
         {/* Subsystem 3: Micro Metal Gear Motors & Wheels */}
         <section className="space-y-6 mb-12">
           <h2 className="font-heading text-2xl sm:text-3xl font-bold text-[#14141A] flex items-center gap-2">
-            <Cpu className="text-[#E3132A]" size={26} />
+            <Cpu className="text-[#844AFB]" size={26} />
             3. Actuators: N20 Micro Metal Gearmotors &amp; High-Traction Wheels
           </h2>
           <p className="text-sm sm:text-base text-[#14141A] leading-relaxed">
@@ -186,13 +186,13 @@ export default function LineFollowerComponentsGuidePage() {
           </p>
           <ul className="space-y-3 text-sm text-[#14141A]">
             <li className="flex items-start gap-2">
-              <CheckCircle2 size={16} className="text-[#E3132A] shrink-0 mt-0.5" />
+              <CheckCircle2 size={16} className="text-[#844AFB] shrink-0 mt-0.5" />
               <span>
                 <strong>Track Speed Selection:</strong> For competition tracks, 600 RPM to 1000 RPM at 6V provides the optimum balance between linear velocity (1.0–1.8 m/s) and braking torque for tight hairpins.
               </span>
             </li>
             <li className="flex items-start gap-2">
-              <CheckCircle2 size={16} className="text-[#E3132A] shrink-0 mt-0.5" />
+              <CheckCircle2 size={16} className="text-[#844AFB] shrink-0 mt-0.5" />
               <span>
                 <strong>Wheel Grip &amp; Diameter:</strong> Silicone-coated aluminum rims (diameter 32mm–35mm) prevent wheel slip during rapid differential steering transients.
               </span>
@@ -201,8 +201,8 @@ export default function LineFollowerComponentsGuidePage() {
         </section>
 
         {/* Recommended Products Callout */}
-        <div className="p-8 rounded-2xl bg-[#FDECEE] border border-[#E3132A]/20 space-y-4 mb-12">
-          <div className="flex items-center gap-2 text-[#E3132A] font-bold text-xs uppercase tracking-wider">
+        <div className="p-8 rounded-2xl bg-[#EEE8FA] border border-[#844AFB]/20 space-y-4 mb-12">
+          <div className="flex items-center gap-2 text-[#844AFB] font-bold text-xs uppercase tracking-wider">
             <ShieldCheck size={16} />
             Genuine TTRC Competition Hardware
           </div>
@@ -215,7 +215,7 @@ export default function LineFollowerComponentsGuidePage() {
           <div className="flex flex-wrap gap-3 pt-2">
             <Link
               href="/category/gamified-robots"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#E3132A] text-white text-xs font-bold hover:bg-[#B80F21] transition-colors"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#844AFB] text-white text-xs font-bold hover:bg-[#6721F2] transition-colors"
             >
               Explore Line Follower Kits &amp; Spares
               <ArrowRight size={14} />
@@ -232,7 +232,7 @@ export default function LineFollowerComponentsGuidePage() {
         {/* AEO FAQ Section */}
         <section className="space-y-6 mb-12">
           <h2 className="font-heading text-2xl sm:text-3xl font-bold text-[#14141A] flex items-center gap-2">
-            <HelpCircle className="text-[#E3132A]" size={26} />
+            <HelpCircle className="text-[#844AFB]" size={26} />
             Frequently Asked Engineering Questions
           </h2>
           <div className="space-y-4">
@@ -259,7 +259,7 @@ export default function LineFollowerComponentsGuidePage() {
           </Link>
           <Link
             href="/guides/motor-driver-selection-guide"
-            className="inline-flex items-center gap-1 text-xs font-bold text-[#E3132A] hover:text-[#B80F21]"
+            className="inline-flex items-center gap-1 text-xs font-bold text-[#844AFB] hover:text-[#6721F2]"
           >
             Next: Motor Driver Selection Guide
             <ChevronRight size={14} />

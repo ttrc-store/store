@@ -103,7 +103,7 @@ export default function GuidesIndexPage() {
         {/* Hero Section */}
         <div className="rounded-2xl p-8 sm:p-12 mb-12 bg-[#F7F7F8] border border-[#E5E7EB]">
           <div className="max-w-3xl space-y-4">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#FDECEE] text-[#E3132A] border border-[#E3132A]/20">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#EEE8FA] text-[#844AFB] border border-[#844AFB]/20">
               <BookOpen size={14} />
               Authoritative Technical Knowledge
             </span>
@@ -123,7 +123,7 @@ export default function GuidesIndexPage() {
             return (
               <article
                 key={guide.slug}
-                className="group relative flex flex-col justify-between p-8 rounded-2xl bg-white border border-[#E5E7EB] hover:border-[#E3132A] transition-all duration-200 hover:shadow-lg"
+                className="group relative flex flex-col justify-between p-8 rounded-2xl bg-white border border-[#E5E7EB] hover:border-[#844AFB] transition-all duration-200 hover:shadow-lg"
               >
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
@@ -133,11 +133,11 @@ export default function GuidesIndexPage() {
                     <span className="text-xs text-[#6B7280] font-medium">{guide.readTime}</span>
                   </div>
 
-                  <div className="p-3 w-fit rounded-xl bg-[#FDECEE] text-[#E3132A]">
+                  <div className="p-3 w-fit rounded-xl bg-[#EEE8FA] text-[#844AFB]">
                     <Icon size={24} />
                   </div>
 
-                  <h2 className="font-heading text-xl sm:text-2xl font-bold text-[#14141A] group-hover:text-[#E3132A] transition-colors leading-snug">
+                  <h2 className="font-heading text-xl sm:text-2xl font-bold text-[#14141A] group-hover:text-[#844AFB] transition-colors leading-snug">
                     <Link href={`/guides/${guide.slug}`} className="focus:outline-hidden">
                       {guide.title}
                     </Link>
@@ -152,7 +152,7 @@ export default function GuidesIndexPage() {
                   <span className="text-xs font-medium text-[#6B7280]">{guide.date}</span>
                   <Link
                     href={`/guides/${guide.slug}`}
-                    className="inline-flex items-center gap-1 text-xs font-bold text-[#E3132A] hover:text-[#B80F21] group-hover:translate-x-0.5 transition-transform"
+                    className="inline-flex items-center gap-1 text-xs font-bold text-[#844AFB] hover:text-[#6721F2] group-hover:translate-x-0.5 transition-transform"
                   >
                     Read Engineering Guide
                     <ChevronRight size={14} />
@@ -174,7 +174,7 @@ export default function GuidesIndexPage() {
           <div className="pt-2">
             <Link
               href="/bulk-enquiry"
-              className="inline-flex items-center justify-center px-6 py-2.5 rounded-xl bg-[#E3132A] text-white text-xs font-bold hover:bg-[#B80F21] transition-colors shadow-xs"
+              className="inline-flex items-center justify-center px-6 py-2.5 rounded-xl bg-[#844AFB] text-white text-xs font-bold hover:bg-[#6721F2] transition-colors shadow-xs"
             >
               Submit STEM Lab / Bulk Enquiry
             </Link>

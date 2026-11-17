@@ -62,7 +62,7 @@ export default function EditProductPage() {
   if (loading) {
     return (
       <div className="min-h-[50vh] flex flex-col items-center justify-center gap-3">
-        <Loader2 className="animate-spin text-[#E3132A]" size={32} />
+        <Loader2 className="animate-spin text-[#844AFB]" size={32} />
         <p className="text-xs text-slate-500 font-semibold">Loading product configuration...</p>
       </div>
     );
@@ -70,7 +70,7 @@ export default function EditProductPage() {
 
   if (errorMsg || !product) {
     return (
-      <div className="max-w-md mx-auto my-12 p-6 rounded-2xl bg-white border border-red-200 text-center space-y-4">
+      <div className="max-w-md mx-auto my-12 p-6 rounded-2xl bg-white border border-purple-200 text-center space-y-4">
         <AlertCircle size={36} className="mx-auto text-red-500" />
         <h2 className="font-heading text-lg font-bold text-slate-900">Unable to Load Product</h2>
         <p className="text-xs text-slate-500">{errorMsg || 'Product not found in database.'}</p>

@@ -199,7 +199,7 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
         <div>
           <div className="flex items-center gap-2">
-            <span className="p-2 rounded-xl bg-red-50 text-[#E3132A]">
+            <span className="p-2 rounded-xl bg-purple-50 text-[#844AFB]">
               <Search size={22} />
             </span>
             <h1 className="font-heading text-xl font-bold text-slate-900 tracking-tight">
@@ -238,7 +238,7 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
           onClick={() => setActiveTab('overview')}
           className={`px-4 py-2 text-xs font-bold rounded-xl transition-all whitespace-nowrap ${
             activeTab === 'overview'
-              ? 'bg-[#E3132A] text-white shadow-xs'
+              ? 'bg-[#844AFB] text-white shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
@@ -254,7 +254,7 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
           }}
           className={`px-4 py-2 text-xs font-bold rounded-xl transition-all whitespace-nowrap flex items-center gap-1.5 ${
             activeTab === 'keywords'
-              ? 'bg-[#E3132A] text-white shadow-xs'
+              ? 'bg-[#844AFB] text-white shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
@@ -266,7 +266,7 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
           onClick={() => setActiveTab('queries')}
           className={`px-4 py-2 text-xs font-bold rounded-xl transition-all whitespace-nowrap ${
             activeTab === 'queries'
-              ? 'bg-[#E3132A] text-white shadow-xs'
+              ? 'bg-[#844AFB] text-white shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
@@ -277,7 +277,7 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
           onClick={() => setActiveTab('products')}
           className={`px-4 py-2 text-xs font-bold rounded-xl transition-all whitespace-nowrap ${
             activeTab === 'products'
-              ? 'bg-[#E3132A] text-white shadow-xs'
+              ? 'bg-[#844AFB] text-white shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
@@ -288,7 +288,7 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
           onClick={() => setActiveTab('launch')}
           className={`px-4 py-2 text-xs font-bold rounded-xl transition-all whitespace-nowrap ${
             activeTab === 'launch'
-              ? 'bg-[#E3132A] text-white shadow-xs'
+              ? 'bg-[#844AFB] text-white shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
@@ -371,7 +371,7 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
           {/* Technical Discoverability Controls */}
           <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
             <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-              <Globe size={16} className="text-[#E3132A]" /> Search Engine Technical Endpoints
+              <Globe size={16} className="text-[#844AFB]" /> Search Engine Technical Endpoints
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
               <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
@@ -386,7 +386,7 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
                   href={audit.sitemapUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-[11px] text-[#E3132A] font-bold hover:underline"
+                  className="inline-flex items-center gap-1 text-[11px] text-[#844AFB] font-bold hover:underline"
                 >
                   Inspect XML Feed <ExternalLink size={12} />
                 </a>
@@ -404,7 +404,7 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
                   href={audit.robotsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-[11px] text-[#E3132A] font-bold hover:underline"
+                  className="inline-flex items-center gap-1 text-[11px] text-[#844AFB] font-bold hover:underline"
                 >
                   View Crawler Directives <ExternalLink size={12} />
                 </a>
@@ -430,13 +430,13 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
               <div>
                 <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                  <ShoppingBag size={16} className="text-[#E3132A]" /> Google Merchant Center &amp; Shopping Feeds
+                  <ShoppingBag size={16} className="text-[#844AFB]" /> Google Merchant Center &amp; Shopping Feeds
                 </h2>
                 <p className="text-xs text-slate-500 mt-1">
                   Official Google-compliant product data feeds (XML &amp; TSV) for Google Merchant Center, Google Shopping Ads, and Free Product Listings.
                 </p>
               </div>
-              <Badge variant="outline" className="bg-red-50 text-[#E3132A] border-red-200 text-xs font-semibold">
+              <Badge variant="outline" className="bg-purple-50 text-[#844AFB] border-purple-200 text-xs font-semibold">
                 Google Shopping Ready
               </Badge>
             </div>
@@ -469,7 +469,7 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
                   <a
                     href="/feeds/google-merchant.tsv?download=1"
                     download="ttrc-google-merchant-products.tsv"
-                    className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-xl bg-[#E3132A] hover:bg-[#B80F21] text-white text-xs font-bold transition-colors shadow-xs"
+                    className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-xl bg-[#844AFB] hover:bg-[#6721F2] text-white text-xs font-bold transition-colors shadow-xs"
                   >
                     <Download size={14} /> Download Product Feed (.tsv)
                   </a>
@@ -532,7 +532,7 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
               <div>
                 <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                  <BarChart2 size={16} className="text-[#E3132A]" /> Google Search Console Performance &amp; Queries
+                  <BarChart2 size={16} className="text-[#844AFB]" /> Google Search Console Performance &amp; Queries
                 </h2>
                 <p className="text-xs text-slate-500 mt-1">
                   Representative Pan-India robotics &amp; STEM query intelligence and click-through analysis.
@@ -569,7 +569,7 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
                       <td className="py-3 px-3">
                         <Link
                           href={q.targetPage}
-                          className="text-[#E3132A] hover:underline font-mono text-[11px] flex items-center gap-1"
+                          className="text-[#844AFB] hover:underline font-mono text-[11px] flex items-center gap-1"
                         >
                           {q.targetPage}
                           <ArrowUpRight size={11} />
@@ -623,7 +623,7 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
                 <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                  <FileText size={16} className="text-[#E3132A]" /> Catalog SEO Optimization Audit
+                  <FileText size={16} className="text-[#844AFB]" /> Catalog SEO Optimization Audit
                 </h2>
                 <p className="text-xs text-slate-500 mt-1">
                   Products requiring administrator review, keyword tagging, or technical spec completion.
@@ -682,7 +682,7 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
                         <td className="py-3 px-3 text-right">
                           <Link
                             href={`/admin/products/${p.id}/edit`}
-                            className="inline-flex items-center gap-1 text-xs font-bold text-[#E3132A] hover:underline px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-100 transition-colors"
+                            className="inline-flex items-center gap-1 text-xs font-bold text-[#844AFB] hover:underline px-2.5 py-1 rounded-lg bg-purple-50 hover:bg-red-100 transition-colors"
                           >
                             Edit &amp; Generate <ArrowUpRight size={13} />
                           </Link>
@@ -709,7 +709,7 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
           <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
             <div className="border-b border-slate-100 pb-3">
               <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                <ShieldCheck size={16} className="text-[#E3132A]" /> October 22, 2026 Platform Launch Verification
+                <ShieldCheck size={16} className="text-[#844AFB]" /> October 22, 2026 Platform Launch Verification
               </h2>
               <p className="text-xs text-slate-500 mt-1">
                 Mandatory pre-launch search discoverability audit covering Google Search Console, robots directives, schema validation, and indexability.
@@ -735,7 +735,7 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
                       href={item.link}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-[#E3132A] text-xs font-bold hover:underline shrink-0 flex items-center gap-1"
+                      className="text-[#844AFB] text-xs font-bold hover:underline shrink-0 flex items-center gap-1"
                     >
                       Verify <ExternalLink size={12} />
                     </a>
@@ -754,7 +754,7 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
           <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2">
-                <span className="p-2 rounded-xl bg-red-50 text-[#E3132A]">
+                <span className="p-2 rounded-xl bg-purple-50 text-[#844AFB]">
                   <Database size={20} />
                 </span>
                 <h2 className="font-heading text-lg font-bold text-slate-900">
@@ -769,7 +769,7 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
             <a
               href="/TTRC_India_SEO_Keywords.xlsx"
               download="TTRC_India_SEO_Keywords.xlsx"
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#E3132A] hover:bg-[#B80F21] text-white text-xs font-bold shadow-xs transition-colors shrink-0"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#844AFB] hover:bg-[#6721F2] text-white text-xs font-bold shadow-xs transition-colors shrink-0"
               title="Download master Excel spreadsheet with 16 sheets and 11,855 keywords"
             >
               <Download size={15} />
@@ -810,7 +810,7 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
                 Transactional &amp; Head Terms
               </span>
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-extrabold text-[#E3132A]">
+                <span className="text-2xl font-extrabold text-[#844AFB]">
                   {(keywordResult?.stats.intentCounts['Transactional'] ?? 2582) +
                     (keywordResult?.stats.intentCounts['Head term'] ?? 375)}
                 </span>
@@ -856,7 +856,7 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
                   }}
                   className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-colors ${
                     keywordChannel === ch.id
-                      ? 'bg-[#E3132A] text-white shadow-xs'
+                      ? 'bg-[#844AFB] text-white shadow-xs'
                       : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                   }`}
                 >
@@ -871,7 +871,7 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
             <div className="p-5 rounded-2xl bg-slate-900 text-white space-y-3 border border-slate-800 shadow-md">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <ShoppingBag size={18} className="text-[#E3132A]" />
+                  <ShoppingBag size={18} className="text-[#844AFB]" />
                   <h3 className="font-heading text-sm font-bold tracking-tight">
                     Amazon &amp; Flipkart Backend Search Terms Generator (250-Byte Compliance)
                   </h3>
@@ -895,7 +895,7 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
                       setCopiedTerms(true);
                       setTimeout(() => setCopiedTerms(false), 2000);
                     }}
-                    className="bg-[#E3132A] hover:bg-[#B80F21] text-white text-xs font-bold px-3 py-1 rounded-lg h-7"
+                    className="bg-[#844AFB] hover:bg-[#6721F2] text-white text-xs font-bold px-3 py-1 rounded-lg h-7"
                   >
                     {copiedTerms ? 'Copied to Clipboard!' : 'Copy for Seller Central'}
                   </Button>
@@ -925,7 +925,7 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
                       loadKeywordData();
                     }
                   }}
-                  className="w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-hidden focus:ring-1 focus:ring-[#E3132A] transition-all"
+                  className="w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-hidden focus:ring-1 focus:ring-[#844AFB] transition-all"
                 />
               </div>
 
@@ -967,7 +967,7 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
                 type="button"
                 onClick={() => loadKeywordData()}
                 disabled={keywordLoading}
-                className="bg-[#E3132A] hover:bg-[#B80F21] text-white text-xs font-bold px-4 py-2 rounded-xl"
+                className="bg-[#844AFB] hover:bg-[#6721F2] text-white text-xs font-bold px-4 py-2 rounded-xl"
               >
                 {keywordLoading ? (
                   <RefreshCw size={14} className="animate-spin" />
@@ -993,7 +993,7 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
                   }}
                   className={`px-2.5 py-1 rounded-lg border font-medium shrink-0 transition-colors ${
                     keywordCluster === c.cluster
-                      ? 'bg-[#E3132A] text-white border-[#E3132A]'
+                      ? 'bg-[#844AFB] text-white border-[#844AFB]'
                       : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
                   }`}
                 >
@@ -1052,7 +1052,7 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
                           <span
                             className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold ${
                               kw.priority === 'High'
-                                ? 'bg-[#FDECEE] text-[#E3132A]'
+                                ? 'bg-[#EEE8FA] text-[#844AFB]'
                                 : kw.priority === 'Content'
                                 ? 'bg-amber-50 text-amber-800'
                                 : 'bg-slate-100 text-slate-600'
@@ -1066,7 +1066,7 @@ export function AdminSeoClient({ initialAudit }: AdminSeoClientProps) {
                             href={kw.targetUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="font-mono text-[#E3132A] hover:underline flex items-center gap-1"
+                            className="font-mono text-[#844AFB] hover:underline flex items-center gap-1"
                           >
                             {kw.targetUrl}
                             <ArrowUpRight size={12} />

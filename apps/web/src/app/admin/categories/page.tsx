@@ -170,7 +170,7 @@ export default function AdminCategoriesPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="font-heading text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-            <FolderTree className="text-[#E3132A]" size={26} />
+            <FolderTree className="text-[#844AFB]" size={26} />
             Category Management ({categories.length})
           </h1>
           <p className="text-xs text-slate-500 mt-1">
@@ -180,7 +180,7 @@ export default function AdminCategoriesPage() {
 
         <button
           onClick={() => openCreateModal()}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-[#E3132A] hover:bg-[#B80F21] text-white text-xs font-bold rounded-xl shadow-sm transition-colors cursor-pointer"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-[#844AFB] hover:bg-[#6721F2] text-white text-xs font-bold rounded-xl shadow-sm transition-colors cursor-pointer"
         >
           <Plus size={16} />
           Add Main Category
@@ -199,19 +199,19 @@ export default function AdminCategoriesPage() {
         </div>
         <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm">
           <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Active Catalog Linkages</p>
-          <p className="font-heading text-2xl font-black text-[#E3132A] mt-1">{totalProductsCount} products</p>
+          <p className="font-heading text-2xl font-black text-[#844AFB] mt-1">{totalProductsCount} products</p>
         </div>
       </div>
 
       {/* Categories Grid */}
       {loading ? (
         <div className="py-20 flex flex-col items-center justify-center text-slate-400 gap-2">
-          <Loader2 className="animate-spin text-[#E3132A]" size={32} />
+          <Loader2 className="animate-spin text-[#844AFB]" size={32} />
           <p className="text-xs font-medium">Loading catalog categories from MongoDB Atlas...</p>
         </div>
       ) : mainCategories.length === 0 ? (
         <div className="py-16 text-center space-y-3 px-4 rounded-2xl bg-white border border-slate-200">
-          <div className="w-12 h-12 rounded-full bg-red-50 border border-red-200 flex items-center justify-center mx-auto text-[#E3132A]">
+          <div className="w-12 h-12 rounded-full bg-purple-50 border border-purple-200 flex items-center justify-center mx-auto text-[#844AFB]">
             <FolderTree size={20} />
           </div>
           <h3 className="font-heading font-bold text-sm text-slate-900">No Categories Found</h3>
@@ -234,7 +234,7 @@ export default function AdminCategoriesPage() {
                 {/* Category Header */}
                 <div className="flex items-start justify-between border-b border-slate-100 pb-3 gap-2">
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-xl bg-[#FDECEE] border border-red-200 text-[#E3132A] shrink-0">
+                    <div className="p-2.5 rounded-xl bg-[#EEE8FA] border border-purple-200 text-[#844AFB] shrink-0">
                       <FolderTree size={20} />
                     </div>
                     <div>
@@ -263,7 +263,7 @@ export default function AdminCategoriesPage() {
                     </button>
                     <button
                       onClick={() => handleDelete(cat)}
-                      className="p-1.5 rounded-lg border border-slate-200 hover:border-red-300 hover:bg-red-50 text-slate-500 hover:text-red-600 cursor-pointer"
+                      className="p-1.5 rounded-lg border border-slate-200 hover:border-red-300 hover:bg-purple-50 text-slate-500 hover:text-[#844AFB] cursor-pointer"
                       title="Delete Category"
                     >
                       <Trash2 size={13} />
@@ -283,7 +283,7 @@ export default function AdminCategoriesPage() {
                     </p>
                     <button
                       onClick={() => openCreateModal(cat.id)}
-                      className="text-[11px] font-bold text-[#E3132A] hover:underline cursor-pointer"
+                      className="text-[11px] font-bold text-[#844AFB] hover:underline cursor-pointer"
                     >
                       + Add Subcategory
                     </button>
@@ -301,7 +301,7 @@ export default function AdminCategoriesPage() {
                           className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs"
                         >
                           <div className="flex items-center gap-2">
-                            <ChevronRight size={14} className="text-[#E3132A]" />
+                            <ChevronRight size={14} className="text-[#844AFB]" />
                             <span className="text-slate-800 font-medium">{sub.name}</span>
                             <span className="text-[10px] text-slate-400 font-mono">({sub.slug})</span>
                           </div>
@@ -319,7 +319,7 @@ export default function AdminCategoriesPage() {
                             </button>
                             <button
                               onClick={() => handleDelete(sub)}
-                              className="text-slate-400 hover:text-red-600 p-1 cursor-pointer"
+                              className="text-slate-400 hover:text-[#844AFB] p-1 cursor-pointer"
                               title="Delete Subcategory"
                             >
                               <Trash2 size={12} />
@@ -355,7 +355,7 @@ export default function AdminCategoriesPage() {
             </div>
 
             {error && (
-              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-center gap-2">
+              <div className="p-3 rounded-xl bg-purple-50 border border-purple-200 text-xs text-red-700 flex items-center gap-2">
                 <AlertTriangle size={16} className="shrink-0" />
                 <span>{error}</span>
               </div>
@@ -384,7 +384,7 @@ export default function AdminCategoriesPage() {
                       slug: editingCategory ? form.slug : slugify(val),
                     });
                   }}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-[#E3132A]"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-[#844AFB]"
                 />
               </div>
 
@@ -396,7 +396,7 @@ export default function AdminCategoriesPage() {
                   placeholder="gamified-robots"
                   value={form.slug}
                   onChange={(e) => setForm({ ...form, slug: e.target.value.toLowerCase() })}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-900 focus:outline-none focus:border-[#E3132A]"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-900 focus:outline-none focus:border-[#844AFB]"
                 />
               </div>
 
@@ -405,7 +405,7 @@ export default function AdminCategoriesPage() {
                 <select
                   value={form.parentId}
                   onChange={(e) => setForm({ ...form, parentId: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-[#E3132A]"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-[#844AFB]"
                 >
                   <option value="">None (Top-Level Category)</option>
                   {mainCategories
@@ -428,7 +428,7 @@ export default function AdminCategoriesPage() {
                   placeholder="Brief description for SEO and category headers"
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-[#E3132A]"
+                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-[#844AFB]"
                 />
               </div>
 
@@ -439,7 +439,7 @@ export default function AdminCategoriesPage() {
                     type="number"
                     value={form.sortOrder}
                     onChange={(e) => setForm({ ...form, sortOrder: Number(e.target.value) })}
-                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-[#E3132A]"
+                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-[#844AFB]"
                   />
                 </div>
 
@@ -449,7 +449,7 @@ export default function AdminCategoriesPage() {
                       type="checkbox"
                       checked={form.isActive}
                       onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
-                      className="w-4 h-4 accent-[#E3132A]"
+                      className="w-4 h-4 accent-[#844AFB]"
                     />
                     <span className="font-bold text-slate-700">Active in Storefront</span>
                   </label>
@@ -467,7 +467,7 @@ export default function AdminCategoriesPage() {
                 <button
                   type="submit"
                   disabled={submitLoading}
-                  className="px-5 py-2 bg-[#E3132A] hover:bg-[#B80F21] text-white font-bold rounded-xl shadow-sm transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                  className="px-5 py-2 bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold rounded-xl shadow-sm transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   {submitLoading && <Loader2 size={14} className="animate-spin" />}
                   {editingCategory ? 'Save Changes' : 'Create Category'}
