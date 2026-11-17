@@ -4,7 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Search, ShoppingBag, User, Menu, ChevronDown, Truck, ShieldCheck, Heart, GitCompare, Phone, LogOut, Package, MapPin, Star, Shield, Sparkles } from 'lucide-react';
+import { Search, ShoppingBag, User, Menu, ChevronDown, Truck, ShieldCheck, Heart, GitCompare, Phone, LogOut, Package, MapPin, Star, Shield, Sparkles, Box } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { MegaMenu } from './mega-menu';
@@ -133,6 +133,14 @@ export default function Header({ user: initialUser, categories }: HeaderProps) {
           </a>
         </div>
         <div className="flex items-center gap-5 font-medium">
+          <Link
+            href="/3d-printing"
+            className="flex items-center gap-1.5 text-red-200 hover:text-white font-bold transition-colors"
+          >
+            <Box size={13} className="text-[#E3132A]" />
+            <span>3D Printing</span>
+          </Link>
+          <span className="text-slate-700" aria-hidden="true"> · </span>
           <Link
             href="/events/shaastra-roborun-2027"
             className="flex items-center gap-1.5 text-purple-200 hover:text-white font-bold transition-colors"
@@ -327,6 +335,13 @@ export default function Header({ user: initialUser, categories }: HeaderProps) {
                         className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:text-[#844AFB] hover:bg-purple-50 transition-colors font-medium"
                       >
                         <Package size={15} /> My Orders
+                      </Link>
+
+                      <Link
+                        href="/account/print-requests"
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:text-[#E3132A] hover:bg-red-50 transition-colors font-medium"
+                      >
+                        <Box size={15} /> 3D Print Requests
                       </Link>
 
                       <Link

@@ -1085,6 +1085,440 @@ export const CheckoutSessionModel: Model<ICheckoutSession> =
   mongoose.models.CheckoutSession ||
   mongoose.model<ICheckoutSession>('CheckoutSession', CheckoutSessionSchema);
 
+// ---------------------------------------------------------------------------
+// 21. 3D PRINTING PLATFORM SCHEMAS & MODELS
+// ---------------------------------------------------------------------------
+
+export type QuotationStatus =
+  | 'DRAFT'
+  | 'PENDING_REVIEW'
+  | 'UNDER_REVIEW'
+  | 'NEEDS_CLARIFICATION'
+  | 'QUOTE_SENT'
+  | 'REVISION_REQUESTED'
+  | 'ACCEPTED'
+  | 'REJECTED'
+  | 'EXPIRED';
+
+export type ProductionStatus =
+  | 'NOT_STARTED'
+  | 'PAYMENT_PENDING'
+  | 'PAYMENT_FAILED'
+  | 'PAID'
+  | 'IN_PRODUCTION'
+  | 'COMPLETED'
+  | 'DISPATCHED'
+  | 'DELIVERED';
+
+export interface IPrintRequestCustomer {
+  name: string;
+  email: string;
+  mobile: string;
+  company?: string;
+  city: string;
+  delivery_address?: string;
+  additional_requirements?: string;
+  is_verified?: boolean;
+}
+
+export interface IPrintRequestFile {
+  file_id: string;
+  format: 'STL' | 'STEP' | 'STP';
+  original_filename: string;
+  file_size: number;
+  storage_path: string;
+  sha256: string;
+  original_unit: 'mm' | 'cm' | 'inch';
+  preview_mesh_path?: string;
+}
+
+export interface IPrintRequestConfig {
+  technology: 'FDM';
+  material: 'PLA' | 'PETG' | 'ABS' | 'ASA' | 'TPU' | 'Nylon';
+  color: string;
+  layer_height: 0.10 | 0.16 | 0.20 | 0.28;
+  infill_percentage: number;
+  infill_pattern: 'grid' | 'gyroid' | 'cubic' | 'honeycomb';
+  supports: 'auto' | 'none' | 'admin_decision';
+  quantity: number;
+  finish: 'standard' | 'sanded' | 'acetone_smooth';
+  purpose?: 'prototype' | 'functional' | 'educational' | 'production' | 'other';
+}
+
+export interface IPrintRequestAnalysis {
+  normalized_dimensions_mm: { x: number; y: number; z: number };
+  volume_cm3: number | null;
+  surface_area_cm2: number;
+  triangle_count: number;
+  is_watertight: boolean;
+  is_manifold: boolean;
+  shell_count: number;
+  degenerate_triangles: number;
+  warnings: string[];
+}
+
+export interface IPrintRequest extends Document {
+  request_number: string;
+  user_id?: string;
+  customer: IPrintRequestCustomer;
+  file: IPrintRequestFile;
+  configuration: IPrintRequestConfig;
+  analysis: IPrintRequestAnalysis;
+  compatible_printers?: string[];
+  assigned_printer_id?: string;
+  assigned_printer_name?: string;
+  quotation_status: QuotationStatus;
+  production_status: ProductionStatus;
+  active_quote_id?: string;
+  order_id?: string;
+  admin_notes?: string;
+  clarification_thread: Array<{
+    sender: 'customer' | 'admin';
+    message: string;
+    timestamp: Date;
+    attachments?: string[];
+  }>;
+  status_history: Array<{
+    machine: 'quotation' | 'production';
+    from_status: string;
+    to_status: string;
+    changed_by: string;
+    timestamp: Date;
+    notes?: string;
+  }>;
+  created_at: Date;
+  updated_at: Date;
+}
+
+const PrintRequestSchema = new Schema<IPrintRequest>(
+  {
+    request_number: { type: String, required: true, unique: true, index: true },
+    user_id: { type: String, index: true },
+    customer: {
+      name: { type: String, required: true, trim: true },
+      email: { type: String, required: true, lowercase: true, trim: true, index: true },
+      mobile: { type: String, required: true, trim: true },
+      company: { type: String, trim: true },
+      city: { type: String, required: true, trim: true },
+      delivery_address: { type: String },
+      additional_requirements: { type: String },
+      is_verified: { type: Boolean, default: false },
+    },
+    file: {
+      file_id: { type: String, required: true, unique: true, index: true },
+      format: { type: String, enum: ['STL', 'STEP', 'STP'], required: true },
+      original_filename: { type: String, required: true },
+      file_size: { type: Number, required: true },
+      storage_path: { type: String, required: true },
+      sha256: { type: String, required: true },
+      original_unit: { type: String, enum: ['mm', 'cm', 'inch'], default: 'mm' },
+      preview_mesh_path: { type: String },
+    },
+    configuration: {
+      technology: { type: String, default: 'FDM' },
+      material: {
+        type: String,
+        enum: ['PLA', 'PETG', 'ABS', 'ASA', 'TPU', 'Nylon'],
+        default: 'PLA',
+      },
+      color: { type: String, default: 'Black' },
+      layer_height: { type: Number, enum: [0.10, 0.16, 0.20, 0.28], default: 0.20 },
+      infill_percentage: { type: Number, min: 10, max: 100, default: 20 },
+      infill_pattern: {
+        type: String,
+        enum: ['grid', 'gyroid', 'cubic', 'honeycomb'],
+        default: 'grid',
+      },
+      supports: {
+        type: String,
+        enum: ['auto', 'none', 'admin_decision'],
+        default: 'admin_decision',
+      },
+      quantity: { type: Number, min: 1, max: 1000, default: 1 },
+      finish: {
+        type: String,
+        enum: ['standard', 'sanded', 'acetone_smooth'],
+        default: 'standard',
+      },
+      purpose: {
+        type: String,
+        enum: ['prototype', 'functional', 'educational', 'production', 'other'],
+        default: 'prototype',
+      },
+    },
+    analysis: {
+      normalized_dimensions_mm: {
+        x: { type: Number, default: 0 },
+        y: { type: Number, default: 0 },
+        z: { type: Number, default: 0 },
+      },
+      volume_cm3: { type: Number, default: null },
+      surface_area_cm2: { type: Number, default: 0 },
+      triangle_count: { type: Number, default: 0 },
+      is_watertight: { type: Boolean, default: false },
+      is_manifold: { type: Boolean, default: false },
+      shell_count: { type: Number, default: 1 },
+      degenerate_triangles: { type: Number, default: 0 },
+      warnings: { type: [String], default: [] },
+    },
+    compatible_printers: { type: [String], default: [] },
+    assigned_printer_id: { type: String },
+    assigned_printer_name: { type: String },
+    quotation_status: {
+      type: String,
+      enum: [
+        'DRAFT',
+        'PENDING_REVIEW',
+        'UNDER_REVIEW',
+        'NEEDS_CLARIFICATION',
+        'QUOTE_SENT',
+        'REVISION_REQUESTED',
+        'ACCEPTED',
+        'REJECTED',
+        'EXPIRED',
+      ],
+      default: 'PENDING_REVIEW',
+      index: true,
+    },
+    production_status: {
+      type: String,
+      enum: [
+        'NOT_STARTED',
+        'PAYMENT_PENDING',
+        'PAYMENT_FAILED',
+        'PAID',
+        'IN_PRODUCTION',
+        'COMPLETED',
+        'DISPATCHED',
+        'DELIVERED',
+      ],
+      default: 'NOT_STARTED',
+      index: true,
+    },
+    active_quote_id: { type: String },
+    order_id: { type: String },
+    admin_notes: { type: String },
+    clarification_thread: [
+      {
+        sender: { type: String, enum: ['customer', 'admin'], required: true },
+        message: { type: String, required: true },
+        timestamp: { type: Date, default: Date.now },
+        attachments: { type: [String], default: [] },
+      },
+    ],
+    status_history: [
+      {
+        machine: { type: String, enum: ['quotation', 'production'], required: true },
+        from_status: { type: String, required: true },
+        to_status: { type: String, required: true },
+        changed_by: { type: String, required: true },
+        timestamp: { type: Date, default: Date.now },
+        notes: { type: String },
+      },
+    ],
+  },
+  { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } }
+);
+
+export const PrintRequestModel: Model<IPrintRequest> =
+  mongoose.models.PrintRequest ||
+  mongoose.model<IPrintRequest>('PrintRequest', PrintRequestSchema);
+
+// ---------------------------------------------------------------------------
+// 22. 3D PRINTING QUOTATION SCHEMA & MODEL
+// ---------------------------------------------------------------------------
+
+export interface IPrintQuoteBreakdown {
+  material_cost_paise: number;
+  machine_cost_paise: number;
+  labour_cost_paise: number;
+  support_cost_paise: number;
+  finishing_cost_paise: number;
+  packaging_cost_paise: number;
+  shipping_cost_paise: number;
+  tax_paise: number;
+  total_paise: number;
+}
+
+export interface IPrintQuote extends Document {
+  quote_number: string;
+  request_id: string;
+  version: number;
+  breakdown: IPrintQuoteBreakdown;
+  lead_time_days: number;
+  valid_until: Date;
+  technical_remarks: string;
+  assigned_printer_name?: string;
+  is_superseded: boolean;
+  status: 'DRAFT' | 'SENT' | 'ACCEPTED' | 'REJECTED' | 'EXPIRED';
+  created_by: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+const PrintQuoteSchema = new Schema<IPrintQuote>(
+  {
+    quote_number: { type: String, required: true, unique: true, index: true },
+    request_id: { type: String, required: true, index: true },
+    version: { type: Number, default: 1 },
+    breakdown: {
+      material_cost_paise: { type: Number, default: 0 },
+      machine_cost_paise: { type: Number, default: 0 },
+      labour_cost_paise: { type: Number, default: 0 },
+      support_cost_paise: { type: Number, default: 0 },
+      finishing_cost_paise: { type: Number, default: 0 },
+      packaging_cost_paise: { type: Number, default: 0 },
+      shipping_cost_paise: { type: Number, default: 0 },
+      tax_paise: { type: Number, default: 0 },
+      total_paise: { type: Number, required: true },
+    },
+    lead_time_days: { type: Number, default: 3 },
+    valid_until: { type: Date, required: true },
+    technical_remarks: { type: String, default: '' },
+    assigned_printer_name: { type: String },
+    is_superseded: { type: Boolean, default: false },
+    status: {
+      type: String,
+      enum: ['DRAFT', 'SENT', 'ACCEPTED', 'REJECTED', 'EXPIRED'],
+      default: 'DRAFT',
+      index: true,
+    },
+    created_by: { type: String, default: 'admin' },
+  },
+  { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } }
+);
+
+export const PrintQuoteModel: Model<IPrintQuote> =
+  mongoose.models.PrintQuote ||
+  mongoose.model<IPrintQuote>('PrintQuote', PrintQuoteSchema);
+
+// ---------------------------------------------------------------------------
+// 23. 3D PRINTING PRINTER FLEET SCHEMA & MODEL
+// ---------------------------------------------------------------------------
+
+export interface IPrintPrinter extends Document {
+  name: string;
+  printer_model: string;
+  build_volume_mm: { x: number; y: number; z: number };
+  nozzle_diameter_mm: number;
+  supported_materials: string[];
+  hourly_rate_paise: number;
+  is_active: boolean;
+  status: 'idle' | 'printing' | 'maintenance' | 'offline';
+  created_at: Date;
+  updated_at: Date;
+}
+
+const PrintPrinterSchema = new Schema<IPrintPrinter>(
+  {
+    name: { type: String, required: true, trim: true },
+    printer_model: { type: String, required: true, trim: true, alias: 'model' },
+    build_volume_mm: {
+      x: { type: Number, required: true },
+      y: { type: Number, required: true },
+      z: { type: Number, required: true },
+    },
+    nozzle_diameter_mm: { type: Number, default: 0.4 },
+    supported_materials: { type: [String], default: ['PLA', 'PETG', 'ABS', 'ASA', 'TPU', 'Nylon'] },
+    hourly_rate_paise: { type: Number, default: 25000 }, // e.g. ₹250/hr
+    is_active: { type: Boolean, default: true, index: true },
+    status: {
+      type: String,
+      enum: ['idle', 'printing', 'maintenance', 'offline'],
+      default: 'idle',
+    },
+  },
+  { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } }
+);
+
+export const PrintPrinterModel: Model<IPrintPrinter> =
+  mongoose.models.PrintPrinter ||
+  mongoose.model<IPrintPrinter>('PrintPrinter', PrintPrinterSchema);
+
+// ---------------------------------------------------------------------------
+// 24. 3D PRINTING MATERIAL CATALOG SCHEMA & MODEL
+// ---------------------------------------------------------------------------
+
+export interface IPrintMaterial extends Document {
+  name: string;
+  code: string;
+  density_g_cm3: number;
+  default_cost_per_gram_paise: number;
+  available_colors: string[];
+  description: string;
+  typical_applications: string;
+  recommended_layer_heights: number[];
+  is_active: boolean;
+  admin_only: boolean;
+  created_at: Date;
+  updated_at: Date;
+}
+
+const PrintMaterialSchema = new Schema<IPrintMaterial>(
+  {
+    name: { type: String, required: true, trim: true },
+    code: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    density_g_cm3: { type: Number, required: true },
+    default_cost_per_gram_paise: { type: Number, default: 350 }, // e.g. ₹3.50/g
+    available_colors: { type: [String], default: ['Black', 'White', 'Signal Red', 'Grey'] },
+    description: { type: String, default: '' },
+    typical_applications: { type: String, default: '' },
+    recommended_layer_heights: { type: [Number], default: [0.10, 0.16, 0.20, 0.28] },
+    is_active: { type: Boolean, default: true, index: true },
+    admin_only: { type: Boolean, default: false },
+  },
+  { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } }
+);
+
+export const PrintMaterialModel: Model<IPrintMaterial> =
+  mongoose.models.PrintMaterial ||
+  mongoose.model<IPrintMaterial>('PrintMaterial', PrintMaterialSchema);
+
+// ---------------------------------------------------------------------------
+// 25. 3D PRINTING PRIVATE FILE SCHEMA & MODEL
+// ---------------------------------------------------------------------------
+
+export interface IPrintFile extends Document {
+  file_id: string;
+  request_id?: string;
+  filename: string;
+  original_filename: string;
+  mime_type: string;
+  size: number;
+  sha256: string;
+  storage_path: string;
+  storage_type: 'local_private' | 's3' | 'gridfs' | 'mongo_buffer';
+  data?: Buffer;
+  is_preview: boolean;
+  created_at: Date;
+  updated_at: Date;
+}
+
+const PrintFileSchema = new Schema<IPrintFile>(
+  {
+    file_id: { type: String, required: true, unique: true, index: true },
+    request_id: { type: String, index: true },
+    filename: { type: String, required: true },
+    original_filename: { type: String, required: true },
+    mime_type: { type: String, required: true },
+    size: { type: Number, required: true },
+    sha256: { type: String, required: true },
+    storage_path: { type: String, required: true },
+    storage_type: {
+      type: String,
+      enum: ['local_private', 's3', 'gridfs', 'mongo_buffer'],
+      default: 'local_private',
+    },
+    data: { type: Buffer },
+    is_preview: { type: Boolean, default: false },
+  },
+  { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } }
+);
+
+export const PrintFileModel: Model<IPrintFile> =
+  mongoose.models.PrintFile ||
+  mongoose.model<IPrintFile>('PrintFile', PrintFileSchema);
+
 
 
 

@@ -23,11 +23,13 @@ import {
   UserCheck,
   MessageSquareQuote,
   Sparkles,
+  Box,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
   { name: 'Overview', href: '/admin', icon: LayoutDashboard },
   { name: 'Products', href: '/admin/products', icon: Package },
+  { name: '3D Printing CAD', href: '/admin/3d-printing', icon: Box },
   { name: 'Banners & Offers', href: '/admin/banners', icon: Sparkles },
   { name: 'Categories', href: '/admin/categories', icon: FolderTree },
   { name: 'Orders', href: '/admin/orders', icon: ShoppingBag },

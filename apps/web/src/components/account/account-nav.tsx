@@ -3,12 +3,13 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Package, MapPin, Heart, Star, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, Package, MapPin, Heart, Star, ShieldCheck, Box } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
   { label: 'Overview', href: '/account', icon: LayoutDashboard },
   { label: 'My Orders', href: '/account/orders', icon: Package },
+  { label: '3D Print Requests', href: '/account/print-requests', icon: Box },
   { label: 'Addresses', href: '/account/addresses', icon: MapPin },
   { label: 'Wishlist', href: '/account/wishlist', icon: Heart },
   { label: 'My Reviews', href: '/account/reviews', icon: Star },

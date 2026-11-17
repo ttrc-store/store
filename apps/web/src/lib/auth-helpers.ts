@@ -132,6 +132,14 @@ export async function getAuthenticatedUser(): Promise<
   }
 }
 
+export async function getCurrentUser(): Promise<AuthenticatedUser | null> {
+  const auth = await getAuthenticatedUser();
+  if ('user' in auth) {
+    return auth.user;
+  }
+  return null;
+}
+
 export async function requireVerifiedEmail(): Promise<
   { user: AuthenticatedUser } | { error: string; status: number }
 > {

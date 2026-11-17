@@ -51,6 +51,8 @@ next-env.d.ts
 # local uploads & migration rollbacks
 public/uploads
 apps/web/public/uploads
+storage/
+apps/web/storage/
 scripts/migration-rollback-*.json
 
 

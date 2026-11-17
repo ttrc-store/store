@@ -158,6 +158,7 @@ export default function Footer() {
             Shop
           </h4>
           <ul className="space-y-2 text-xs">
+            <li><Link href="/3d-printing" className="text-[#E3132A] font-bold hover:underline transition-colors flex items-center gap-1">3D Printing Service <span className="text-[10px] bg-red-100 text-[#E3132A] px-1.5 py-0.2 rounded font-mono">CAD Studio</span></Link></li>
             <li><Link href="/events/shaastra-roborun-2027" className="text-[#844AFB] font-bold hover:underline transition-colors flex items-center gap-1">RoboRun 2027 Event <span className="text-[10px] bg-purple-100 text-[#844AFB] px-1.5 py-0.2 rounded font-mono">Special</span></Link></li>
             <li><Link href="/category/gamified-robots" className="text-slate-600 hover:text-[#844AFB] transition-colors">Gamified Robots</Link></li>
             <li><Link href="/category/stem-kits" className="text-slate-600 hover:text-[#844AFB] transition-colors">STEM Kits</Link></li>
