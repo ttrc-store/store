@@ -22,6 +22,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
     },
     {
+      url: `${BASE_URL}/3d-printing`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
+    {
+      url: `${BASE_URL}/3d-printing/request`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.85,
+    },
+    {
       url: `${BASE_URL}/bulk-orders`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
