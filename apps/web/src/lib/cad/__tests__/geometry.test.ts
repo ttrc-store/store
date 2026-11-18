@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { analyzeMeshGeometry } from '../geometry';
+import {
+  analyzeMeshGeometry,
+  convertDimensions,
+  convertVolume,
+} from '../geometry';
 
 describe('3D CAD Geometry & Mesh Topology Engine', () => {
   // Helper to generate a watertight box mesh (12 triangles, 8 vertices)
@@ -116,6 +120,49 @@ describe('3D CAD Geometry & Mesh Topology Engine', () => {
     expect(result.volumeCm3).toBe(1); // 1 cm³
     expect(result.surfaceAreaCm2).toBe(6); // 6 cm²
     expect(result.shellCount).toBe(1);
+  });
+
+  it('correctly converts dimensions between mm, cm, and inch without distorting underlying coordinates', () => {
+    // Model from user test: 54.75 x 21.5 x 21.5 mm
+    const baseDims = { x: 54.75, y: 21.5, z: 21.5 };
+
+    // MM
+    const mmDims = convertDimensions(baseDims, 'mm');
+    expect(mmDims.x).toBe(54.75);
+    expect(mmDims.y).toBe(21.5);
+    expect(mmDims.z).toBe(21.5);
+    expect(mmDims.unitLabel).toBe('mm');
+
+    // CM (divides by 10)
+    const cmDims = convertDimensions(baseDims, 'cm');
+    expect(cmDims.x).toBe(5.48);
+    expect(cmDims.y).toBe(2.15);
+    expect(cmDims.z).toBe(2.15);
+    expect(cmDims.unitLabel).toBe('cm');
+
+    // INCH (divides by 25.4)
+    const inDims = convertDimensions(baseDims, 'inch');
+    expect(inDims.x).toBe(2.16);
+    expect(inDims.y).toBe(0.85);
+    expect(inDims.z).toBe(0.85);
+    expect(inDims.unitLabel).toBe('in');
+  });
+
+  it('correctly converts volume between cm³ and in³ for display', () => {
+    const volCm3 = 8.76;
+
+    // MM and CM display as cm³
+    expect(convertVolume(volCm3, 'mm').label).toBe('8.76 cm³');
+    expect(convertVolume(volCm3, 'cm').label).toBe('8.76 cm³');
+
+    // INCH displays with in³
+    const inVol = convertVolume(volCm3, 'inch');
+    expect(inVol.value).toBe(0.53);
+    expect(inVol.label).toContain('0.53 in³');
+    expect(inVol.label).toContain('8.76 cm³');
+
+    // Non-solid returns Non-solid
+    expect(convertVolume(null, 'mm').label).toBe('Non-solid');
   });
 });
 

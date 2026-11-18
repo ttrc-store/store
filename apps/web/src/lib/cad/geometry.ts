@@ -54,6 +54,65 @@ export function getUnitScaleFactor(unit: 'mm' | 'cm' | 'inch'): number {
 }
 
 /**
+ * Converts dimensions from millimeters into the target display unit (mm, cm, in).
+ */
+export function convertDimensions(
+  dimsInMm: { x: number; y: number; z: number },
+  targetUnit: 'mm' | 'cm' | 'inch'
+): { x: number; y: number; z: number; unitLabel: string } {
+  switch (targetUnit) {
+    case 'cm':
+      return {
+        x: Math.round((dimsInMm.x / 10) * 100) / 100,
+        y: Math.round((dimsInMm.y / 10) * 100) / 100,
+        z: Math.round((dimsInMm.z / 10) * 100) / 100,
+        unitLabel: 'cm',
+      };
+    case 'inch':
+      return {
+        x: Math.round((dimsInMm.x / 25.4) * 100) / 100,
+        y: Math.round((dimsInMm.y / 25.4) * 100) / 100,
+        z: Math.round((dimsInMm.z / 25.4) * 100) / 100,
+        unitLabel: 'in',
+      };
+    case 'mm':
+    default:
+      return {
+        x: Math.round(dimsInMm.x * 100) / 100,
+        y: Math.round(dimsInMm.y * 100) / 100,
+        z: Math.round(dimsInMm.z * 100) / 100,
+        unitLabel: 'mm',
+      };
+  }
+}
+
+/**
+ * Converts volume from cm³ into the target display unit (cm³, in³).
+ */
+export function convertVolume(
+  volumeCm3: number | null,
+  targetUnit: 'mm' | 'cm' | 'inch'
+): { value: number | null; label: string } {
+  if (volumeCm3 === null) return { value: null, label: 'Non-solid' };
+  switch (targetUnit) {
+    case 'inch': {
+      const volInInches = Math.round((volumeCm3 / 16.387064) * 100) / 100;
+      return {
+        value: volInInches,
+        label: `${volInInches} in³ (${volumeCm3.toFixed(2)} cm³)`,
+      };
+    }
+    case 'cm':
+    case 'mm':
+    default:
+      return {
+        value: volumeCm3,
+        label: `${volumeCm3.toFixed(2)} cm³`,
+      };
+  }
+}
+
+/**
  * Analyzes raw mesh geometry.
  */
 export function analyzeMeshGeometry(

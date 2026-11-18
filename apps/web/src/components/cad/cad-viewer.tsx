@@ -6,6 +6,8 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
 import {
   analyzeMeshGeometry,
+  convertDimensions,
+  convertVolume,
   GeometryAnalysisResult,
 } from '@/lib/cad/geometry';
 import {
@@ -263,11 +265,11 @@ export function CADViewer({
     controlsRef.current.update();
   }, []);
 
-  // Re-run geometry analysis whenever unit changes
+  // Canonical geometry is always analyzed in standard millimeters
   const applyGeometryAnalysis = useCallback(
     (targetUnit: 'mm' | 'cm' | 'inch') => {
       if (!rawGeometryRef.current) return;
-      const result = analyzeMeshGeometry(rawGeometryRef.current, targetUnit);
+      const result = analyzeMeshGeometry(rawGeometryRef.current, 'mm');
       setAnalysis(result);
       if (onAnalysisCompleteRef.current) {
         onAnalysisCompleteRef.current(result, targetUnit);
@@ -278,7 +280,11 @@ export function CADViewer({
 
   const handleUnitChange = (newUnit: 'mm' | 'cm' | 'inch') => {
     setUnit(newUnit);
-    applyGeometryAnalysis(newUnit);
+    if (analysis && onAnalysisCompleteRef.current) {
+      onAnalysisCompleteRef.current(analysis, newUnit);
+    } else {
+      applyGeometryAnalysis(newUnit);
+    }
   };
 
   // Build Scene from Mesh Geometry
@@ -572,39 +578,53 @@ export function CADViewer({
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-2 text-center mb-2">
-            <div className="bg-slate-50 p-1.5 rounded">
-              <span className="text-slate-500 block text-[10px]">Length (X)</span>
-              <span className="font-semibold text-slate-900">{analysis.dimensions.x} mm</span>
-            </div>
-            <div className="bg-slate-50 p-1.5 rounded">
-              <span className="text-slate-500 block text-[10px]">Width (Y)</span>
-              <span className="font-semibold text-slate-900">{analysis.dimensions.y} mm</span>
-            </div>
-            <div className="bg-slate-50 p-1.5 rounded">
-              <span className="text-slate-500 block text-[10px]">Height (Z)</span>
-              <span className="font-semibold text-slate-900">{analysis.dimensions.z} mm</span>
-            </div>
-          </div>
+          {(() => {
+            const displayDims = convertDimensions(analysis.dimensions, unit);
+            const displayVol = convertVolume(analysis.volumeCm3, unit);
+            return (
+              <>
+                <div className="grid grid-cols-3 gap-2 text-center mb-2">
+                  <div className="bg-slate-50 p-1.5 rounded">
+                    <span className="text-slate-500 block text-[10px]">Length (X)</span>
+                    <span className="font-semibold text-slate-900">
+                      {displayDims.x} {displayDims.unitLabel}
+                    </span>
+                  </div>
+                  <div className="bg-slate-50 p-1.5 rounded">
+                    <span className="text-slate-500 block text-[10px]">Width (Y)</span>
+                    <span className="font-semibold text-slate-900">
+                      {displayDims.y} {displayDims.unitLabel}
+                    </span>
+                  </div>
+                  <div className="bg-slate-50 p-1.5 rounded">
+                    <span className="text-slate-500 block text-[10px]">Height (Z)</span>
+                    <span className="font-semibold text-slate-900">
+                      {displayDims.z} {displayDims.unitLabel}
+                    </span>
+                  </div>
+                </div>
 
-          <div className="flex items-center justify-between text-[11px] text-slate-600 pt-1 border-t border-slate-100">
-            <div>
-              <span className="text-slate-500">Volume: </span>
-              {analysis.volumeCm3 !== null ? (
-                <span className="font-semibold text-slate-900">{analysis.volumeCm3} cm³</span>
-              ) : (
-                <span className="text-amber-600 font-medium inline-flex items-center gap-1">
-                  <AlertTriangle className="w-3 h-3" /> Non-solid
-                </span>
-              )}
-            </div>
-            <div>
-              <span className="text-slate-500">Triangles: </span>
-              <span className="font-semibold text-slate-900">
-                {analysis.triangleCount.toLocaleString()}
-              </span>
-            </div>
-          </div>
+                <div className="flex items-center justify-between text-[11px] text-slate-600 pt-1 border-t border-slate-100">
+                  <div>
+                    <span className="text-slate-500">Volume: </span>
+                    {analysis.volumeCm3 !== null ? (
+                      <span className="font-semibold text-slate-900">{displayVol.label}</span>
+                    ) : (
+                      <span className="text-amber-600 font-medium inline-flex items-center gap-1">
+                        <AlertTriangle className="w-3 h-3" /> Non-solid
+                      </span>
+                    )}
+                  </div>
+                  <div>
+                    <span className="text-slate-500">Triangles: </span>
+                    <span className="font-semibold text-slate-900">
+                      {analysis.triangleCount.toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              </>
+            );
+          })()}
 
           {/* Manifold / Watertight Badge */}
           <div className="mt-2 flex items-center justify-between text-[10px] pt-1 border-t border-slate-100">
