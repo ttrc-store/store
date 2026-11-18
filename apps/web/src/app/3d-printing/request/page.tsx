@@ -25,37 +25,37 @@ const FDM_MATERIALS = [
     code: 'PLA',
     name: 'PLA (Polylactic Acid)',
     desc: 'Cost-effective, high detail, ideal for rapid prototypes & models.',
-    colors: ['Black', 'White', 'Signal Red', 'Grey', 'Blue', 'Yellow'],
+    colors: ['TTRC Violet', 'Black', 'White', 'Signal Red', 'Grey', 'Blue', 'Yellow'],
   },
   {
     code: 'PETG',
     name: 'PETG (Polyethylene Terephthalate Glycol)',
     desc: 'Impact-resistant, durable, chemical-resistant for functional parts.',
-    colors: ['Black', 'White', 'Signal Red', 'Grey', 'Translucent'],
+    colors: ['TTRC Violet', 'Black', 'White', 'Signal Red', 'Grey', 'Translucent'],
   },
   {
     code: 'ABS',
     name: 'ABS (Acrylonitrile Butadiene Styrene)',
     desc: 'High heat & impact resistance; supports acetone vapor smoothing.',
-    colors: ['Black', 'White', 'Grey', 'Signal Red'],
+    colors: ['TTRC Violet', 'Black', 'White', 'Grey', 'Signal Red'],
   },
   {
     code: 'ASA',
     name: 'ASA (Acrylonitrile Styrene Acrylate)',
     desc: 'UV-resistant, weather-resistant engineering grade for outdoor robotics.',
-    colors: ['Black', 'White', 'Grey'],
+    colors: ['TTRC Violet', 'Black', 'White', 'Grey'],
   },
   {
     code: 'TPU',
     name: 'TPU 95A (Thermoplastic Polyurethane)',
     desc: 'Flexible, rubber-like damping pads, bumpers, and tires.',
-    colors: ['Black', 'White', 'Signal Red'],
+    colors: ['TTRC Violet', 'Black', 'White', 'Signal Red'],
   },
   {
     code: 'Nylon',
     name: 'Nylon PA12',
     desc: 'Superior fatigue resistance, self-lubricating for mechanical gears.',
-    colors: ['Black', 'Natural White'],
+    colors: ['TTRC Violet', 'Black', 'Natural White'],
   },
 ] as const;
 
@@ -77,7 +77,7 @@ export default function CADRequestStudioPage() {
 
   // Print Configuration state
   const [material, setMaterial] = useState<string>('PLA');
-  const [color, setColor] = useState<string>('Black');
+  const [color, setColor] = useState<string>('TTRC Violet');
   const [layerHeight, setLayerHeight] = useState<number>(0.20);
   const [infill, setInfill] = useState<number>(20);
   const [infillPattern, setInfillPattern] = useState<'grid' | 'gyroid' | 'cubic' | 'honeycomb'>('grid');
@@ -275,6 +275,8 @@ export default function CADRequestStudioPage() {
   // Color hex mapping for viewer
   const getColorHex = (c: string) => {
     switch (c) {
+      case 'TTRC Violet':
+        return '#844AFB';
       case 'Black':
         return '#1E293B';
       case 'White':
@@ -288,7 +290,7 @@ export default function CADRequestStudioPage() {
       case 'Yellow':
         return '#EAB308';
       default:
-        return '#E3132A';
+        return '#844AFB';
     }
   };
 
@@ -325,7 +327,7 @@ export default function CADRequestStudioPage() {
             <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
               <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
                 <div className="flex items-center gap-2">
-                  <Box className="w-5 h-5 text-[#E3132A]" />
+                  <Box className="w-5 h-5 text-[#844AFB]" />
                   <span className="font-semibold text-slate-900 text-sm">
                     Interactive 3D Model Inspection
                   </span>
@@ -345,7 +347,7 @@ export default function CADRequestStudioPage() {
                       handleFileSelect(e.dataTransfer.files[0]);
                     }
                   }}
-                  className="w-full min-h-[460px] border-2 border-dashed border-slate-300 hover:border-[#E3132A] rounded-xl flex flex-col items-center justify-center p-8 text-center transition-colors bg-slate-50/50 cursor-pointer"
+                  className="w-full min-h-[460px] border-2 border-dashed border-slate-300 hover:border-[#844AFB] rounded-xl flex flex-col items-center justify-center p-8 text-center transition-colors bg-slate-50/50 cursor-pointer"
                   onClick={() => document.getElementById('cad-file-input')?.click()}
                 >
                   <input
@@ -360,7 +362,7 @@ export default function CADRequestStudioPage() {
                     }}
                   />
 
-                  <div className="w-16 h-16 rounded-full bg-red-50 text-[#E3132A] flex items-center justify-center mb-4">
+                  <div className="w-16 h-16 rounded-full bg-[#EEE8FA] text-[#844AFB] flex items-center justify-center mb-4">
                     <UploadCloud className="w-8 h-8" />
                   </div>
                   <h4 className="font-bold text-slate-900 text-base">
@@ -372,7 +374,7 @@ export default function CADRequestStudioPage() {
                   </p>
                   <button
                     type="button"
-                    className="px-4 py-2 bg-[#E3132A] hover:bg-[#B80F21] text-white text-xs font-semibold rounded-lg shadow-sm transition-colors"
+                    className="px-4 py-2 bg-[#844AFB] hover:bg-[#6721F2] text-white text-xs font-semibold rounded-lg shadow-sm transition-colors"
                   >
                     Browse CAD File
                   </button>
@@ -408,7 +410,7 @@ export default function CADRequestStudioPage() {
                       </span>
                       {uploading && (
                         <span className="text-[10px] text-slate-400 flex items-center gap-1 font-medium bg-slate-100 px-2 py-0.5 rounded">
-                          <Loader2 className="w-3 h-3 animate-spin text-[#E3132A]" />
+                          <Loader2 className="w-3 h-3 animate-spin text-[#844AFB]" />
                           Encrypting &amp; Syncing...
                         </span>
                       )}
@@ -422,7 +424,7 @@ export default function CADRequestStudioPage() {
                         setPreviewUrl(null);
                         setAnalysis(null);
                       }}
-                      className="text-[#E3132A] hover:underline font-medium"
+                      className="text-[#844AFB] hover:underline font-medium"
                     >
                       Change CAD File
                     </button>
@@ -450,7 +452,7 @@ export default function CADRequestStudioPage() {
               {/* Section 1: FDM Configuration */}
               <div>
                 <div className="flex items-center gap-2 pb-2 border-b border-slate-100 mb-4">
-                  <Settings2 className="w-5 h-5 text-[#E3132A]" />
+                  <Settings2 className="w-5 h-5 text-[#844AFB]" />
                   <h3 className="font-bold text-slate-900 text-sm uppercase tracking-wide">
                     1. Print Configuration
                   </h3>
@@ -459,12 +461,12 @@ export default function CADRequestStudioPage() {
                 {/* Material Selection */}
                 <div className="mb-4">
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    FDM Material <span className="text-[#E3132A]">*</span>
+                    FDM Material <span className="text-[#844AFB]">*</span>
                   </label>
                   <select
                     value={material}
                     onChange={(e) => setMaterial(e.target.value)}
-                    className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-900 focus:outline-none focus:border-[#E3132A]"
+                    className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-900 focus:outline-none focus:border-[#844AFB]"
                   >
                     {FDM_MATERIALS.map((m) => (
                       <option key={m.code} value={m.code}>
@@ -480,7 +482,7 @@ export default function CADRequestStudioPage() {
                 {/* Filament Color Selection */}
                 <div className="mb-4">
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Filament Color <span className="text-[#E3132A]">*</span>
+                    Filament Color <span className="text-[#844AFB]">*</span>
                   </label>
                   <div className="flex flex-wrap gap-2">
                     {FDM_MATERIALS.find((m) => m.code === material)?.colors.map((c) => (
@@ -490,7 +492,7 @@ export default function CADRequestStudioPage() {
                         onClick={() => setColor(c)}
                         className={`px-2.5 py-1 rounded-md text-xs font-medium border transition-colors ${
                           color === c
-                            ? 'border-[#E3132A] bg-red-50 text-[#E3132A] font-semibold'
+                            ? 'border-[#844AFB] bg-[#EEE8FA] text-[#844AFB] font-semibold'
                             : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
                         }`}
                       >
@@ -509,7 +511,7 @@ export default function CADRequestStudioPage() {
                     <select
                       value={layerHeight}
                       onChange={(e) => setLayerHeight(parseFloat(e.target.value))}
-                      className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 text-slate-900 focus:outline-none focus:border-[#E3132A]"
+                      className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 text-slate-900 focus:outline-none focus:border-[#844AFB]"
                     >
                       <option value={0.1}>0.10 mm (Ultra-Fine)</option>
                       <option value={0.16}>0.16 mm (Fine)</option>
@@ -529,7 +531,7 @@ export default function CADRequestStudioPage() {
                       step={5}
                       value={infill}
                       onChange={(e) => setInfill(parseInt(e.target.value))}
-                      className="w-full accent-[#E3132A] cursor-pointer"
+                      className="w-full accent-[#844AFB] cursor-pointer"
                     />
                     <div className="flex justify-between text-[10px] text-slate-400">
                       <span>10% (Light)</span>
@@ -547,7 +549,7 @@ export default function CADRequestStudioPage() {
                     <select
                       value={infillPattern}
                       onChange={(e) => setInfillPattern(e.target.value as any)}
-                      className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 text-slate-900 focus:outline-none focus:border-[#E3132A]"
+                      className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 text-slate-900 focus:outline-none focus:border-[#844AFB]"
                     >
                       <option value="grid">Grid (General)</option>
                       <option value="gyroid">Gyroid (High Strength)</option>
@@ -563,7 +565,7 @@ export default function CADRequestStudioPage() {
                     <select
                       value={supports}
                       onChange={(e) => setSupports(e.target.value as any)}
-                      className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 text-slate-900 focus:outline-none focus:border-[#E3132A]"
+                      className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 text-slate-900 focus:outline-none focus:border-[#844AFB]"
                     >
                       <option value="admin_decision">Admin Recommended</option>
                       <option value="auto">Generate Supports</option>
@@ -576,7 +578,7 @@ export default function CADRequestStudioPage() {
                 <div className="grid grid-cols-2 gap-3 mb-4">
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Quantity (Units) <span className="text-[#E3132A]">*</span>
+                      Quantity (Units) <span className="text-[#844AFB]">*</span>
                     </label>
                     <input
                       type="number"
@@ -584,7 +586,7 @@ export default function CADRequestStudioPage() {
                       max={1000}
                       value={quantity}
                       onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                      className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 text-slate-900 focus:outline-none focus:border-[#E3132A]"
+                      className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 text-slate-900 focus:outline-none focus:border-[#844AFB]"
                     />
                   </div>
 
@@ -595,7 +597,7 @@ export default function CADRequestStudioPage() {
                     <select
                       value={finish}
                       onChange={(e) => setFinish(e.target.value as any)}
-                      className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 text-slate-900 focus:outline-none focus:border-[#E3132A]"
+                      className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 text-slate-900 focus:outline-none focus:border-[#844AFB]"
                     >
                       <option value="standard">Standard Cleaned</option>
                       <option value="sanded">Sanded Support Marks</option>
@@ -610,7 +612,7 @@ export default function CADRequestStudioPage() {
               {/* Section 2: Mandatory Customer Contact Details */}
               <div>
                 <div className="flex items-center gap-2 pb-2 border-b border-slate-100 mb-4">
-                  <User className="w-5 h-5 text-[#E3132A]" />
+                  <User className="w-5 h-5 text-[#844AFB]" />
                   <h3 className="font-bold text-slate-900 text-sm uppercase tracking-wide">
                     2. Customer Contact Details
                   </h3>
@@ -619,7 +621,7 @@ export default function CADRequestStudioPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Full Name <span className="text-[#E3132A]">*</span>
+                      Full Name <span className="text-[#844AFB]">*</span>
                     </label>
                     <input
                       type="text"
@@ -627,13 +629,13 @@ export default function CADRequestStudioPage() {
                       placeholder="e.g. Arun Kumar"
                       value={customerName}
                       onChange={(e) => setCustomerName(e.target.value)}
-                      className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-900 focus:outline-none focus:border-[#E3132A]"
+                      className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-900 focus:outline-none focus:border-[#844AFB]"
                     />
                   </div>
 
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Mobile Number <span className="text-[#E3132A]">*</span>
+                      Mobile Number <span className="text-[#844AFB]">*</span>
                     </label>
                     <input
                       type="tel"
@@ -642,7 +644,7 @@ export default function CADRequestStudioPage() {
                       placeholder="10-digit mobile (e.g. 9876543210)"
                       value={customerMobile}
                       onChange={(e) => setCustomerMobile(e.target.value.replace(/\D/g, ''))}
-                      className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-900 focus:outline-none focus:border-[#E3132A]"
+                      className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-900 focus:outline-none focus:border-[#844AFB]"
                     />
                   </div>
                 </div>
@@ -650,7 +652,7 @@ export default function CADRequestStudioPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Email Address <span className="text-[#E3132A]">*</span>
+                      Email Address <span className="text-[#844AFB]">*</span>
                     </label>
                     <input
                       type="email"
@@ -658,13 +660,13 @@ export default function CADRequestStudioPage() {
                       placeholder="you@domain.com"
                       value={customerEmail}
                       onChange={(e) => setCustomerEmail(e.target.value)}
-                      className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-900 focus:outline-none focus:border-[#E3132A]"
+                      className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-900 focus:outline-none focus:border-[#844AFB]"
                     />
                   </div>
 
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Delivery City <span className="text-[#E3132A]">*</span>
+                      Delivery City <span className="text-[#844AFB]">*</span>
                     </label>
                     <input
                       type="text"
@@ -672,7 +674,7 @@ export default function CADRequestStudioPage() {
                       placeholder="e.g. Chennai, Coimbatore"
                       value={customerCity}
                       onChange={(e) => setCustomerCity(e.target.value)}
-                      className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-900 focus:outline-none focus:border-[#E3132A]"
+                      className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-900 focus:outline-none focus:border-[#844AFB]"
                     />
                   </div>
                 </div>
@@ -686,7 +688,7 @@ export default function CADRequestStudioPage() {
                     placeholder="e.g. Tamizh Tech Robotics Club"
                     value={customerCompany}
                     onChange={(e) => setCustomerCompany(e.target.value)}
-                    className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 text-slate-900 focus:outline-none focus:border-[#E3132A]"
+                    className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 text-slate-900 focus:outline-none focus:border-[#844AFB]"
                   />
                 </div>
 
@@ -699,7 +701,7 @@ export default function CADRequestStudioPage() {
                     placeholder="Specify critical tolerances, screw insert locations, or target weight constraints..."
                     value={customerNotes}
                     onChange={(e) => setCustomerNotes(e.target.value)}
-                    className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 text-slate-900 focus:outline-none focus:border-[#E3132A]"
+                    className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 text-slate-900 focus:outline-none focus:border-[#844AFB]"
                   />
                 </div>
               </div>
@@ -718,7 +720,7 @@ export default function CADRequestStudioPage() {
                 className={`w-full py-3 px-4 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 transition-all shadow-md ${
                   !fileId || !analysis || submitting
                     ? 'bg-slate-300 cursor-not-allowed text-slate-500'
-                    : 'bg-[#E3132A] hover:bg-[#B80F21] active:scale-[0.99]'
+                    : 'bg-[#844AFB] hover:bg-[#6721F2] active:scale-[0.99]'
                 }`}
               >
                 {submitting ? (

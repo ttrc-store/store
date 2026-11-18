@@ -76,7 +76,7 @@ export default async function AdminAllPrintRequestsPage({
             href={`/admin/3d-printing/requests?status=${s}`}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
               (status || 'ALL') === s
-                ? 'bg-[#E3132A] text-white shadow-xs'
+                ? 'bg-[#844AFB] text-white shadow-xs'
                 : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
             }`}
           >
@@ -130,7 +130,7 @@ export default async function AdminAllPrintRequestsPage({
                     </td>
                     <td className="p-3">
                       <span className="font-semibold text-slate-800">{r.configuration.material}</span> ({r.configuration.color})
-                      <span className="text-[10px] text-[#E3132A] font-bold block">
+                      <span className="text-[10px] text-[#844AFB] font-bold block">
                         Qty: {r.configuration.quantity}
                       </span>
                     </td>
@@ -138,7 +138,7 @@ export default async function AdminAllPrintRequestsPage({
                       {r.analysis.normalized_dimensions_mm.x} &times; {r.analysis.normalized_dimensions_mm.y} &times; {r.analysis.normalized_dimensions_mm.z} mm
                     </td>
                     <td className="p-3">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-red-50 text-[#E3132A] border border-red-200">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-[#EEE8FA] text-[#844AFB] border border-[#AF87F8]/40">
                         {r.quotation_status.replace(/_/g, ' ')}
                       </span>
                     </td>
@@ -150,7 +150,7 @@ export default async function AdminAllPrintRequestsPage({
                     <td className="p-3 text-right">
                       <Link
                         href={`/admin/3d-printing/requests/${r._id.toString()}`}
-                        className="px-3 py-1.5 bg-[#E3132A] hover:bg-[#B80F21] text-white text-[11px] font-bold rounded-lg transition-colors inline-block"
+                        className="px-3 py-1.5 bg-[#844AFB] hover:bg-[#6721F2] text-white text-[11px] font-bold rounded-lg transition-colors inline-block shadow-xs"
                       >
                         Inspect &amp; Quote
                       </Link>

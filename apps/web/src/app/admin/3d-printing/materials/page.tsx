@@ -81,7 +81,7 @@ export default function AdminMaterialsCatalogPage() {
 
         <button
           onClick={() => setShowAddModal(true)}
-          className="px-4 py-2 bg-[#E3132A] hover:bg-[#B80F21] text-white text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5"
+          className="px-4 py-2 bg-[#844AFB] hover:bg-[#6721F2] text-white text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5 shadow-xs"
         >
           <Plus className="w-4 h-4" />
           <span>Add New Material</span>
@@ -90,7 +90,7 @@ export default function AdminMaterialsCatalogPage() {
 
       {loading ? (
         <div className="p-12 text-center">
-          <Loader2 className="w-8 h-8 text-[#E3132A] animate-spin mx-auto" />
+          <Loader2 className="w-8 h-8 text-[#844AFB] animate-spin mx-auto" />
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -207,7 +207,7 @@ export default function AdminMaterialsCatalogPage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-3 py-1.5 bg-[#E3132A] text-white rounded text-xs font-bold"
+                  className="px-3 py-1.5 bg-[#844AFB] hover:bg-[#6721F2] text-white rounded text-xs font-bold shadow-xs"
                 >
                   Save Material
                 </button>

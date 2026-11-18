@@ -38,7 +38,7 @@ export function CADViewer({
   fileName,
   fileFormat,
   initialUnit = 'mm',
-  modelColor = '#E3132A', // TTRC Brand Red default
+  modelColor = '#844AFB', // TTRC Brand Violet default
   onAnalysisComplete,
   className = '',
 }: CADViewerProps) {
@@ -133,17 +133,21 @@ export function CADViewer({
     controlsRef.current = controls;
 
     // 5. Lighting Setup
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
     scene.add(ambientLight);
 
     const dirLight1 = new THREE.DirectionalLight(0xffffff, 1.2);
-    dirLight1.position.set(200, 300, 200);
+    dirLight1.position.set(200, 400, 200);
     dirLight1.castShadow = true;
     scene.add(dirLight1);
 
-    const dirLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
-    dirLight2.position.set(-200, -100, -200);
+    const dirLight2 = new THREE.DirectionalLight(0xffffff, 0.8);
+    dirLight2.position.set(-200, 200, -200);
     scene.add(dirLight2);
+
+    const dirLight3 = new THREE.DirectionalLight(0xffffff, 0.5);
+    dirLight3.position.set(0, -200, 0); // Bottom fill so undercut surfaces are illuminated
+    scene.add(dirLight3);
 
     // 6. Grid and Axes
     const gridHelper = new THREE.GridHelper(300, 30, 0xd1d5db, 0xe5e7eb);
@@ -212,7 +216,7 @@ export function CADViewer({
   // Update Model Color
   useEffect(() => {
     if (!meshGroupRef.current) return;
-    const hex = parseInt(modelColor.replace('#', ''), 16) || 0xe3132a;
+    const hex = parseInt(modelColor.replace('#', ''), 16) || 0x844afb;
     meshGroupRef.current.traverse((child) => {
       if (child instanceof THREE.Mesh && child.material) {
         if (child.material instanceof THREE.MeshStandardMaterial) {
@@ -226,17 +230,18 @@ export function CADViewer({
   const fitToScreen = useCallback(() => {
     if (!meshGroupRef.current || !cameraRef.current || !controlsRef.current) return;
 
+    meshGroupRef.current.updateMatrixWorld(true);
     const box = new THREE.Box3().setFromObject(meshGroupRef.current);
     if (box.isEmpty()) return;
 
     const center = box.getCenter(new THREE.Vector3());
     const size = box.getSize(new THREE.Vector3());
-    const maxDim = Math.max(size.x, size.y, size.z);
+    const maxDim = Math.max(size.x, size.y, size.z, 20);
     const fov = cameraRef.current.fov * (Math.PI / 180);
-    let cameraZ = Math.abs((maxDim / 2) / Math.tan(fov / 2)) * 1.6;
-    cameraZ = Math.max(cameraZ, 50);
+    let cameraZ = Math.abs((maxDim / 2) / Math.tan(fov / 2)) * 1.5;
+    cameraZ = Math.max(cameraZ, 40);
 
-    cameraRef.current.position.set(center.x + cameraZ * 0.8, center.y + cameraZ * 0.8, center.z + cameraZ);
+    cameraRef.current.position.set(center.x + cameraZ * 0.8, center.y + cameraZ * 0.8, center.z + cameraZ * 0.9);
     cameraRef.current.lookAt(center);
     controlsRef.current.target.copy(center);
     controlsRef.current.update();
@@ -276,16 +281,36 @@ export function CADViewer({
         }
       }
 
-      const activeColor = modelColorRef.current || '#E3132A';
-      const hex = parseInt(activeColor.replace('#', ''), 16) || 0xe3132a;
+      meshGroupRef.current.position.set(0, 0, 0);
 
+      // Compute unified bounding box across all incoming meshes/bodies
+      const overallBox = new THREE.Box3();
       geometries.forEach((geom) => {
         geom.computeVertexNormals();
+        geom.computeBoundingBox();
+        if (geom.boundingBox) {
+          overallBox.union(geom.boundingBox);
+        }
+      });
 
+      const center = overallBox.getCenter(new THREE.Vector3());
+      const size = overallBox.getSize(new THREE.Vector3());
+
+      // Center geometry vertices at (0, 0) and ground base flat on build plate at Y = 0
+      geometries.forEach((geom) => {
+        geom.translate(-center.x, -overallBox.min.y, -center.z);
+        geom.computeBoundingBox();
+      });
+
+      const activeColor = modelColorRef.current || '#844AFB';
+      const hex = parseInt(activeColor.replace('#', ''), 16) || 0x844afb;
+
+      geometries.forEach((geom) => {
         const material = new THREE.MeshStandardMaterial({
           color: hex,
           roughness: 0.35,
           metalness: 0.1,
+          side: THREE.DoubleSide, // Ensure both front & back faces are visible
           wireframe: isWireframeRef.current,
         });
 
@@ -295,19 +320,12 @@ export function CADViewer({
         meshGroupRef.current?.add(mesh);
       });
 
-      // Center geometry on build plate (Z = 0 at base)
-      const box = new THREE.Box3().setFromObject(meshGroupRef.current);
-      const center = box.getCenter(new THREE.Vector3());
-      const size = box.getSize(new THREE.Vector3());
-
-      meshGroupRef.current.position.x = -center.x;
-      meshGroupRef.current.position.z = -center.z;
-      meshGroupRef.current.position.y = -box.min.y; // Sit flat on ground grid
+      meshGroupRef.current.updateMatrixWorld(true);
 
       // Adjust grid size to encompass part nicely
       if (gridHelperRef.current) {
-        const maxDim = Math.max(size.x, size.z, 200);
-        gridHelperRef.current.scale.set(maxDim / 200, 1, maxDim / 200);
+        const maxDim = Math.max(size.x, size.z, 150);
+        gridHelperRef.current.scale.set(maxDim / 150, 1, maxDim / 150);
       }
 
       fitToScreen();
@@ -483,7 +501,7 @@ export function CADViewer({
       {/* Loading Overlay */}
       {loading && (
         <div className="absolute inset-0 bg-white/85 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center z-20">
-          <Loader2 className="w-10 h-10 text-[#E3132A] animate-spin mb-3" />
+          <Loader2 className="w-10 h-10 text-[#844AFB] animate-spin mb-3" />
           <h3 className="text-base font-semibold text-slate-900">Loading 3D CAD Model</h3>
           <p className="text-sm text-slate-500 mt-1">{loadingMessage}</p>
         </div>
@@ -492,7 +510,7 @@ export function CADViewer({
       {/* Error Overlay */}
       {errorMessage && !loading && (
         <div className="absolute inset-0 bg-white/95 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center z-20">
-          <div className="w-12 h-12 rounded-full bg-red-100 text-[#E3132A] flex items-center justify-center mb-3">
+          <div className="w-12 h-12 rounded-full bg-purple-100 text-[#844AFB] flex items-center justify-center mb-3">
             <AlertTriangle className="w-6 h-6" />
           </div>
           <h3 className="text-base font-semibold text-slate-900">CAD Processing Error</h3>
@@ -517,7 +535,7 @@ export function CADViewer({
                     onClick={() => handleUnitChange(u)}
                     className={`px-1.5 py-0.5 rounded text-[10px] font-medium uppercase transition-colors ${
                       unit === u
-                        ? 'bg-[#E3132A] text-white shadow-xs'
+                        ? 'bg-[#844AFB] text-white shadow-xs'
                         : 'text-slate-600 hover:text-slate-900'
                     }`}
                   >
@@ -594,7 +612,7 @@ export function CADViewer({
           onClick={() => setIsWireframe(!isWireframe)}
           className={`p-1.5 rounded-full transition-colors ${
             isWireframe
-              ? 'bg-[#E3132A] text-white shadow-xs'
+              ? 'bg-[#844AFB] text-white shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
           }`}
           title="Toggle Wireframe Mode"

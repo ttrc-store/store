@@ -142,7 +142,7 @@ export default function CustomerQuoteTrackingPage({
     return (
       <div className="min-h-screen bg-[#F7F7F8] flex items-center justify-center p-6">
         <div className="flex flex-col items-center">
-          <Loader2 className="w-10 h-10 text-[#E3132A] animate-spin mb-3" />
+          <Loader2 className="w-10 h-10 text-[#844AFB] animate-spin mb-3" />
           <p className="text-sm font-semibold text-slate-700">Loading Quotation Status...</p>
         </div>
       </div>
@@ -153,12 +153,12 @@ export default function CustomerQuoteTrackingPage({
     return (
       <div className="min-h-screen bg-[#F7F7F8] flex items-center justify-center p-6">
         <div className="bg-white border border-slate-200 rounded-xl p-8 max-w-md text-center shadow-xs">
-          <AlertTriangle className="w-12 h-12 text-[#E3132A] mx-auto mb-3" />
+          <AlertTriangle className="w-12 h-12 text-[#844AFB] mx-auto mb-3" />
           <h2 className="text-lg font-bold text-slate-900 mb-1">Request Not Found</h2>
           <p className="text-xs text-slate-500 mb-6">{error || 'This 3D print request does not exist or has expired.'}</p>
           <Link
             href="/3d-printing"
-            className="px-4 py-2 bg-[#E3132A] text-white text-xs font-semibold rounded-lg shadow-sm"
+            className="px-4 py-2 bg-[#844AFB] hover:bg-[#6721F2] text-white text-xs font-semibold rounded-lg shadow-sm"
           >
             Back to 3D Printing Service
           </Link>
@@ -194,7 +194,7 @@ export default function CustomerQuoteTrackingPage({
 
           <div className="flex flex-wrap items-center gap-2">
             {/* Quotation Status Badge */}
-            <div className="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-red-50 text-[#E3132A] border border-red-200">
+            <div className="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-[#EEE8FA] text-[#844AFB] border border-[#AF87F8]/40">
               Quote: {request.quotation_status.replace(/_/g, ' ')}
             </div>
 
@@ -211,25 +211,25 @@ export default function CustomerQuoteTrackingPage({
             Quotation &amp; Production Progress
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-            <div className={`p-3 rounded-lg border ${request.quotation_status === 'PENDING_REVIEW' || request.quotation_status === 'UNDER_REVIEW' ? 'border-[#E3132A] bg-red-50/50' : 'border-slate-100 bg-slate-50'}`}>
+            <div className={`p-3 rounded-lg border ${request.quotation_status === 'PENDING_REVIEW' || request.quotation_status === 'UNDER_REVIEW' ? 'border-[#844AFB] bg-[#EEE8FA]/50' : 'border-slate-100 bg-slate-50'}`}>
               <Clock className="w-5 h-5 mx-auto mb-1 text-slate-700" />
               <span className="text-xs font-bold block text-slate-900">1. Engineering Review</span>
               <span className="text-[10px] text-slate-500">Checking printability</span>
             </div>
 
-            <div className={`p-3 rounded-lg border ${request.quotation_status === 'QUOTE_SENT' ? 'border-[#E3132A] bg-red-50/50' : request.quotation_status === 'ACCEPTED' ? 'border-emerald-200 bg-emerald-50/50' : 'border-slate-100 bg-slate-50'}`}>
+            <div className={`p-3 rounded-lg border ${request.quotation_status === 'QUOTE_SENT' ? 'border-[#844AFB] bg-[#EEE8FA]/50' : request.quotation_status === 'ACCEPTED' ? 'border-emerald-200 bg-emerald-50/50' : 'border-slate-100 bg-slate-50'}`}>
               <FileText className="w-5 h-5 mx-auto mb-1 text-slate-700" />
               <span className="text-xs font-bold block text-slate-900">2. Official Quotation</span>
               <span className="text-[10px] text-slate-500">{request.quotation_status === 'QUOTE_SENT' ? 'Quote Ready' : 'Pending Quote'}</span>
             </div>
 
-            <div className={`p-3 rounded-lg border ${request.production_status === 'PAYMENT_PENDING' || request.production_status === 'PAID' ? 'border-[#E3132A] bg-red-50/50' : 'border-slate-100 bg-slate-50'}`}>
+            <div className={`p-3 rounded-lg border ${request.production_status === 'PAYMENT_PENDING' || request.production_status === 'PAID' ? 'border-[#844AFB] bg-[#EEE8FA]/50' : 'border-slate-100 bg-slate-50'}`}>
               <CreditCard className="w-5 h-5 mx-auto mb-1 text-slate-700" />
               <span className="text-xs font-bold block text-slate-900">3. Payment &amp; Slicing</span>
               <span className="text-[10px] text-slate-500">{request.production_status === 'PAID' ? 'Payment Verified' : 'Awaiting Payment'}</span>
             </div>
 
-            <div className={`p-3 rounded-lg border ${request.production_status === 'IN_PRODUCTION' || request.production_status === 'DISPATCHED' || request.production_status === 'DELIVERED' ? 'border-[#E3132A] bg-red-50/50' : 'border-slate-100 bg-slate-50'}`}>
+            <div className={`p-3 rounded-lg border ${request.production_status === 'IN_PRODUCTION' || request.production_status === 'DISPATCHED' || request.production_status === 'DELIVERED' ? 'border-[#844AFB] bg-[#EEE8FA]/50' : 'border-slate-100 bg-slate-50'}`}>
               <Truck className="w-5 h-5 mx-auto mb-1 text-slate-700" />
               <span className="text-xs font-bold block text-slate-900">4. Print &amp; Dispatch</span>
               <span className="text-[10px] text-slate-500">{request.production_status === 'DISPATCHED' ? 'Shipped via Courier' : 'In Manufacturing'}</span>
@@ -301,10 +301,10 @@ export default function CustomerQuoteTrackingPage({
           {/* LEFT: Official Quotation Details (7 cols) */}
           <div className="lg:col-span-7 flex flex-col gap-6">
             {activeQuote ? (
-              <div className="bg-white border-2 border-[#E3132A] rounded-xl p-6 shadow-sm">
+              <div className="bg-white border-2 border-[#844AFB] rounded-xl p-6 shadow-sm">
                 <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
                   <div className="flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-[#E3132A]" />
+                    <FileText className="w-5 h-5 text-[#844AFB]" />
                     <span className="font-bold text-slate-900 text-base">
                       Official Quotation ({activeQuote.quote_number})
                     </span>
@@ -340,7 +340,7 @@ export default function CustomerQuoteTrackingPage({
                   {/* Total */}
                   <div className="flex justify-between items-center pt-3 border-t-2 border-slate-200 text-base">
                     <span className="font-bold text-slate-900">Total Payable Amount:</span>
-                    <span className="font-extrabold text-[#E3132A] text-xl">
+                    <span className="font-extrabold text-[#844AFB] text-xl">
                       {formatPaise(activeQuote.breakdown.total_paise)}
                     </span>
                   </div>
@@ -370,7 +370,7 @@ export default function CustomerQuoteTrackingPage({
                     <button
                       onClick={handleAcceptQuote}
                       disabled={acceptingQuote}
-                      className="flex-1 py-3 px-4 bg-[#E3132A] hover:bg-[#B80F21] text-white font-bold text-xs rounded-xl shadow-md flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+                      className="flex-1 py-3 px-4 bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold text-xs rounded-xl shadow-md flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
                     >
                       {acceptingQuote ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
                       <span>Accept Quotation &amp; Proceed to Payment</span>
@@ -414,7 +414,7 @@ export default function CustomerQuoteTrackingPage({
           <div className="lg:col-span-5 flex flex-col gap-6">
             <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-xs">
               <h3 className="font-bold text-slate-900 text-sm mb-4 pb-2 border-b border-slate-100 flex items-center gap-2">
-                <Box className="w-4 h-4 text-[#E3132A]" />
+                <Box className="w-4 h-4 text-[#844AFB]" />
                 <span>Requested Technical Specifications</span>
               </h3>
 
@@ -453,7 +453,7 @@ export default function CustomerQuoteTrackingPage({
                 </div>
                 <div className="flex justify-between py-1 border-b border-slate-100">
                   <span className="text-slate-500">Quantity:</span>
-                  <span className="font-semibold text-[#E3132A] font-bold">{request.configuration.quantity} Unit(s)</span>
+                  <span className="font-bold text-[#844AFB]">{request.configuration.quantity} Unit(s)</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-slate-100">
                   <span className="text-slate-500">Finish:</span>
@@ -491,7 +491,7 @@ export default function CustomerQuoteTrackingPage({
                 placeholder="e.g., Can we reduce quantity to 2 and change material to PETG instead of PLA?"
                 value={revisionNotes}
                 onChange={(e) => setRevisionNotes(e.target.value)}
-                className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-900 focus:outline-none focus:border-[#E3132A]"
+                className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-900 focus:outline-none focus:border-[#844AFB]"
               />
               <div className="flex justify-end gap-2">
                 <button
@@ -504,7 +504,7 @@ export default function CustomerQuoteTrackingPage({
                 <button
                   type="submit"
                   disabled={requestingRevision || !revisionNotes.trim()}
-                  className="px-4 py-2 bg-[#E3132A] text-white rounded-lg text-xs font-semibold flex items-center gap-1.5"
+                  className="px-4 py-2 bg-[#844AFB] hover:bg-[#6721F2] text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm"
                 >
                   {requestingRevision ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                   <span>Submit Revision Request</span>

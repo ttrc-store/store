@@ -55,7 +55,7 @@ export default async function AdminThreeDPrintingOverviewPage() {
             href="/admin/3d-printing/printers"
             className="px-3.5 py-2 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5"
           >
-            <Cpu className="w-4 h-4 text-[#E3132A]" />
+            <Cpu className="w-4 h-4 text-[#844AFB]" />
             <span>Printer Fleet</span>
           </Link>
 
@@ -63,13 +63,13 @@ export default async function AdminThreeDPrintingOverviewPage() {
             href="/admin/3d-printing/materials"
             className="px-3.5 py-2 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5"
           >
-            <Layers className="w-4 h-4 text-[#E3132A]" />
+            <Layers className="w-4 h-4 text-[#844AFB]" />
             <span>Materials Catalog</span>
           </Link>
 
           <Link
             href="/admin/3d-printing/requests"
-            className="px-4 py-2 bg-[#E3132A] hover:bg-[#B80F21] text-white text-xs font-bold rounded-xl shadow-xs transition-colors"
+            className="px-4 py-2 bg-[#844AFB] hover:bg-[#6721F2] text-white text-xs font-bold rounded-xl shadow-xs transition-colors"
           >
             All Requests ({totalRequests})
           </Link>
@@ -117,7 +117,7 @@ export default async function AdminThreeDPrintingOverviewPage() {
         <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
           <div className="flex items-center justify-between text-slate-500 mb-1">
             <span className="text-[11px] font-semibold uppercase">In Production</span>
-            <Cpu className="w-4 h-4 text-[#E3132A]" />
+            <Cpu className="w-4 h-4 text-[#844AFB]" />
           </div>
           <span className="text-2xl font-black text-slate-900">{inProduction}</span>
           <span className="text-[10px] text-slate-400 block mt-0.5">On printer bed</span>
@@ -137,12 +137,12 @@ export default async function AdminThreeDPrintingOverviewPage() {
       <div className="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden">
         <div className="p-4 border-b border-slate-100 flex items-center justify-between">
           <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-            <Box className="w-4 h-4 text-[#E3132A]" />
+            <Box className="w-4 h-4 text-[#844AFB]" />
             <span>Recent Quotation Requests</span>
           </h2>
           <Link
             href="/admin/3d-printing/requests"
-            className="text-xs font-semibold text-[#E3132A] hover:underline flex items-center gap-1"
+            className="text-xs font-semibold text-[#844AFB] hover:underline flex items-center gap-1"
           >
             <span>View All</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -192,7 +192,7 @@ export default async function AdminThreeDPrintingOverviewPage() {
                     <td className="p-3">
                       <span className="font-semibold text-slate-800">{r.configuration.material}</span>{' '}
                       ({r.configuration.color})
-                      <span className="text-[10px] text-[#E3132A] font-bold block">
+                      <span className="text-[10px] text-[#844AFB] font-bold block">
                         Qty: {r.configuration.quantity}
                       </span>
                     </td>
@@ -200,7 +200,7 @@ export default async function AdminThreeDPrintingOverviewPage() {
                       {r.analysis.normalized_dimensions_mm.x} &times; {r.analysis.normalized_dimensions_mm.y} &times; {r.analysis.normalized_dimensions_mm.z} mm
                     </td>
                     <td className="p-3">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-red-50 text-[#E3132A] border border-red-200">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-[#EEE8FA] text-[#844AFB] border border-[#AF87F8]/40">
                         {r.quotation_status.replace(/_/g, ' ')}
                       </span>
                     </td>
@@ -212,7 +212,7 @@ export default async function AdminThreeDPrintingOverviewPage() {
                     <td className="p-3 text-right">
                       <Link
                         href={`/admin/3d-printing/requests/${r._id.toString()}`}
-                        className="px-3 py-1.5 bg-[#E3132A] hover:bg-[#B80F21] text-white text-[11px] font-bold rounded-lg transition-colors inline-block"
+                        className="px-3 py-1.5 bg-[#844AFB] hover:bg-[#6721F2] text-white text-[11px] font-bold rounded-lg transition-colors inline-block shadow-xs"
                       >
                         Inspect &amp; Quote
                       </Link>

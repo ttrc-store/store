@@ -79,13 +79,13 @@ export default function ThreeDPrintingLandingPage() {
       <section className="relative overflow-hidden bg-gradient-to-b from-slate-50 to-white py-16 sm:py-24 border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-50 border border-red-200 text-[#E3132A] text-xs font-semibold uppercase tracking-wider mb-6">
-              <Sparkles className="w-4 h-4" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EEE8FA] border border-[#AF87F8]/40 text-[#844AFB] text-xs font-semibold uppercase tracking-wider mb-6">
+              <Sparkles className="w-4 h-4 text-[#844AFB]" />
               <span>Precision FDM Manufacturing &bull; Tamil Nadu, India</span>
             </div>
             <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900 leading-tight">
               From CAD to Real Parts in{' '}
-              <span className="text-[#E3132A]">Record Time</span>
+              <span className="text-[#844AFB]">Record Time</span>
             </h1>
             <p className="mt-4 text-base sm:text-lg text-slate-600 leading-relaxed">
               Upload your <strong>STL</strong> or <strong>STEP</strong> designs to our interactive 3D studio.
@@ -95,7 +95,7 @@ export default function ThreeDPrintingLandingPage() {
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
                 href="/3d-printing/request"
-                className="w-full sm:w-auto px-8 py-3.5 bg-[#E3132A] hover:bg-[#B80F21] text-white font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 group"
+                className="w-full sm:w-auto px-8 py-3.5 bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 group"
               >
                 <span>Upload CAD &amp; Inspect Model</span>
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -112,7 +112,7 @@ export default function ThreeDPrintingLandingPage() {
             {/* Quick Badges */}
             <div className="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-4 text-left border-t border-slate-200 pt-8">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-red-50 text-[#E3132A] flex items-center justify-center shrink-0">
+                <div className="w-9 h-9 rounded-lg bg-[#EEE8FA] text-[#844AFB] flex items-center justify-center shrink-0">
                   <Box className="w-5 h-5" />
                 </div>
                 <div className="text-xs">
@@ -122,7 +122,7 @@ export default function ThreeDPrintingLandingPage() {
               </div>
 
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-red-50 text-[#E3132A] flex items-center justify-center shrink-0">
+                <div className="w-9 h-9 rounded-lg bg-[#EEE8FA] text-[#844AFB] flex items-center justify-center shrink-0">
                   <Cpu className="w-5 h-5" />
                 </div>
                 <div className="text-xs">
@@ -132,7 +132,7 @@ export default function ThreeDPrintingLandingPage() {
               </div>
 
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-red-50 text-[#E3132A] flex items-center justify-center shrink-0">
+                <div className="w-9 h-9 rounded-lg bg-[#EEE8FA] text-[#844AFB] flex items-center justify-center shrink-0">
                   <ShieldCheck className="w-5 h-5" />
                 </div>
                 <div className="text-xs">
@@ -142,7 +142,7 @@ export default function ThreeDPrintingLandingPage() {
               </div>
 
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-red-50 text-[#E3132A] flex items-center justify-center shrink-0">
+                <div className="w-9 h-9 rounded-lg bg-[#EEE8FA] text-[#844AFB] flex items-center justify-center shrink-0">
                   <Truck className="w-5 h-5" />
                 </div>
                 <div className="text-xs">
@@ -169,7 +169,7 @@ export default function ThreeDPrintingLandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-xs relative">
-              <span className="text-3xl font-extrabold text-[#E3132A] block mb-2">01</span>
+              <span className="text-3xl font-extrabold text-[#844AFB] block mb-2">01</span>
               <h3 className="font-bold text-slate-900 text-base mb-1">Upload CAD Design</h3>
               <p className="text-xs text-slate-600 leading-relaxed">
                 Drag and drop your STL or STEP CAD file up to 50 MB into our secure private storage.
@@ -177,7 +177,7 @@ export default function ThreeDPrintingLandingPage() {
             </div>
 
             <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-xs relative">
-              <span className="text-3xl font-extrabold text-[#E3132A] block mb-2">02</span>
+              <span className="text-3xl font-extrabold text-[#844AFB] block mb-2">02</span>
               <h3 className="font-bold text-slate-900 text-base mb-1">Inspect 3D Geometry</h3>
               <p className="text-xs text-slate-600 leading-relaxed">
                 Rotate, zoom, pan, and verify physical dimensions ($X \times Y \times Z$), volume, and watertight mesh integrity.
@@ -185,7 +185,7 @@ export default function ThreeDPrintingLandingPage() {
             </div>
 
             <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-xs relative">
-              <span className="text-3xl font-extrabold text-[#E3132A] block mb-2">03</span>
+              <span className="text-3xl font-extrabold text-[#844AFB] block mb-2">03</span>
               <h3 className="font-bold text-slate-900 text-base mb-1">Configure Parameters</h3>
               <p className="text-xs text-slate-600 leading-relaxed">
                 Choose FDM polymer (PLA, PETG, ABS, TPU, Nylon), layer resolution, infill %, and fill in mandatory contact info.
@@ -193,7 +193,7 @@ export default function ThreeDPrintingLandingPage() {
             </div>
 
             <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-xs relative">
-              <span className="text-3xl font-extrabold text-[#E3132A] block mb-2">04</span>
+              <span className="text-3xl font-extrabold text-[#844AFB] block mb-2">04</span>
               <h3 className="font-bold text-slate-900 text-base mb-1">Verified Quotation</h3>
               <p className="text-xs text-slate-600 leading-relaxed">
                 TTRC engineers review slicing and machine compatibility, then issue an itemized quotation in integer paise.
@@ -219,12 +219,12 @@ export default function ThreeDPrintingLandingPage() {
             {MATERIALS.map((mat) => (
               <div
                 key={mat.name}
-                className="bg-slate-50 border border-slate-200 rounded-xl p-6 flex flex-col justify-between hover:border-[#E3132A] transition-colors"
+                className="bg-slate-50 border border-slate-200 rounded-xl p-6 flex flex-col justify-between hover:border-[#844AFB] transition-colors"
               >
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-bold text-slate-900 text-base">{mat.name}</h3>
-                    <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-red-100 text-[#E3132A]">
+                    <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-[#EEE8FA] text-[#844AFB]">
                       {mat.tag}
                     </span>
                   </div>
@@ -252,7 +252,7 @@ export default function ThreeDPrintingLandingPage() {
                 <div className="mt-6 pt-4 border-t border-slate-200">
                   <Link
                     href={`/3d-printing/request`}
-                    className="text-xs font-semibold text-[#E3132A] hover:underline flex items-center gap-1"
+                    className="text-xs font-semibold text-[#844AFB] hover:underline flex items-center gap-1"
                   >
                     <span>Print with {mat.name.split(' ')[0]}</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -275,7 +275,7 @@ export default function ThreeDPrintingLandingPage() {
           </p>
           <Link
             href="/3d-printing/request"
-            className="inline-flex items-center gap-2 px-8 py-3 bg-[#E3132A] hover:bg-[#B80F21] text-white font-bold rounded-xl transition-all shadow-lg"
+            className="inline-flex items-center gap-2 px-8 py-3 bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold rounded-xl transition-all shadow-lg"
           >
             <span>Launch CAD Studio</span>
             <ArrowRight className="w-4 h-4" />
