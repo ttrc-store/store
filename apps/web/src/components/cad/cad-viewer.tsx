@@ -56,7 +56,7 @@ export function CADViewer({
   const animFrameRef = useRef<number | null>(null);
 
   // Component state
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(!!(fileBuffer || fileUrl));
   const [loadingMessage, setLoadingMessage] = useState<string>('Initializing 3D engine...');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [unit, setUnit] = useState<'mm' | 'cm' | 'inch'>(initialUnit);
@@ -70,7 +70,7 @@ export function CADViewer({
     indices?: Uint32Array;
   } | null>(null);
 
-  // Stable references for callbacks and dynamic styling to avoid re-triggering model loads
+  // Stable references for callbacks, dynamic styling, and unit to avoid re-triggering model loads
   const onAnalysisCompleteRef = useRef(onAnalysisComplete);
   useEffect(() => {
     onAnalysisCompleteRef.current = onAnalysisComplete;
@@ -85,6 +85,11 @@ export function CADViewer({
   useEffect(() => {
     isWireframeRef.current = isWireframe;
   }, [isWireframe]);
+
+  const unitRef = useRef(unit);
+  useEffect(() => {
+    unitRef.current = unit;
+  }, [unit]);
 
   const lastLoadedSourceRef = useRef<string | null>(null);
 
@@ -322,13 +327,11 @@ export function CADViewer({
         : null;
 
       if (!sourceKey) {
-        setLoading(false);
         return;
       }
 
       // Avoid re-loading and re-parsing identical models
       if (lastLoadedSourceRef.current === sourceKey && rawGeometryRef.current) {
-        setLoading(false);
         return;
       }
 
@@ -377,7 +380,7 @@ export function CADViewer({
           rawGeometryRef.current = { positions: rawPos, indices: rawIndices };
 
           populateSceneWithGeometry([geometry]);
-          applyGeometryAnalysis(unit);
+          applyGeometryAnalysis(unitRef.current);
           lastLoadedSourceRef.current = sourceKey;
           setLoading(false);
         } else if (isSTEP) {
@@ -448,7 +451,7 @@ export function CADViewer({
           };
 
           populateSceneWithGeometry(geometries);
-          applyGeometryAnalysis(unit);
+          applyGeometryAnalysis(unitRef.current);
           lastLoadedSourceRef.current = sourceKey;
           setLoading(false);
         } else {
@@ -467,7 +470,7 @@ export function CADViewer({
     return () => {
       isCancelled = true;
     };
-  }, [fileBuffer, fileUrl, fileFormat, fileName, populateSceneWithGeometry, applyGeometryAnalysis, unit]);
+  }, [fileBuffer, fileUrl, fileFormat, fileName]);
 
   return (
     <div

@@ -132,7 +132,7 @@ export default function CADRequestStudioPage() {
   const handleAnalysisComplete = useCallback(
     (res: GeometryAnalysisResult, confirmedUnit: 'mm' | 'cm' | 'inch') => {
       setAnalysis(res);
-      setUnit(confirmedUnit);
+      setUnit((prev) => (prev !== confirmedUnit ? confirmedUnit : prev));
     },
     []
   );
