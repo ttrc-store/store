@@ -21,3 +21,4 @@ declare module 'occt-import-js' {
     locateFile?: (path: string) => string;
   }): Promise<OcctInstance>;
 }
+

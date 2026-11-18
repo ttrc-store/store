@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { CADViewerDynamic } from '@/components/cad/cad-viewer-client';
@@ -127,6 +127,15 @@ export default function CADRequestStudioPage() {
       setFinish('standard');
     }
   }, [material, color, finish]);
+
+  // Memoized geometry analysis handler to prevent unnecessary re-render loops
+  const handleAnalysisComplete = useCallback(
+    (res: GeometryAnalysisResult, confirmedUnit: 'mm' | 'cm' | 'inch') => {
+      setAnalysis(res);
+      setUnit(confirmedUnit);
+    },
+    []
+  );
 
   // Handle Drag & Drop / File Input
   const handleFileSelect = async (selectedFile: File) => {
@@ -379,16 +388,13 @@ export default function CADRequestStudioPage() {
                 <div className="flex flex-col">
                   <div className="relative w-full h-[480px]">
                     <CADViewerDynamic
-                      fileBuffer={fileBuffer}
-                      fileUrl={previewUrl || undefined}
+                      fileBuffer={fileBuffer || undefined}
+                      fileUrl={fileBuffer ? undefined : (previewUrl || undefined)}
                       fileName={file?.name || 'model.stl'}
                       fileFormat={format}
                       initialUnit={unit}
                       modelColor={getColorHex(color)}
-                      onAnalysisComplete={(res, confirmedUnit) => {
-                        setAnalysis(res);
-                        setUnit(confirmedUnit);
-                      }}
+                      onAnalysisComplete={handleAnalysisComplete}
                     />
                   </div>
 

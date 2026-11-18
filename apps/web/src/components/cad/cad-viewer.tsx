@@ -70,6 +70,24 @@ export function CADViewer({
     indices?: Uint32Array;
   } | null>(null);
 
+  // Stable references for callbacks and dynamic styling to avoid re-triggering model loads
+  const onAnalysisCompleteRef = useRef(onAnalysisComplete);
+  useEffect(() => {
+    onAnalysisCompleteRef.current = onAnalysisComplete;
+  }, [onAnalysisComplete]);
+
+  const modelColorRef = useRef(modelColor);
+  useEffect(() => {
+    modelColorRef.current = modelColor;
+  }, [modelColor]);
+
+  const isWireframeRef = useRef(isWireframe);
+  useEffect(() => {
+    isWireframeRef.current = isWireframe;
+  }, [isWireframe]);
+
+  const lastLoadedSourceRef = useRef<string | null>(null);
+
   // Initialize Three.js Scene
   useEffect(() => {
     if (!canvasRef.current || !containerRef.current) return;
@@ -225,11 +243,11 @@ export function CADViewer({
       if (!rawGeometryRef.current) return;
       const result = analyzeMeshGeometry(rawGeometryRef.current, targetUnit);
       setAnalysis(result);
-      if (onAnalysisComplete) {
-        onAnalysisComplete(result, targetUnit);
+      if (onAnalysisCompleteRef.current) {
+        onAnalysisCompleteRef.current(result, targetUnit);
       }
     },
-    [onAnalysisComplete]
+    []
   );
 
   const handleUnitChange = (newUnit: 'mm' | 'cm' | 'inch') => {
@@ -253,7 +271,8 @@ export function CADViewer({
         }
       }
 
-      const hex = parseInt(modelColor.replace('#', ''), 16) || 0xe3132a;
+      const activeColor = modelColorRef.current || '#E3132A';
+      const hex = parseInt(activeColor.replace('#', ''), 16) || 0xe3132a;
 
       geometries.forEach((geom) => {
         geom.computeVertexNormals();
@@ -262,7 +281,7 @@ export function CADViewer({
           color: hex,
           roughness: 0.35,
           metalness: 0.1,
-          wireframe: isWireframe,
+          wireframe: isWireframeRef.current,
         });
 
         const mesh = new THREE.Mesh(geom, material);
@@ -288,7 +307,7 @@ export function CADViewer({
 
       fitToScreen();
     },
-    [fitToScreen, isWireframe, modelColor]
+    [fitToScreen]
   );
 
   // Load and parse CAD file
@@ -296,6 +315,23 @@ export function CADViewer({
     let isCancelled = false;
 
     async function loadCadModel() {
+      const sourceKey = fileBuffer
+        ? `buffer_${fileBuffer.byteLength}_${fileName}`
+        : fileUrl
+        ? `url_${fileUrl}`
+        : null;
+
+      if (!sourceKey) {
+        setLoading(false);
+        return;
+      }
+
+      // Avoid re-loading and re-parsing identical models
+      if (lastLoadedSourceRef.current === sourceKey && rawGeometryRef.current) {
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       setErrorMessage(null);
 
@@ -304,6 +340,7 @@ export function CADViewer({
 
         if (fileBuffer) {
           buffer = fileBuffer;
+          setLoadingMessage('Parsing CAD model...');
         } else if (fileUrl) {
           setLoadingMessage('Downloading CAD file securely...');
           const resp = await fetch(fileUrl);
@@ -341,6 +378,7 @@ export function CADViewer({
 
           populateSceneWithGeometry([geometry]);
           applyGeometryAnalysis(unit);
+          lastLoadedSourceRef.current = sourceKey;
           setLoading(false);
         } else if (isSTEP) {
           setLoadingMessage('Initializing OpenCASCADE WebAssembly engine...');
@@ -411,6 +449,7 @@ export function CADViewer({
 
           populateSceneWithGeometry(geometries);
           applyGeometryAnalysis(unit);
+          lastLoadedSourceRef.current = sourceKey;
           setLoading(false);
         } else {
           throw new Error(`Unsupported CAD file format: "${fileFormat}". Please upload STL or STEP files.`);
@@ -428,7 +467,7 @@ export function CADViewer({
     return () => {
       isCancelled = true;
     };
-  }, [fileBuffer, fileUrl, fileFormat, fileName, populateSceneWithGeometry, applyGeometryAnalysis]);
+  }, [fileBuffer, fileUrl, fileFormat, fileName, populateSceneWithGeometry, applyGeometryAnalysis, unit]);
 
   return (
     <div

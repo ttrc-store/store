@@ -96,4 +96,26 @@ describe('3D CAD Geometry & Mesh Topology Engine', () => {
     expect(result.degenerateTriangles).toBe(1);
     expect(result.warnings.some((w) => w.includes('degenerate triangles'))).toBe(true);
   });
+
+  it('correctly handles raw unindexed meshes (standard STL format) via vertex welding', () => {
+    const box = createBoxGeometry(10, 10, 10);
+    // Expand indexed geometry into raw unindexed triangles (36 vertices)
+    const unindexedPositions = new Float32Array(box.indices.length * 3);
+    for (let i = 0; i < box.indices.length; i++) {
+      const idx = box.indices[i];
+      unindexedPositions[i * 3] = box.positions[idx * 3];
+      unindexedPositions[i * 3 + 1] = box.positions[idx * 3 + 1];
+      unindexedPositions[i * 3 + 2] = box.positions[idx * 3 + 2];
+    }
+
+    const result = analyzeMeshGeometry({ positions: unindexedPositions }, 'mm');
+
+    expect(result.triangleCount).toBe(12);
+    expect(result.isWatertight).toBe(true);
+    expect(result.isManifold).toBe(true);
+    expect(result.volumeCm3).toBe(1); // 1 cm³
+    expect(result.surfaceAreaCm2).toBe(6); // 6 cm²
+    expect(result.shellCount).toBe(1);
+  });
 });
+

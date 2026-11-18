@@ -4,3 +4,4 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   return NextResponse.redirect(new URL('/account/print-requests', url.origin));
 }
+

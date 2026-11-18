@@ -106,38 +106,81 @@ export function analyzeMeshGeometry(
   const dimY = Math.round(Math.max(0, maxY - minY) * 100) / 100;
   const dimZ = Math.round(Math.max(0, maxZ - minZ) * 100) / 100;
 
-  // 2. Extract Triangles
+  // 2. Extract Triangles & Indices
   const indices = mesh.indices;
   const triangleCount = indices ? Math.floor(indices.length / 3) : Math.floor(numVertices / 3);
+
+  // If mesh is unindexed, weld coincident vertices (0.01 mm tolerance) so topological checks work correctly
+  let resolvedIndices: Uint32Array | Uint16Array | number[];
+  if (indices) {
+    resolvedIndices = indices;
+  } else {
+    const vertexMap = new Map<string, number>();
+    const welded = new Uint32Array(triangleCount * 3);
+    let nextVertexIdx = 0;
+    const precision = 100; // 0.01 mm tolerance
+
+    for (let i = 0; i < triangleCount * 3; i++) {
+      const vx = Math.round(rawPositions[i * 3] * scale * precision);
+      const vy = Math.round(rawPositions[i * 3 + 1] * scale * precision);
+      const vz = Math.round(rawPositions[i * 3 + 2] * scale * precision);
+      const vKey = `${vx}_${vy}_${vz}`;
+      let vIdx = vertexMap.get(vKey);
+      if (vIdx === undefined) {
+        vIdx = nextVertexIdx++;
+        vertexMap.set(vKey, vIdx);
+      }
+      welded[i] = vIdx;
+    }
+    resolvedIndices = welded;
+  }
 
   let degenerateCount = 0;
   let totalAreaMm2 = 0;
   let signedVolumeMm3 = 0;
 
-  // Edge tracking for 2-manifold check: map undirected edge to incident face count and directed orientation
-  const edgeFaceCount = new Map<string, number>();
-  const edgeDirections = new Map<string, number>(); // Tracks half-edge orientation: a->b vs b->a
+  // Disjoint Set Union (Union-Find) for high-performance O(1) shell connectivity
+  const parent = new Int32Array(triangleCount);
+  for (let i = 0; i < triangleCount; i++) parent[i] = i;
 
-  // Triangles structure for adjacency / shell counting
-  const faceNeighbors: number[][] = Array.from({ length: triangleCount }, () => []);
-  const edgeToFaces = new Map<string, number[]>();
+  function findRoot(i: number): number {
+    let root = i;
+    while (root !== parent[root]) root = parent[root];
+    let curr = i;
+    while (curr !== root) {
+      const next = parent[curr];
+      parent[curr] = root;
+      curr = next;
+    }
+    return root;
+  }
+
+  function unionSets(i: number, j: number): void {
+    const rootI = findRoot(i);
+    const rootJ = findRoot(j);
+    if (rootI !== rootJ) parent[rootI] = rootJ;
+  }
+
+  // Edge tracking for 2-manifold check: map undirected edge to incident face count and directed orientation
+  const edgeMap = new Map<string, { face: number; fwd: boolean; count: number }>();
 
   for (let t = 0; t < triangleCount; t++) {
-    const i1 = indices ? indices[t * 3] : t * 3;
-    const i2 = indices ? indices[t * 3 + 1] : t * 3 + 1;
-    const i3 = indices ? indices[t * 3 + 2] : t * 3 + 2;
+    // Spatial coordinates for triangle t
+    const posIdx1 = indices ? indices[t * 3] : t * 3;
+    const posIdx2 = indices ? indices[t * 3 + 1] : t * 3 + 1;
+    const posIdx3 = indices ? indices[t * 3 + 2] : t * 3 + 2;
 
-    const v1x = rawPositions[i1 * 3] * scale;
-    const v1y = rawPositions[i1 * 3 + 1] * scale;
-    const v1z = rawPositions[i1 * 3 + 2] * scale;
+    const v1x = rawPositions[posIdx1 * 3] * scale;
+    const v1y = rawPositions[posIdx1 * 3 + 1] * scale;
+    const v1z = rawPositions[posIdx1 * 3 + 2] * scale;
 
-    const v2x = rawPositions[i2 * 3] * scale;
-    const v2y = rawPositions[i2 * 3 + 1] * scale;
-    const v2z = rawPositions[i2 * 3 + 2] * scale;
+    const v2x = rawPositions[posIdx2 * 3] * scale;
+    const v2y = rawPositions[posIdx2 * 3 + 1] * scale;
+    const v2z = rawPositions[posIdx2 * 3 + 2] * scale;
 
-    const v3x = rawPositions[i3 * 3] * scale;
-    const v3y = rawPositions[i3 * 3 + 1] * scale;
-    const v3z = rawPositions[i3 * 3 + 2] * scale;
+    const v3x = rawPositions[posIdx3 * 3] * scale;
+    const v3y = rawPositions[posIdx3 * 3 + 1] * scale;
+    const v3z = rawPositions[posIdx3 * 3 + 2] * scale;
 
     // Cross product: (v2 - v1) x (v3 - v1)
     const ax = v2x - v1x;
@@ -171,7 +214,11 @@ export function analyzeMeshGeometry(
     const dot = v1x * crossX + v1y * crossY + v1z * crossZ;
     signedVolumeMm3 += dot / 6.0;
 
-    // Record 3 edges for this triangle
+    // Record 3 topological edges for 2-manifold verification & shell grouping
+    const i1 = resolvedIndices[t * 3];
+    const i2 = resolvedIndices[t * 3 + 1];
+    const i3 = resolvedIndices[t * 3 + 2];
+
     const triEdges = [
       [i1, i2],
       [i2, i3],
@@ -180,16 +227,17 @@ export function analyzeMeshGeometry(
 
     for (const [va, vb] of triEdges) {
       const uKey = va < vb ? `${va}_${vb}` : `${vb}_${va}`;
-      edgeFaceCount.set(uKey, (edgeFaceCount.get(uKey) || 0) + 1);
+      const isFwd = va < vb;
+      const existing = edgeMap.get(uKey);
 
-      // Orientation check
-      const dirKey = `${va}_${vb}`;
-      edgeDirections.set(dirKey, (edgeDirections.get(dirKey) || 0) + 1);
-
-      // Adjacency
-      const existing = edgeToFaces.get(uKey) || [];
-      existing.push(t);
-      edgeToFaces.set(uKey, existing);
+      if (!existing) {
+        edgeMap.set(uKey, { face: t, fwd: isFwd, count: 1 });
+      } else {
+        existing.count++;
+        if (existing.count === 2) {
+          unionSets(existing.face, t);
+        }
+      }
     }
   }
 
@@ -197,10 +245,10 @@ export function analyzeMeshGeometry(
   let openBoundaryEdges = 0;
   let nonManifoldBranchEdges = 0;
 
-  for (const [, count] of edgeFaceCount.entries()) {
-    if (count === 1) {
+  for (const entry of edgeMap.values()) {
+    if (entry.count === 1) {
       openBoundaryEdges++;
-    } else if (count > 2) {
+    } else if (entry.count > 2) {
       nonManifoldBranchEdges++;
     }
   }
@@ -208,38 +256,11 @@ export function analyzeMeshGeometry(
   const isWatertight = openBoundaryEdges === 0 && triangleCount > 0;
   const isManifold = isWatertight && nonManifoldBranchEdges === 0 && degenerateCount === 0;
 
-  // 3. Multi-shell (Disconnected Body) Traversal
-  // Build adjacency graph between faces
-  for (const [, faces] of edgeToFaces.entries()) {
-    if (faces.length === 2) {
-      const f1 = faces[0];
-      const f2 = faces[1];
-      faceNeighbors[f1].push(f2);
-      faceNeighbors[f2].push(f1);
-    }
-  }
-
-  const visitedFaces = new Uint8Array(triangleCount);
+  // Multi-shell (Disconnected Body) Count via Disjoint Set Union roots
   let shellCount = 0;
-
   for (let i = 0; i < triangleCount; i++) {
-    if (!visitedFaces[i]) {
+    if (parent[i] === i) {
       shellCount++;
-      // BFS traversal
-      const queue = [i];
-      visitedFaces[i] = 1;
-      let head = 0;
-      while (head < queue.length) {
-        const curr = queue[head++];
-        const neighbors = faceNeighbors[curr];
-        for (let n = 0; n < neighbors.length; n++) {
-          const neighbor = neighbors[n];
-          if (!visitedFaces[neighbor]) {
-            visitedFaces[neighbor] = 1;
-            queue.push(neighbor);
-          }
-        }
-      }
     }
   }
 
@@ -290,3 +311,4 @@ export function analyzeMeshGeometry(
     warnings,
   };
 }
+
