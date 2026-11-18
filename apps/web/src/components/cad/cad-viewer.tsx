@@ -92,6 +92,7 @@ export function CADViewer({
   }, [unit]);
 
   const lastLoadedSourceRef = useRef<string | null>(null);
+  const cachedGeometriesRef = useRef<THREE.BufferGeometry[] | null>(null);
 
   // Initialize Three.js Scene
   useEffect(() => {
@@ -121,7 +122,7 @@ export function CADViewer({
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.shadowMap.type = THREE.PCFShadowMap;
     rendererRef.current = renderer;
 
     // 4. Orbit Controls
@@ -164,6 +165,21 @@ export function CADViewer({
     const meshGroup = new THREE.Group();
     scene.add(meshGroup);
     meshGroupRef.current = meshGroup;
+
+    // If geometries were cached previously, re-populate immediately on scene setup
+    if (cachedGeometriesRef.current && cachedGeometriesRef.current.length > 0) {
+      populateSceneWithGeometry(cachedGeometriesRef.current.map((g) => g.clone()));
+    }
+
+    if (typeof window !== 'undefined') {
+      (window as any).__DEBUG_CAD = {
+        scene,
+        camera,
+        controls,
+        meshGroup,
+        renderer,
+      };
+    }
 
     // Render loop
     const animate = () => {
@@ -270,6 +286,13 @@ export function CADViewer({
     (geometries: THREE.BufferGeometry[]) => {
       if (!meshGroupRef.current || !sceneRef.current) return;
 
+      // Keep a cloned master copy of parsed geometries in cache for remount resilience
+      try {
+        cachedGeometriesRef.current = geometries.map((g) => g.clone());
+      } catch {
+        // Safe fallback
+      }
+
       // Clear existing meshes
       while (meshGroupRef.current.children.length > 0) {
         const obj = meshGroupRef.current.children[0];
@@ -348,8 +371,11 @@ export function CADViewer({
         return;
       }
 
-      // Avoid re-loading and re-parsing identical models
+      // Avoid re-loading and re-parsing identical models, but ensure scene is populated
       if (lastLoadedSourceRef.current === sourceKey && rawGeometryRef.current) {
+        if (meshGroupRef.current && meshGroupRef.current.children.length === 0 && cachedGeometriesRef.current) {
+          populateSceneWithGeometry(cachedGeometriesRef.current.map((g) => g.clone()));
+        }
         return;
       }
 
