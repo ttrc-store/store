@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { connectToDatabase } from '@/lib/mongodb/client';
 import {
@@ -164,6 +165,14 @@ export async function POST(req: NextRequest) {
     // Link request ID to file record
     fileRecord.request_id = newRequest._id.toString();
     await fileRecord.save();
+
+    try {
+      revalidatePath('/admin/3d-printing');
+      revalidatePath('/admin/3d-printing/requests');
+      revalidatePath('/admin');
+    } catch {
+      // Safe fallback if called outside static generation store
+    }
 
     return NextResponse.json({
       success: true,

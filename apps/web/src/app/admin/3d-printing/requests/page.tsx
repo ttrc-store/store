@@ -5,6 +5,8 @@ import { connectToDatabase } from '@/lib/mongodb/client';
 import { PrintRequestModel } from '@/lib/mongodb/models';
 import { Box, ArrowLeft, Filter, Search, Eye } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'All Print Quotation Requests | TTRC Store Admin',
 };

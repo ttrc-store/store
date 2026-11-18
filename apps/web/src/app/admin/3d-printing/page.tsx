@@ -16,6 +16,8 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: '3D Printing CAD Management | TTRC Store Admin',
 };

@@ -11,6 +11,7 @@ import {
   Eye,
   Users,
   MessageSquareQuote,
+  Box,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PriceDisplay, PriceTag } from '@/components/store/price-display';
@@ -18,6 +19,8 @@ import { MetricCard } from '@/components/admin/metric-card';
 import { formatRupees } from '@/lib/utils';
 import { getAdminDashboardMetricsAction } from '@/actions/orders';
 import { getAdminEnquiriesCountAction } from '@/actions/enquiries';
+import { connectToDatabase } from '@/lib/mongodb/client';
+import { PrintRequestModel } from '@/lib/mongodb/models';
 import { ORDER_STATUS_LABELS } from '@ttrc/shared';
 
 export const revalidate = 60; // Revalidate every 60 seconds
@@ -45,9 +48,11 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default async function AdminDashboardOverview() {
-  const [metrics, enquiriesCount] = await Promise.all([
+  await connectToDatabase();
+  const [metrics, enquiriesCount, pendingPrintCount] = await Promise.all([
     getAdminDashboardMetricsAction(),
     getAdminEnquiriesCountAction(),
+    PrintRequestModel.countDocuments({ quotation_status: 'PENDING_REVIEW' }).catch(() => 0),
   ]);
 
   if ('error' in metrics) {
@@ -101,6 +106,20 @@ export default async function AdminDashboardOverview() {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <Link href="/admin/3d-printing/requests">
+            <Button
+              variant="outline"
+              className="border-slate-300 bg-white text-slate-700 hover:bg-slate-100 text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-xs"
+            >
+              <Box size={15} className="text-[#844AFB]" />
+              <span>3D Print Quotes</span>
+              {pendingPrintCount > 0 && (
+                <span className="bg-[#844AFB] text-white text-[10px] px-1.5 py-0.5 rounded-full font-extrabold ml-1 animate-pulse">
+                  {pendingPrintCount}
+                </span>
+              )}
+            </Button>
+          </Link>
           <Link href="/admin/enquiries">
             <Button
               variant="outline"
@@ -128,7 +147,29 @@ export default async function AdminDashboardOverview() {
         </div>
       </div>
 
-      {/* New Enquiries Notification Banner if pending */}
+      {/* 3D Print Quotation Request Notification Banner */}
+      {pendingPrintCount > 0 && (
+        <div className="p-4 rounded-2xl bg-[#EEE8FA]/80 border border-[#AF87F8]/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-purple-100 text-[#844AFB] shrink-0">
+              <Box size={18} />
+            </div>
+            <div>
+              <p className="font-bold text-slate-900 text-xs sm:text-sm">
+                {pendingPrintCount} New 3D Print Quotation Request{pendingPrintCount > 1 ? 's' : ''} Awaiting Engineering Review
+              </p>
+              <p className="text-[11px] text-slate-600 mt-0.5">
+                Customer CAD engineering models have been uploaded and analyzed. Inspect geometry, verify printer build volume, and generate quotation.
+              </p>
+            </div>
+          </div>
+          <Link href="/admin/3d-printing/requests">
+            <Button size="sm" className="bg-[#844AFB] hover:bg-[#6721F2] text-white font-bold text-xs rounded-xl shrink-0">
+              Review CAD Requests &rarr;
+            </Button>
+          </Link>
+        </div>
+      )}
       {enquiriesCount.newCount > 0 && (
         <div className="p-4 rounded-2xl bg-amber-50/80 border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
           <div className="flex items-center gap-3">
